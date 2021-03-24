@@ -1,11 +1,13 @@
 const { Controller } = require("./controller")
 const formidable = require('formidable')
-const fs = require('fs').promises
+const fs = require('fs')
 const path = require('path')
 const MediaService = require("../services/media_service")
 const { timeAgo } = require("../utils")
 const { sendData } = require("../services/ws_service")
 const { ENV } = require("../config/config")
+
+const fsPromises = fs.promises
 
 const formParse = (req) => {
   const form = new formidable.IncomingForm()
@@ -67,13 +69,13 @@ class IntroController extends Controller {
       const media = await introRepository.createMediaMetadata('video', mediaFile.type)
       const oldpath = mediaFile.path
 
-      const mediaContent = await fs.readFile(oldpath)
+      const mediaContent = await fsPromises.readFile(oldpath)
 
       if ('prod' === ENV) {
         await new MediaService().s3Upload(media.id, mediaFile.type, mediaContent)
       } else {
         const newpath = `./uploads/${media.id}`
-        await fs.rename(oldpath, newpath)
+        await fsPromises.rename(oldpath, newpath)
       }
 
       await introService.create({
@@ -119,6 +121,7 @@ class IntroController extends Controller {
     res.status(201).end()
   }
 
+  // dev only usage
   async get(req, response) {
     const targetMediaId = req.params.id
 
@@ -136,12 +139,12 @@ class IntroController extends Controller {
 
     const media = await introRepository.getMediaMetadata(mediaId)
     const filePath = path.join(__dirname, `/../../uploads/${size}${mediaId}`)
-    const stat = fs.statSync(filePath);
+    const stat = fs.statSync(filePath)
 
     response.writeHead(200, {
       'Content-Type': media.mime_type,
       'Content-Length': stat.size
-    });
+    })
 
     const readStream = fs.createReadStream(filePath)
     readStream.pipe(response);
