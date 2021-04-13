@@ -3,6 +3,17 @@ const AWS = require('aws-sdk')
 const { DOMAIN_MANE, S3_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, CDN_PATH, ENV } = require('../config/config')
 const fs = require('fs').promises
 
+const IMAGE_SIZES = [
+  {
+    size: 'small',
+    height: 200, width: 200
+  },
+  {
+    size: 'big',
+    height: 600, width: 600
+  }
+]
+
 class MediaService {
   constructor() {
     this.s3 = new AWS.S3({
@@ -12,18 +23,7 @@ class MediaService {
   }
 
   async resizeAndStore(imagePath, media, contentType) {
-    const sizes = [
-      {
-        size: 'small',
-        height: 200, width: 200
-      },
-      {
-        size: 'big',
-        height: 600, width: 600
-      }
-    ]
-
-    for (const size of sizes) {
+    for (const size of IMAGE_SIZES) {
       if ('prod' === ENV) {
         await this.storeS3(imagePath, media, size, contentType)
       } else {
@@ -53,7 +53,7 @@ class MediaService {
     }
 
     return new Promise((resolve, reject) => {
-      this.s3.upload(params, (err, data) => {
+      this.s3.upload(params, (err) => {
         if (err) {
           reject(err)
         } else {

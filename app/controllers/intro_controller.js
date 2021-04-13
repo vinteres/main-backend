@@ -1,11 +1,11 @@
-const { Controller } = require("./controller")
+const { Controller } = require('./controller')
 const formidable = require('formidable')
 const fs = require('fs')
 const path = require('path')
-const MediaService = require("../services/media_service")
-const { timeAgo } = require("../utils")
-const { sendData } = require("../services/ws_service")
-const { ENV } = require("../config/config")
+const MediaService = require('../services/media_service')
+const { timeAgo } = require('../utils')
+const { sendData } = require('../services/ws_service')
+const { ENV } = require('../config/config')
 
 const fsPromises = fs.promises
 
@@ -147,7 +147,7 @@ class IntroController extends Controller {
     })
 
     const readStream = fs.createReadStream(filePath)
-    readStream.pipe(response);
+    readStream.pipe(response)
   }
 
   async like(req, res) {

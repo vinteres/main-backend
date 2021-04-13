@@ -1,4 +1,4 @@
-const { hash } = require("../utils")
+const { hash } = require('../utils')
 
 class UserService {
   constructor(userRepository, viewRepository, searchPreferenceRepository, onboardingRepository, hobbieRepository, notificationService, locationService) {

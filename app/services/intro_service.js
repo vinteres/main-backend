@@ -1,5 +1,5 @@
-const UserRelationStatusType = require("../models/enums/user_relation_status_type")
-const { sendData } = require("./ws_service")
+const UserRelationStatusType = require('../models/enums/user_relation_status_type')
+const { sendData } = require('./ws_service')
 
 class IntroService {
   constructor(introRepository, matchRepository) {

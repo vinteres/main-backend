@@ -39,7 +39,7 @@ class NotificationRepository {
 
   async delete(relId, relType) {
     const query = 'DELETE FROM notifications WHERE rel_id = $1 AND rel_type = $2'
-    const result = await this.conn.query(query, [relId, relType])
+    await this.conn.query(query, [relId, relType])
   }
 }
 

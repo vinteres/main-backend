@@ -1,5 +1,5 @@
-const { Controller } = require("./controller")
-const { calculateAge } = require("../utils")
+const { Controller } = require('./controller')
+const { calculateAge } = require('../utils')
 
 class OnboardingController extends Controller {
   async getStep(req, res) {

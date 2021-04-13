@@ -37,7 +37,7 @@ class ReportRepository {
 
   async createReport({ fromUserId, toUserId, type, details }) {
     const createdAt = currentTimeMs()
-    const query = `INSERT INTO reports (reporter_user_id, reported_user_id, type, details, created_at) VALUES ($1, $2, $3, $4, $5)`
+    const query = 'INSERT INTO reports (reporter_user_id, reported_user_id, type, details, created_at) VALUES ($1, $2, $3, $4, $5)'
     await this.conn.query(query, [fromUserId, toUserId, type, details, createdAt])
 
     return { fromUserId, toUserId, type, details, createdAt }
@@ -45,7 +45,7 @@ class ReportRepository {
 
   async createFeedback({ userId, type, details }) {
     const createdAt = currentTimeMs()
-    const query = `INSERT INTO feedbacks (user_id, type, details, created_at) VALUES ($1, $2, $3, $4)`
+    const query = 'INSERT INTO feedbacks (user_id, type, details, created_at) VALUES ($1, $2, $3, $4)'
     await this.conn.query(query, [userId, type, details, createdAt])
 
     return { userId, type, details, createdAt }

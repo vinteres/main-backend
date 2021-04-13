@@ -1,13 +1,12 @@
-const UserRepository = require("../repositories/user_repository")
-const { Controller } = require("./controller")
+const UserRepository = require('../repositories/user_repository')
+const { Controller } = require('./controller')
 const formidable = require('formidable')
-const fs = require('fs')
-const MediaService = require("../services/media_service")
-const { item } = require("../data_builders/intro_builder")
-const { compareHash } = require("../utils")
-const { hash } = require("../utils")
-const SearchPereferenceValidator = require("../models/validators/search_pereference_validator")
-const SignUpValidator = require("../models/validators/sign_up_validator")
+const MediaService = require('../services/media_service')
+const { item } = require('../data_builders/intro_builder')
+const { compareHash } = require('../utils')
+const { hash } = require('../utils')
+const SearchPereferenceValidator = require('../models/validators/search_pereference_validator')
+const SignUpValidator = require('../models/validators/sign_up_validator')
 
 const mapImages = (images) => images.map(image => ({
   position: image.position,

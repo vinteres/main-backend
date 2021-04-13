@@ -1,4 +1,4 @@
-const Validator = require("./validator");
+const Validator = require('./validator')
 
 class SignUpValidator extends Validator {
   validate() {

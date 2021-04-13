@@ -1,5 +1,5 @@
-const ServiceDiscovery = require("../core/service_discovery")
-const { getClient } = require("../db")
+const ServiceDiscovery = require('../core/service_discovery')
+const { getClient } = require('../db')
 
 class Controller {
   constructor() {

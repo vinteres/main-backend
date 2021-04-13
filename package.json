@@ -4,7 +4,7 @@
   "description": "",
   "main": "app/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ./app",
     "startDev": "ENV=dev nodemon"
   },
   "author": "Velizar Ivanov",
@@ -24,6 +24,7 @@
     "ws": "^7.4.2"
   },
   "devDependencies": {
+    "eslint": "^7.24.0",
     "nodemon": "^2.0.7"
   }
 }

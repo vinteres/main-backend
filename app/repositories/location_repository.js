@@ -48,7 +48,7 @@ class LocationRepository {
     text[0] = text[0].toUpperCase()
     text = text.join('') 
 
-    const query = `SELECT * FROM cities WHERE name LIKE $1`
+    const query = 'SELECT * FROM cities WHERE name LIKE $1'
     const result = await this.conn.query(query, [text + '%'])
 
     return result.rows

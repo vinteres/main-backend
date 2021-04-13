@@ -22,7 +22,7 @@ class QuizRepository {
   }
 
   async findAllForUser(userId) {
-    const query = `SELECT * FROM user_answers WHERE user_id = $1`
+    const query = 'SELECT * FROM user_answers WHERE user_id = $1'
     const result = await this.conn.query(query, [userId])
 
     const r = {}
@@ -38,7 +38,7 @@ class QuizRepository {
 
     const query = `
       SELECT * FROM user_compatability WHERE
-      ${userIds.map((uId, ix) => `((user_one_id = $1 AND user_two_id = $${ix + 2}) OR (user_one_id = $${ix + 2} AND user_two_id = $1))`).join(" OR \n")}
+      ${userIds.map((uId, ix) => `((user_one_id = $1 AND user_two_id = $${ix + 2}) OR (user_one_id = $${ix + 2} AND user_two_id = $1))`).join(' OR \n')}
     `
     const result = await this.conn.query(query, [userId, ...userIds])
 
@@ -56,7 +56,7 @@ class QuizRepository {
   }
 
   async createCompatability(userOneId, userTwoId, percent) {
-    const query = `INSERT INTO user_compatability (user_one_id, user_two_id, percent) VALUES ($1, $2, $3)`
+    const query = 'INSERT INTO user_compatability (user_one_id, user_two_id, percent) VALUES ($1, $2, $3)'
 
     await this.conn.query(query, [userOneId, userTwoId, percent])
 
@@ -64,7 +64,7 @@ class QuizRepository {
   }
 
   async findCompatability(userOneId, userTwoId) {
-    const query = `select * FROM user_compatability WHERE (user_one_id = $1 AND user_two_id = $2) OR (user_one_id = $2 AND user_two_id = $1)`
+    const query = 'select * FROM user_compatability WHERE (user_one_id = $1 AND user_two_id = $2) OR (user_one_id = $2 AND user_two_id = $1)'
 
     const result = await this.conn.query(query, [userOneId, userTwoId])
 

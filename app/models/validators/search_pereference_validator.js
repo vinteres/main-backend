@@ -1,4 +1,4 @@
-const Validator = require("./validator");
+const Validator = require('./validator')
 
 const MIN_AGE = 18
 const MAX_AGE = 99

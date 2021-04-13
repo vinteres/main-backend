@@ -1,4 +1,4 @@
-const { Controller } = require("./controller")
+const { Controller } = require('./controller')
 
 class HobbieController extends Controller {
   async getAll(req, res) {

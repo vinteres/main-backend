@@ -1,4 +1,4 @@
-const { currentTimeMs } = require("../utils")
+const { currentTimeMs } = require('../utils')
 const uuid = require('uuid')
 
 class MediaRepository {

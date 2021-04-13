@@ -1,5 +1,5 @@
-const { timeAgo } = require("../utils")
-const { sendData } = require("./ws_service")
+const { timeAgo } = require('../utils')
+const { sendData } = require('./ws_service')
 
 class ChatService {
   constructor(chatRepository) {

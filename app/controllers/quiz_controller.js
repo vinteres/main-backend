@@ -1,4 +1,4 @@
-const { Controller } = require("./controller")
+const { Controller } = require('./controller')
 
 class QuizController extends Controller {
   async getQuiz(req, res) {

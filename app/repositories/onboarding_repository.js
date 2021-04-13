@@ -52,7 +52,7 @@ class OnboardingRepository {
     let c = 1
     const q = []
     const params = []
-    answers.forEach((item, ix) => {
+    answers.forEach((item) => {
       q.push(`($${c++}, $${c++}, $${c++})`)
       params.push(item.userId)
       params.push(item.answerId)

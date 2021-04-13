@@ -1,8 +1,8 @@
-const ChatRepository = require("../repositories/chat_repository")
-const { getProfileImagePath } = require("../services/media_service")
-const { Controller } = require("./controller")
-const { timeAgo } = require("../utils")
-const MediaService = require("../services/media_service")
+const ChatRepository = require('../repositories/chat_repository')
+const { getProfileImagePath } = require('../services/media_service')
+const { Controller } = require('./controller')
+const { timeAgo } = require('../utils')
+const MediaService = require('../services/media_service')
 
 class ChatController extends Controller {
   async members(req, res) {

@@ -5,7 +5,7 @@ const WsMessageType = Object.freeze({
   MSGS: 'msgs',
   SEE_INTROS: 'see_intros',
   SEE_MSG: 'see_msg',
-  NOTIF: notif
+  NOTIF: 'notif'
 })
 
 module.exports = WsMessageType
