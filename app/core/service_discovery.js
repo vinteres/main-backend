@@ -22,7 +22,7 @@ const NotificationService = require('../services/notification_service')
 const QuizService = require('../services/quiz_service')
 const UserService = require('../services/user_service')
 
-const dependecies = {
+const DEPENDENCIES = {
   user_repository: { cls: UserRepository, depends: ['db_connection']},
   quiz_repository: { cls: QuizRepository, depends: ['db_connection']},
   onboarding_repository: { cls: OnboardingRepository, depends: ['db_connection']},
@@ -37,7 +37,6 @@ const dependecies = {
   chat_repository: { cls: ChatRepository, depends: ['db_connection']},
   report_repository: { cls: ReportRepository, depends: ['db_connection']},
   media_repository: { cls: MediaRepository, depends: ['db_connection']},
-
   user_service: { cls: UserService, depends: [
     'user_repository',
     'views_repository',
@@ -76,13 +75,13 @@ class ServiceDiscovery {
       return await this.controller.getConnection()
     }
 
-    const d = []
-    for (const i of dependecies[name].depends) {
-      d.push(await this.get(i))
+    const dependecies = []
+    for (const i of DEPENDENCIES[name].depends) {
+      dependecies.push(await this.get(i))
     }
 
-    const inst = new dependecies[name].cls(...d)
-    this.services[name] = d
+    const inst = new DEPENDENCIES[name].cls(...dependecies)
+    this.services[name] = dependecies
 
     return inst
   }
