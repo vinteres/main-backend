@@ -20,8 +20,6 @@ CREATE TYPE gender AS ENUM (
 -- );
 
 CREATE TYPE notification_type AS ENUM (
-  -- 'friend_request_sent',
-  -- 'friend_request_accepted'
   'intro_like',
   'matched',
   'view'
@@ -51,14 +49,6 @@ CREATE TYPE pet_status_type AS ENUM (
   'other',
   'none'
 );
-
--- CREATE TYPE relationship_status_type AS ENUM (
---   'single',
---   'married',
---   'widowed',
---   'divorced',
---   'complicated'
--- );
 
 CREATE TYPE media_type AS ENUM (
   'video',
@@ -100,22 +90,6 @@ CREATE TABLE media_metadatas (
   created_at BIGINT NOT NULL
 );
 
--- CREATE TABLE user_images (
---   id UUID PRIMARY KEY,
---   user_id UUID REFERENCES users(id),
---   -- image_id UUID NOT NULL REFERENCES media_metadatas(id)
---   position INTEGER NOT NULL,
---   created_at INTEGER NOT NULL
--- );
-
--- CREATE TABLE user_image_rel (
---   user_image_id UUID REFERENCES user_images(id),
---   image_id UUID NOT NULL REFERENCES media_metadatas(id)
---   size image_size NOT NULL
--- );
-
-
-
 CREATE TABLE countries (
   id UUID PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -133,7 +107,6 @@ CREATE TABLE users (
   id UUID PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
-  -- username VARCHAR(255),
   title VARCHAR(70),
   description VARCHAR(255),
   ideal_match VARCHAR(255),
@@ -147,12 +120,10 @@ CREATE TABLE users (
   body body_type,
   children_status children_status_type,
   pet_status pet_status_type,
-  -- relationship_status relationship_status_type,
   city_id UUID REFERENCES cities(id),
   password VARCHAR(255),
   user_status user_status_type NOT NULL,
   profile_image_id UUID REFERENCES media_metadatas(id),
-  -- friends_count INTEGER,
   verified BOOLEAN NOT NULL,
   last_login_at BIGINT,
   created_at BIGINT NOT NULL
@@ -166,7 +137,6 @@ CREATE TABLE onboarding (
 );
 
 CREATE TABLE user_images (
-  -- id UUID PRIMARY KEY,
   user_id UUID REFERENCES users(id),
   image_id UUID NOT NULL REFERENCES media_metadatas(id),
   position INTEGER NOT NULL,
@@ -180,15 +150,8 @@ CREATE TABLE session_tokens (
   created_at BIGINT NOT NULL
 );
 
-CREATE TABLE communities (
-  id UUID PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  created_at BIGINT NOT NULL
-);
-
 CREATE TABLE chats (
   id UUID PRIMARY KEY,
-  -- community_id UUID REFERENCES communities(id),
   last_message_at BIGINT,
   created_at BIGINT NOT NULL
 );
@@ -207,24 +170,6 @@ CREATE TABLE chat_messages (
   text TEXT NOT NULL,
   created_at BIGINT NOT NULL
 );
-
--- CREATE TABLE chat_message_seens (
---   chat_id UUID REFERENCES chats(id),
---   user_id UUID NOT NULL REFERENCES users(id),
---   seen_at BIGINT NOT NULL
--- );
-
--- CREATE TABLE interests (
---   id UUID PRIMARY KEY,
---   name VARCHAR(255) NOT NULL,
---   parent_id UUID,
---   created_at BIGINT NOT NULL
--- );
-
--- CREATE TABLE user_interests (
---   user_id UUID REFERENCES users(id),
---   interest_id UUID NOT NULL REFERENCES interests(id)
--- );
 
 CREATE TABLE hobbies (
   id UUID PRIMARY KEY,
@@ -247,16 +192,6 @@ CREATE TABLE user_free_time_activities (
   user_id UUID REFERENCES users(id),
   activity_id UUID NOT NULL REFERENCES free_time_activities(id)
 );
-
-
--- CREATE TABLE friend_requests (
---   id UUID PRIMARY KEY,
---   requesting_user_id UUID NOT NULL,
---   target_user_id UUID NOT NULL,
---   type friend_request_type NOT NULL,
---   accepted_at BIGINT,
---   created_at BIGINT NOT NULL
--- );
 
 CREATE TABLE notifications (
   id UUID PRIMARY KEY,
@@ -310,28 +245,6 @@ CREATE TABLE search_preferences (
   created_at BIGINT NOT NULL
 );
 
-
-
--- CREATE TABLE quiz_steps (
---   id UUID PRIMARY KEY,
---   step INTEGER NOT NULL,
---   created_at BIGINT NOT NULL
--- );
-
--- CREATE TABLE questions (
---   id UUID PRIMARY KEY,
---   text VARCHAR(255) NOT NULL,
---   quiz_step INTEGER NOT NULL,
---   created_at BIGINT NOT NULL
--- );
-
--- CREATE TABLE quiz_questions (
---   step_id UUID REFERENCES quiz_steps(id),
---   question_id UUID NOT NULL REFERENCES questions(id)
--- );
-
-
-
 CREATE TABLE questions (
   id UUID PRIMARY KEY,
   text VARCHAR(255) NOT NULL,
@@ -368,131 +281,123 @@ CREATE TABLE user_views (
 
 
 INSERT INTO "questions" (id, text, quiz_step, created_at) VALUES
-('3e8f59b6-58f7-47ca-9b9c-5fb1638a54ab', 'How important is sex for you in a relationship?', 1, 1613141667),
 ('f0319ccb-8f5d-4c90-b3b6-ada2dc10d718', 'Why do you want a relationship?', 1, 1613141667),
-('ddf0942b-2e78-48ea-b784-0027a58fafdf', 'How do you want to spend your time in your relationship?', 1, 1613141667),
-('3a30abb2-62d6-4b2f-9095-0c31b21ed75e', 'How long do you want your next relationship to be?', 2, 1613141667),
-('9983378e-9f7b-4934-a489-c6854143fd8f', 'What do you think is more important:', 1, 1613141667),
-('41bd080b-48be-412c-b272-8ccf4d8bfdb6', 'What of the following describes you best?', 2, 1613141667),
-('f75b877c-bab9-41fa-b665-f6b6d22c7038', 'How do you feel when the person you are with is constantly on their phone?', 3, 1613141667),
-('6f15360a-745b-4d29-a406-a7d28842f5c6', 'q8', 3, 1613141667),
-('61fd5b94-51ed-480f-96b2-d4b731957b7d', 'q9', 3, 1613141667),
-('fca0df9e-804a-4a31-a219-4c2c4b610375', 'q10', 4, 1613141667),
-('2f38f6db-385f-4bef-99c0-0327fb45d9cd', 'q11', 4, 1613141667),
-('86daf1ec-1163-4ee8-89df-a0957305ccbf', 'q12', 4, 1613141667),
-('c474ccdf-82c3-4166-8a3d-d13c9447f039', 'q13', 5, 1613141667),
-('4aeb3909-d9aa-4a8b-b15a-df48cd9a19ae', 'q14', 5, 1613141667),
-('4d4b34cf-d58c-4c9c-bc05-0d886ed21670', 'q15', 5, 1613141667),
-('a1a2babf-9a54-49a0-ab3f-e8c64b52ca61', 'q16', 6, 1613141667),
-('1e2459b9-92c6-4249-a89a-35503e370563', 'q17', 6, 1613141667),
-('2d44ee81-56ce-4a25-83d7-d299d8f61d89', 'q18', 6, 1613141667),
-('dfa2f82c-81c6-4f0a-95e4-4ca812c0aeca', 'q19', 7, 1613141667),
-('0eebe62f-27cb-47ab-b658-ef4973250c6c', 'q20', 7, 1613141667),
-('ca12eefe-37e2-481a-98ab-2b355f5b5351', 'q21', 7, 1613141667);
+('3a30abb2-62d6-4b2f-9095-0c31b21ed75e', 'How long do you want your next relationship to be?', 1, 1613141667),
+('9983378e-9f7b-4934-a489-c6854143fd8f', 'Which of the following are most important in a relationship?', 1, 1613141667),
+
+('ddf0942b-2e78-48ea-b784-0027a58fafdf', 'How do you want to spend your time in your relationship?', 2, 1613141667),
+('3e8f59b6-58f7-47ca-9b9c-5fb1638a54ab', 'How important is sex for you in a relationship?', 2, 1613141667),
+('41bd080b-48be-412c-b272-8ccf4d8bfdb6', 'What do you think about cheating in a relationship?', 2, 1613141667),
+
+('f75b877c-bab9-41fa-b665-f6b6d22c7038', 'What do you think is more important:', 3, 1613141667),
+('6f15360a-745b-4d29-a406-a7d28842f5c6', 'Your ideal partner should:', 3, 1613141667),
+('61fd5b94-51ed-480f-96b2-d4b731957b7d', 'What is most likely to make you interested in someone?', 3, 1613141667),
+('fca0df9e-804a-4a31-a219-4c2c4b610375', 'Are you happy with your physical appearance?', 3, 1613141667),
+
+('86daf1ec-1163-4ee8-89df-a0957305ccbf', 'Why are you here?', 4, 1613141667),
+('2f38f6db-385f-4bef-99c0-0327fb45d9cd', 'Is religion important to you', 4, 1613141667),
+
+('c474ccdf-82c3-4166-8a3d-d13c9447f039', 'Do you feel more at ease at home than when you are out in a large gathering?', 5, 1613141667),
+('4aeb3909-d9aa-4a8b-b15a-df48cd9a19ae', 'Where do you like to spend your free time?', 5, 1613141667),
+('4d4b34cf-d58c-4c9c-bc05-0d886ed21670', 'Do you enjoy taking long walks?', 5, 1613141667),
+
+('1e2459b9-92c6-4249-a89a-35503e370563', 'How do you feel when the person you are with is constantly on their phone?', 6, 1613141667),
+('2d44ee81-56ce-4a25-83d7-d299d8f61d89', 'Does it bother you when people use their cell phone around you?', 6, 1613141667),
+
+('dfa2f82c-81c6-4f0a-95e4-4ca812c0aeca', 'What of the following describes you best?', 7, 1613141667),
+('0eebe62f-27cb-47ab-b658-ef4973250c6c', 'Do you treat strangers differently than people you like?', 7, 1613141667),
+
+('a1a2babf-9a54-49a0-ab3f-e8c64b52ca61', 'How often do you play sport?', 8, 1613141667),
+('ca12eefe-37e2-481a-98ab-2b355f5b5351', 'Is social media important to you?', 8, 1613141667),
+('a31b8df0-a83c-11eb-bcbc-0242ac130002', 'Are you passionate about something?', 8, 1613141667);
 
 INSERT INTO "answers" (id, text, question_id, created_at) VALUES
-('0c94b9ee-cfad-45dc-9d3b-7d15070b24ac', 'very important', '3e8f59b6-58f7-47ca-9b9c-5fb1638a54ab', 1613141667),
-('0b66bafb-fdfd-4cff-8485-c926b6a9f074', 'important', '3e8f59b6-58f7-47ca-9b9c-5fb1638a54ab', 1613141667),
-('8aeda582-3bc0-4332-b4fe-904c602ea05b', 'not important', '3e8f59b6-58f7-47ca-9b9c-5fb1638a54ab', 1613141667),
--- ('c40097ae-8b99-4f24-94ff-af40a169056e', 'q1 a4', '3e8f59b6-58f7-47ca-9b9c-5fb1638a54ab', 1613141667),
+('0c94b9ee-cfad-45dc-9d3b-7d15070b24ac', 'Very important', '3e8f59b6-58f7-47ca-9b9c-5fb1638a54ab', 1613141667),
+('0b66bafb-fdfd-4cff-8485-c926b6a9f074', 'Important', '3e8f59b6-58f7-47ca-9b9c-5fb1638a54ab', 1613141667),
+('8aeda582-3bc0-4332-b4fe-904c602ea05b', 'Not important', '3e8f59b6-58f7-47ca-9b9c-5fb1638a54ab', 1613141667),
 
-('7c62d69c-3ea4-4776-b959-a3a86c2a437b', 'sex', 'f0319ccb-8f5d-4c90-b3b6-ada2dc10d718', 1613141667),
-('8fbc71aa-d470-4d04-aaab-ca2aa52a96aa', 'provider', 'f0319ccb-8f5d-4c90-b3b6-ada2dc10d718', 1613141667),
-('a25bc967-09de-43b6-840a-8387f67ec741', 'a life partner', 'f0319ccb-8f5d-4c90-b3b6-ada2dc10d718', 1613141667),
-('d4ab8018-f4b6-42e1-9937-a04442a9f636', 'someone to spend time with', 'f0319ccb-8f5d-4c90-b3b6-ada2dc10d718', 1613141667)
+('7c62d69c-3ea4-4776-b959-a3a86c2a437b', 'Life is easier with a partner', 'f0319ccb-8f5d-4c90-b3b6-ada2dc10d718', 1613141667),
+('8fbc71aa-d470-4d04-aaab-ca2aa52a96aa', 'A better sex life', 'f0319ccb-8f5d-4c90-b3b6-ada2dc10d718', 1613141667),
+('a25bc967-09de-43b6-840a-8387f67ec741', 'So I''m not alone', 'f0319ccb-8f5d-4c90-b3b6-ada2dc10d718', 1613141667),
 
-('045aaecc-e58a-4d17-b2b8-f2f0ea02d7c6', 'appearance', '9983378e-9f7b-4934-a489-c6854143fd8f', 1613141667),
-('b5314ab1-d26a-4d74-a9e0-b3aac5f50491', 'personality', '9983378e-9f7b-4934-a489-c6854143fd8f', 1613141667),
-('c0b606eb-3811-4538-9c06-2c0a1bc7e8d5', 'wealth', '9983378e-9f7b-4934-a489-c6854143fd8f', 1613141667),
--- ('7368af37-5955-4087-b5fe-8041a33f85fb', 'q3 a4', '9983378e-9f7b-4934-a489-c6854143fd8f', 1613141667),
+('045aaecc-e58a-4d17-b2b8-f2f0ea02d7c6', 'Making life easier and peaceful for eachother', '9983378e-9f7b-4934-a489-c6854143fd8f', 1613141667),
+('b5314ab1-d26a-4d74-a9e0-b3aac5f50491', 'Accepting our imperfections', '9983378e-9f7b-4934-a489-c6854143fd8f', 1613141667),
+('c0b606eb-3811-4538-9c06-2c0a1bc7e8d5', 'Trying new things', '9983378e-9f7b-4934-a489-c6854143fd8f', 1613141667),
 
-('2f9045d1-46cb-426e-bfd0-45ce8315b08b', 'I work hard to be helpful to others', '41bd080b-48be-412c-b272-8ccf4d8bfdb6', 1613141667),
-('19d39b92-ddb9-4049-bde1-1fcf483d1a15', 'It is important to me that other people like me', '41bd080b-48be-412c-b272-8ccf4d8bfdb6', 1613141667),
-('bce64313-9900-495e-b64e-daab8b061ce7', 'I do what I want unless my actions affect someone else in a negative way', '41bd080b-48be-412c-b272-8ccf4d8bfdb6', 1613141667),
-('3885e19a-0e8e-42a8-b995-3d336804de85', 'I do not mind taking advantage of someone if it benefits me and I do not like them', '41bd080b-48be-412c-b272-8ccf4d8bfdb6', 1613141667),
+('2f9045d1-46cb-426e-bfd0-45ce8315b08b', 'No one should cheat', '41bd080b-48be-412c-b272-8ccf4d8bfdb6', 1613141667),
+('19d39b92-ddb9-4049-bde1-1fcf483d1a15', 'It''s ok', '41bd080b-48be-412c-b272-8ccf4d8bfdb6', 1613141667),
+('bce64313-9900-495e-b64e-daab8b061ce7', 'Depends', '41bd080b-48be-412c-b272-8ccf4d8bfdb6', 1613141667),
 
-('0cfda0c6-1a1f-4445-920e-4754eca0342c', 'q5 a1', 'ddf0942b-2e78-48ea-b784-0027a58fafdf', 1613141667),
-('3c727367-1b0f-4abf-ad3f-b1413c5a59a8', 'q5 a2', 'ddf0942b-2e78-48ea-b784-0027a58fafdf', 1613141667),
-('cdd6a5d7-8c3c-4f56-9393-4ef72f591201', '', 'ddf0942b-2e78-48ea-b784-0027a58fafdf', 1613141667),
-('09c77a58-bc1e-4ac6-a2aa-f490a8b1a4a4', '', 'ddf0942b-2e78-48ea-b784-0027a58fafdf', 1613141667),
+('0cfda0c6-1a1f-4445-920e-4754eca0342c', 'Go on adventure', 'ddf0942b-2e78-48ea-b784-0027a58fafdf', 1613141667),
+('3c727367-1b0f-4abf-ad3f-b1413c5a59a8', 'Play games', 'ddf0942b-2e78-48ea-b784-0027a58fafdf', 1613141667),
+('cdd6a5d7-8c3c-4f56-9393-4ef72f591201', 'Try new things', 'ddf0942b-2e78-48ea-b784-0027a58fafdf', 1613141667),
+('09c77a58-bc1e-4ac6-a2aa-f490a8b1a4a4', 'Have sex', 'ddf0942b-2e78-48ea-b784-0027a58fafdf', 1613141667),
 
-('c7d7e2e7-aa19-4c9b-b1d7-6bbac843c1dd', '', '3a30abb2-62d6-4b2f-9095-0c31b21ed75e', 1613141667),
-('cebe8376-7ad1-4100-a649-ee2095d7e339', '', '3a30abb2-62d6-4b2f-9095-0c31b21ed75e', 1613141667),
-('d74548b2-4ef1-4f9c-9eb1-15e4accd9ff6', '', '3a30abb2-62d6-4b2f-9095-0c31b21ed75e', 1613141667),
-('cd12a2ee-c96e-4393-984a-f5fc95027c09', '', '3a30abb2-62d6-4b2f-9095-0c31b21ed75e', 1613141667),
+('c7d7e2e7-aa19-4c9b-b1d7-6bbac843c1dd', 'Lifetime', '3a30abb2-62d6-4b2f-9095-0c31b21ed75e', 1613141667),
+('cebe8376-7ad1-4100-a649-ee2095d7e339', 'Few years', '3a30abb2-62d6-4b2f-9095-0c31b21ed75e', 1613141667),
+('d74548b2-4ef1-4f9c-9eb1-15e4accd9ff6', 'Few months', '3a30abb2-62d6-4b2f-9095-0c31b21ed75e', 1613141667),
+('cd12a2ee-c96e-4393-984a-f5fc95027c09', 'I don''t want a relationship', '3a30abb2-62d6-4b2f-9095-0c31b21ed75e', 1613141667),
 
-('2a6b280c-f462-4c17-99b8-64b85cd26da6', '', 'f75b877c-bab9-41fa-b665-f6b6d22c7038', 1613141667),
-('9c65142b-81a6-4dae-bcd5-1005cadd2b8f', '', 'f75b877c-bab9-41fa-b665-f6b6d22c7038', 1613141667),
-('3a1b7935-f34a-4ec2-9cfe-165e1bd4c4bd', '', 'f75b877c-bab9-41fa-b665-f6b6d22c7038', 1613141667),
-('a58a7322-addf-4fdf-b264-595cd736a9d4', '', 'f75b877c-bab9-41fa-b665-f6b6d22c7038', 1613141667),
+('2a6b280c-f462-4c17-99b8-64b85cd26da6', 'Appearance', 'f75b877c-bab9-41fa-b665-f6b6d22c7038', 1613141667),
+('9c65142b-81a6-4dae-bcd5-1005cadd2b8f', 'Personality', 'f75b877c-bab9-41fa-b665-f6b6d22c7038', 1613141667),
 
-('f5d60f63-d494-4d62-8218-0cb0e2b1c46f', '', '6f15360a-745b-4d29-a406-a7d28842f5c6', 1613141667),
-('069c078d-013b-4553-808f-3ee4b89db8e6', '', '6f15360a-745b-4d29-a406-a7d28842f5c6', 1613141667),
-('0ed90cd3-8c88-4c66-939d-ec56a151c95f', '', '6f15360a-745b-4d29-a406-a7d28842f5c6', 1613141667),
-('5862c75d-40d5-45b4-bee0-385c12accdaa', '', '6f15360a-745b-4d29-a406-a7d28842f5c6', 1613141667),
+('f5d60f63-d494-4d62-8218-0cb0e2b1c46f', 'Look good with me', '6f15360a-745b-4d29-a406-a7d28842f5c6', 1613141667),
+('069c078d-013b-4553-808f-3ee4b89db8e6', 'Share my interests', '6f15360a-745b-4d29-a406-a7d28842f5c6', 1613141667),
+('0ed90cd3-8c88-4c66-939d-ec56a151c95f', 'Be irresistable to me', '6f15360a-745b-4d29-a406-a7d28842f5c6', 1613141667),
 
-('b9ceb77f-8cf4-48ce-9cbf-4cb93db64852', '', '61fd5b94-51ed-480f-96b2-d4b731957b7d', 1613141667),
-('68b11eb7-ab09-40cb-b147-fd3dcd347545', '', '61fd5b94-51ed-480f-96b2-d4b731957b7d', 1613141667),
-('eaadb0b4-464b-4cf0-9ea3-6b0e303cc51a', '', '61fd5b94-51ed-480f-96b2-d4b731957b7d', 1613141667),
-('8a9a63aa-f9be-4375-9605-a289a7f093dc', '', '61fd5b94-51ed-480f-96b2-d4b731957b7d', 1613141667),
+('b9ceb77f-8cf4-48ce-9cbf-4cb93db64852', 'Financial security', '61fd5b94-51ed-480f-96b2-d4b731957b7d', 1613141667),
+('68b11eb7-ab09-40cb-b147-fd3dcd347545', 'Warm-heartedness', '61fd5b94-51ed-480f-96b2-d4b731957b7d', 1613141667),
+('eaadb0b4-464b-4cf0-9ea3-6b0e303cc51a', 'Appearance', '61fd5b94-51ed-480f-96b2-d4b731957b7d', 1613141667),
 
-('d69e6841-15fa-4726-903d-5059edd7b6e4', '', 'fca0df9e-804a-4a31-a219-4c2c4b610375', 1613141667),
-('8d9218c9-d15e-4a7d-8f55-2faf69fa1f43', '', 'fca0df9e-804a-4a31-a219-4c2c4b610375', 1613141667),
-('94032389-76a9-4630-9877-afc73eb957e3', '', 'fca0df9e-804a-4a31-a219-4c2c4b610375', 1613141667),
-('919423e0-59c4-4cc2-b0bb-d6b4e0158814', '', 'fca0df9e-804a-4a31-a219-4c2c4b610375', 1613141667),
+('d69e6841-15fa-4726-903d-5059edd7b6e4', 'Yes', 'fca0df9e-804a-4a31-a219-4c2c4b610375', 1613141667),
+('8d9218c9-d15e-4a7d-8f55-2faf69fa1f43', 'Most of the time, yes', 'fca0df9e-804a-4a31-a219-4c2c4b610375', 1613141667),
+('94032389-76a9-4630-9877-afc73eb957e3', 'It depends', 'fca0df9e-804a-4a31-a219-4c2c4b610375', 1613141667),
+('919423e0-59c4-4cc2-b0bb-d6b4e0158814', 'I''m sometimes unhappy about it', 'fca0df9e-804a-4a31-a219-4c2c4b610375', 1613141667),
 
-('f2774670-d2df-4bda-8887-bbea578b4dc9', '', '2f38f6db-385f-4bef-99c0-0327fb45d9cd', 1613141667),
-('28df9ace-6c07-4819-9234-dea2f50d9949', '', '2f38f6db-385f-4bef-99c0-0327fb45d9cd', 1613141667),
-('c622f416-a9ec-4fcd-b9c1-7aee1f2ef54e', '', '2f38f6db-385f-4bef-99c0-0327fb45d9cd', 1613141667),
-('ba888336-24b4-48d9-8f89-eda80675b92d', '', '2f38f6db-385f-4bef-99c0-0327fb45d9cd', 1613141667),
+('f2774670-d2df-4bda-8887-bbea578b4dc9', 'Very important', '2f38f6db-385f-4bef-99c0-0327fb45d9cd', 1613141667),
+('28df9ace-6c07-4819-9234-dea2f50d9949', 'Yes', '2f38f6db-385f-4bef-99c0-0327fb45d9cd', 1613141667),
+('c622f416-a9ec-4fcd-b9c1-7aee1f2ef54e', 'No', '2f38f6db-385f-4bef-99c0-0327fb45d9cd', 1613141667),
 
-('5bf68fd2-3569-40f5-835f-5dcec4ef499d', '', '86daf1ec-1163-4ee8-89df-a0957305ccbf', 1613141667),
-('37b9194e-a502-4a27-a4ac-bdaece08b1fe', '', '86daf1ec-1163-4ee8-89df-a0957305ccbf', 1613141667),
-('5f97c920-7ada-4bae-a7d4-b5bb04a41d64', '', '86daf1ec-1163-4ee8-89df-a0957305ccbf', 1613141667),
-('9b276528-3429-48f0-981c-f74557442cc1', '', '86daf1ec-1163-4ee8-89df-a0957305ccbf', 1613141667),
+('5bf68fd2-3569-40f5-835f-5dcec4ef499d', 'To date', '86daf1ec-1163-4ee8-89df-a0957305ccbf', 1613141667),
+('37b9194e-a502-4a27-a4ac-bdaece08b1fe', 'To meet new people', '86daf1ec-1163-4ee8-89df-a0957305ccbf', 1613141667),
+('5f97c920-7ada-4bae-a7d4-b5bb04a41d64', 'Hookups', '86daf1ec-1163-4ee8-89df-a0957305ccbf', 1613141667),
+('9b276528-3429-48f0-981c-f74557442cc1', 'To see what happens', '86daf1ec-1163-4ee8-89df-a0957305ccbf', 1613141667),
 
-('cd0d3cfa-e63b-4f32-940c-2fea119d56c6', '', 'c474ccdf-82c3-4166-8a3d-d13c9447f039', 1613141667),
-('74105521-6fbe-4a2d-8ac0-90b650530573', '', 'c474ccdf-82c3-4166-8a3d-d13c9447f039', 1613141667),
-('065f15cb-ec35-409a-b1cd-74c48a527b97', '', 'c474ccdf-82c3-4166-8a3d-d13c9447f039', 1613141667),
-('1a095ee3-272d-4f68-99b0-d36746d7c1ba', '', 'c474ccdf-82c3-4166-8a3d-d13c9447f039', 1613141667),
+('cd0d3cfa-e63b-4f32-940c-2fea119d56c6', 'Yes', 'c474ccdf-82c3-4166-8a3d-d13c9447f039', 1613141667),
+('74105521-6fbe-4a2d-8ac0-90b650530573', 'No', 'c474ccdf-82c3-4166-8a3d-d13c9447f039', 1613141667),
 
-('08a4ac8b-e5a8-40c1-b044-9dd6473ab2bd', '', '4aeb3909-d9aa-4a8b-b15a-df48cd9a19ae', 1613141667),
-('1e33aa70-e05b-43a6-abe1-94ecdf96e80a', '', '4aeb3909-d9aa-4a8b-b15a-df48cd9a19ae', 1613141667),
-('a4d17399-d38a-4daf-a301-371df91f6adb', '', '4aeb3909-d9aa-4a8b-b15a-df48cd9a19ae', 1613141667),
-('a31eed5d-afb9-4e04-a34e-78d9ca30d96f', '', '4aeb3909-d9aa-4a8b-b15a-df48cd9a19ae', 1613141667),
+('08a4ac8b-e5a8-40c1-b044-9dd6473ab2bd', 'At my home or visiting friends', '4aeb3909-d9aa-4a8b-b15a-df48cd9a19ae', 1613141667),
+('1e33aa70-e05b-43a6-abe1-94ecdf96e80a', 'Doing stuff outdoors', '4aeb3909-d9aa-4a8b-b15a-df48cd9a19ae', 1613141667),
+('a4d17399-d38a-4daf-a301-371df91f6adb', 'Socialising', '4aeb3909-d9aa-4a8b-b15a-df48cd9a19ae', 1613141667),
 
-('9778f896-3c1a-4916-a873-8db26cf2fa08', '', '4d4b34cf-d58c-4c9c-bc05-0d886ed21670', 1613141667),
-('cf838b5c-3846-42b9-a337-2033a9fbf019', '', '4d4b34cf-d58c-4c9c-bc05-0d886ed21670', 1613141667),
-('d2937574-a93b-4938-b4de-4d9ab2cd107b', '', '4d4b34cf-d58c-4c9c-bc05-0d886ed21670', 1613141667),
-('f6b467a2-148e-4e85-af36-44c79c3ac9ab', '', '4d4b34cf-d58c-4c9c-bc05-0d886ed21670', 1613141667),
-('8b9025f0-72bd-4bd0-b9a6-91894fab2638', '', 'a1a2babf-9a54-49a0-ab3f-e8c64b52ca61', 1613141667),
-('1bfcc0ad-99c6-4f0c-90a6-068a1ba8955f', '', 'a1a2babf-9a54-49a0-ab3f-e8c64b52ca61', 1613141667),
-('68a92386-4497-4ecd-bbac-f7f3d4d34d6a', '', 'a1a2babf-9a54-49a0-ab3f-e8c64b52ca61', 1613141667),
-('ac630126-339f-4fb2-9631-24a3e3dd595b', '', 'a1a2babf-9a54-49a0-ab3f-e8c64b52ca61', 1613141667),
-('1e5cbc6f-a0d6-4f6e-a693-e30b058b073f', '', '1e2459b9-92c6-4249-a89a-35503e370563', 1613141667),
-('562d307c-d97a-4490-8ce8-9327cd3697f5', '', '1e2459b9-92c6-4249-a89a-35503e370563', 1613141667),
-('81c07fa1-927e-4828-b7d2-c03430aff63b', '', '1e2459b9-92c6-4249-a89a-35503e370563', 1613141667),
-('ab20e5f7-4191-481a-8bcf-fa28c9d9caa7', '', '1e2459b9-92c6-4249-a89a-35503e370563', 1613141667),
-('1b9fa9bc-5b87-4f3b-9e2f-ffe80da35861', '', '2d44ee81-56ce-4a25-83d7-d299d8f61d89', 1613141667),
-('5a7b5440-77b5-4950-acec-ccc5d3815485', '', '2d44ee81-56ce-4a25-83d7-d299d8f61d89', 1613141667),
-('64b4c06b-b16e-45b8-a32d-1cf927f50268', '', '2d44ee81-56ce-4a25-83d7-d299d8f61d89', 1613141667),
-('59358a2e-b772-499c-8d02-58631f66ef8a', '', '2d44ee81-56ce-4a25-83d7-d299d8f61d89', 1613141667),
-('8f05d48d-3985-479b-a7eb-741d81fb0303', '', 'dfa2f82c-81c6-4f0a-95e4-4ca812c0aeca', 1613141667),
-('16010bdc-8820-491a-8162-08ca743c37a6', '', 'dfa2f82c-81c6-4f0a-95e4-4ca812c0aeca', 1613141667),
-('75d9fb06-9a8a-47c9-be38-7c0dbcda010e', '', 'dfa2f82c-81c6-4f0a-95e4-4ca812c0aeca', 1613141667),
-('cf8bed96-d0c7-41ff-8e47-88d887326f4f', '', 'dfa2f82c-81c6-4f0a-95e4-4ca812c0aeca', 1613141667),
-('c685432a-43ec-489a-b546-9d5d0f013fef', '', '0eebe62f-27cb-47ab-b658-ef4973250c6c', 1613141667),
-('16b044bb-76e8-40d5-8a01-d7fcc3b219f1', '', '0eebe62f-27cb-47ab-b658-ef4973250c6c', 1613141667),
-('391d00b1-881c-4bc2-8930-6a869c33e3a1', '', '0eebe62f-27cb-47ab-b658-ef4973250c6c', 1613141667),
-('535f17e9-6fcd-44d2-bbb7-3cbaa83bd426', '', '0eebe62f-27cb-47ab-b658-ef4973250c6c', 1613141667),
-('4064af70-72f1-474a-ac1b-c271f7f4a099', '', 'ca12eefe-37e2-481a-98ab-2b355f5b5351', 1613141667),
-('8efe8b2f-b15e-4044-b3eb-fe1f4018fefd', '', 'ca12eefe-37e2-481a-98ab-2b355f5b5351', 1613141667),
-('28db5ff6-7de0-4e11-827f-e962e8b5a109', '', 'ca12eefe-37e2-481a-98ab-2b355f5b5351', 1613141667),
-('5d82f7f3-3224-403a-827c-96b4b96f1ee8', '', 'ca12eefe-37e2-481a-98ab-2b355f5b5351', 1613141667);
+('9778f896-3c1a-4916-a873-8db26cf2fa08', 'Yes', '4d4b34cf-d58c-4c9c-bc05-0d886ed21670', 1613141667),
+('cf838b5c-3846-42b9-a337-2033a9fbf019', 'No', '4d4b34cf-d58c-4c9c-bc05-0d886ed21670', 1613141667),
 
--- INSERT INTO "cards" (id, user_id, text, created_at) VALUES
--- ('6c84fb90-12c4-11e1-840d-7b25c5ee772a', '6c84fb90-12c4-11e1-840d-7b25c5ee775a', 'card1!', 123456),
--- ('6c84fb90-12c4-11e1-840d-7b25c5ee773a', '6c84fb90-12c4-11e1-840d-7b25c5ee775b', 'card2!', 123456);
+('8b9025f0-72bd-4bd0-b9a6-91894fab2638', 'Daily', 'a1a2babf-9a54-49a0-ab3f-e8c64b52ca61', 1613141667),
+('1bfcc0ad-99c6-4f0c-90a6-068a1ba8955f', 'A few times a week', 'a1a2babf-9a54-49a0-ab3f-e8c64b52ca61', 1613141667),
+('68a92386-4497-4ecd-bbac-f7f3d4d34d6a', 'Several times a month', 'a1a2babf-9a54-49a0-ab3f-e8c64b52ca61', 1613141667),
+('ac630126-339f-4fb2-9631-24a3e3dd595b', 'Not very often', 'a1a2babf-9a54-49a0-ab3f-e8c64b52ca61', 1613141667),
+
+('1e5cbc6f-a0d6-4f6e-a693-e30b058b073f', 'I''m that person', '1e2459b9-92c6-4249-a89a-35503e370563', 1613141667),
+('562d307c-d97a-4490-8ce8-9327cd3697f5', 'Rude', '1e2459b9-92c6-4249-a89a-35503e370563', 1613141667),
+('81c07fa1-927e-4828-b7d2-c03430aff63b', 'I''m used to it', '1e2459b9-92c6-4249-a89a-35503e370563', 1613141667),
+
+('1b9fa9bc-5b87-4f3b-9e2f-ffe80da35861', 'Not really, I''ve gotten used to it', '2d44ee81-56ce-4a25-83d7-d299d8f61d89', 1613141667),
+('5a7b5440-77b5-4950-acec-ccc5d3815485', 'It does bother me, but it''s so common I just have to deal with it', '2d44ee81-56ce-4a25-83d7-d299d8f61d89', 1613141667),
+('64b4c06b-b16e-45b8-a32d-1cf927f50268', 'I can''t stand it!', '2d44ee81-56ce-4a25-83d7-d299d8f61d89', 1613141667),
+
+('8f05d48d-3985-479b-a7eb-741d81fb0303', 'I don''t fit in with ordinary people', 'dfa2f82c-81c6-4f0a-95e4-4ca812c0aeca', 1613141667),
+('16010bdc-8820-491a-8162-08ca743c37a6', 'I have always felt different from other people', 'dfa2f82c-81c6-4f0a-95e4-4ca812c0aeca', 1613141667),
+('75d9fb06-9a8a-47c9-be38-7c0dbcda010e', 'I have no problem getting along with most people', 'dfa2f82c-81c6-4f0a-95e4-4ca812c0aeca', 1613141667),
+
+('c685432a-43ec-489a-b546-9d5d0f013fef', 'Yes', '0eebe62f-27cb-47ab-b658-ef4973250c6c', 1613141667),
+('16b044bb-76e8-40d5-8a01-d7fcc3b219f1', 'No', '0eebe62f-27cb-47ab-b658-ef4973250c6c', 1613141667),
+
+('4064af70-72f1-474a-ac1b-c271f7f4a099', 'Yes', 'ca12eefe-37e2-481a-98ab-2b355f5b5351', 1613141667),
+('8efe8b2f-b15e-4044-b3eb-fe1f4018fefd', 'No', 'ca12eefe-37e2-481a-98ab-2b355f5b5351', 1613141667),
+
+('28db5ff6-7de0-4e11-827f-e962e8b5a109', 'Yes', 'a31b8df0-a83c-11eb-bcbc-0242ac130002', 1613141667),
+('5d82f7f3-3224-403a-827c-96b4b96f1ee8', 'No', 'a31b8df0-a83c-11eb-bcbc-0242ac130002', 1613141667);
 
 INSERT INTO "free_time_activities" (id, name, created_at) VALUES
 ('cbce397f-bed7-4239-a3da-f77097ad7705', 'Playing games', 1611872392),
@@ -530,94 +435,8 @@ INSERT INTO "hobbies" (id, name, created_at) VALUES
 ('3eb39b86-aeae-462f-b68d-ecb9a9efd81f', 'Watching Movies & TV', 1611872392),
 ('b51ed439-281c-4efb-8f01-07b1cda6c9e8', 'Watching Anime', 1611872392);
 
--- INSERT INTO "interests" (id, name, parent_id, created_at) VALUES
--- ('d80f42b8-11a0-4443-8b43-a0955feabd7c', 'Food & Drink', null, 1611872601),
--- ('75f3d45f-c04b-435c-9478-e190de6a547f', 'Barbecues and grilling', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('dfbf1f2f-af2e-453d-92e8-6e87462fca9c', 'Bars', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('0c3e11c9-6eb0-45d7-a460-127309e6568a', 'Beer', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('d33c97b9-cb59-4816-8422-289dd1e39967', 'Chinese cuisine', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('71481f76-261b-44d4-8d08-89dd3ed7a24a', 'Cocktails', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('3f8c15de-f5b5-4255-b39d-fe53fbf0c70a', 'Coffee', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('9132294d-7bdb-4a59-9b2e-11cfa21dd7d7', 'Tea', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('3d829a76-79c8-4b14-b7a6-0eac5f961d58', 'Cooking', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('391e0e3c-efc5-462e-b663-b79826ff8f68', 'Desserts', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('6d567d85-a869-48c3-8120-506915856b33', 'Baking', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('77a83ee1-3f2a-45bd-90bf-5e5ce90b6622', 'Dining out', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('07fd8643-c1c2-438d-b082-d731667adf86', 'Ethnic foods', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('03c19de2-aa0d-4ffe-8769-c6f47ec6e9e7', 'Fast food', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('e889ed46-9198-472a-9da6-15d6952d4851', 'Fine dining', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('4afa121a-3f4e-43f3-827f-adf1e3fdc2a6', 'French food', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('f794be66-277e-4d89-8da4-b55e76688e05', 'Italian food', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('f5ee469a-5705-4926-811a-233d186bda81', 'Japanese food', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('e9f1bd38-1e92-42ea-8a25-6f0f951db441', 'Mexican food', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('83af6598-eb0e-4110-97dd-6dfff974e642', 'Achohol', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('4d591bab-9b30-4905-bcf8-aa698214cdee', 'Vegan', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('38e0b83d-61b6-4d7d-a6bd-c7da733edd91', 'Vegetarian', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('9b6804e7-e5fa-475d-bae4-72defdde1cb0', 'Wine', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('717faa91-2395-432b-9818-2fbfa2b8e497', 'Seafood', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('1b776b19-e79e-44c2-ac03-102272b94b9a', 'Restaurants', 'd80f42b8-11a0-4443-8b43-a0955feabd7c', 1611872601),
--- ('f4695454-bc12-41ed-9ea5-fde739e55dc7', 'Music', null, 1611872601),
--- ('e9076c2f-8d97-45d8-abef-8c0a62bf8dce', 'Classical', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('2824db62-e402-4c09-9bc8-473773fd0231', 'Country', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('8778baf9-221c-40f1-b013-54cc9160c880', 'Dance', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('09ddedd3-e4b3-421c-ad56-03913d16dcd7', 'DJs', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('292906ad-0c58-45de-bbf7-4f3d820bd586', 'Electronic', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('01410bed-38cb-4d04-adf5-fcc936f75c10', 'Hip hop', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('ad21ba18-28a8-4c04-b27a-b46693dcbdbc', 'Rap', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('ee4480c8-a5f4-4ca3-91a9-45f6512ddefe', 'Jazz', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('ba7d70f5-85c8-4502-b076-5358ed238c62', 'Latino', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('6d025de4-7cf1-42a2-8f8c-322796edf5a2', 'Metal', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('0f688620-46ac-4b35-ab49-c2f7963a099a', 'Pop', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('c35ddbd6-690a-453c-8ff0-27d169c2394a', 'Reggae', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('166169dd-ca39-43eb-bf92-5ec8c46bd8a4', 'Rock', 'f4695454-bc12-41ed-9ea5-fde739e55dc7', 1611872601),
--- ('cf7386fc-e25b-4808-8c35-401afa547aa1', 'Movies & TV Shows', null, 1611872601),
--- ('4aa893dd-1ae0-417c-8c0b-c83a2203d6cd', 'Action', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('f8242e52-666b-4b00-850e-38482fad6f30', 'Adventure', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('d726c6d4-f4dc-417b-a989-010f3591b3c6', 'Animation', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('a0e18fa4-8424-449c-8bbb-d24e4fb3fa53', 'Bollywood', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('df681685-5763-46ee-a746-5aaf8ba7b63e', 'News', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('54b11653-fc20-42cb-ae7a-23b430ac5b94', 'Comedy', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('5921d02c-3e33-41b4-84a0-a561aec8924a', 'Documentary', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('0090ce90-b39d-43b1-8a74-7bee28312ced', 'Drama', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('4fb12bca-5d71-43d0-9d48-0ebf256cc3f2', 'Foreign', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('245572af-efa0-4c6c-991f-496d14622656', 'Horror', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('b43c7a33-d8ca-44aa-8e2f-e29c67b52058', 'Independent', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('ec63799a-1839-4592-8295-e2fc6ba529e1', 'Music', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('417faa97-b8e1-4415-b694-07adecd37081', 'Reality TV', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('3cbad643-232d-4154-9a04-0246dfc7f12b', 'Romance', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('c6b5a56f-2fc4-4fca-95cd-d7309ee1101f', 'Sci-fi', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('9361121f-cc1a-4935-8195-252e5dcf2c07', 'Fantasy', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('a3045c9d-8ec9-4f67-a4aa-327a9d07efde', 'Sports', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('a713ea87-b5c3-4dc8-9a11-3b55ea6e66c8', 'Cinema', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('eb96ce66-583b-480a-9b3e-aad6a2861682', 'Anime', 'cf7386fc-e25b-4808-8c35-401afa547aa1', 1611872601),
--- ('ebeed784-cf94-4126-94ec-89a2b804ff7d', 'Fashion & Beauty', null, 1611872601),
--- ('29468860-471a-4da1-b821-f331218d347d', 'Tattoos', 'ebeed784-cf94-4126-94ec-89a2b804ff7d', 1611872601),
--- ('1e1ab0f9-02cb-44e6-a2af-7ac7ad6f0fc6', 'Shopping', 'ebeed784-cf94-4126-94ec-89a2b804ff7d', 1611872601),
--- ('dcb3fac7-1e1a-4e14-9f41-491ce07d82de', 'Watches', 'ebeed784-cf94-4126-94ec-89a2b804ff7d', 1611872601),
--- ('1d54b853-7d94-4109-8680-42498b2e1e1e', 'Shoes', 'ebeed784-cf94-4126-94ec-89a2b804ff7d', 1611872601),
--- ('15ab98de-936f-4c87-a26d-6344792f2dae', 'Sunglasses', 'ebeed784-cf94-4126-94ec-89a2b804ff7d', 1611872601),
--- ('8a4ee922-c6b1-42c3-832e-82b25dd03046', 'Shirts', 'ebeed784-cf94-4126-94ec-89a2b804ff7d', 1611872601),
--- ('b4e526fa-c59b-4987-9eb1-0d776cd1025f', 'Jeans And T-Shirt', 'ebeed784-cf94-4126-94ec-89a2b804ff7d', 1611872601),
--- ('aec063e8-d8c9-413d-972b-45294fa60511', 'Sports', null, 1611872601),
--- ('3d519a22-4b48-49fd-b325-5823785c3fc1', 'American football', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('7b4b8285-ffe1-4402-b7a3-a75114ad45e2', 'Auto racing', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('91b3665f-cc69-4009-bcd7-bb9cf7db208c', 'Baseball', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('78466ea9-f124-44f7-9c37-2c01763aa334', 'Basketball', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('35b01ce0-4acf-4f8e-ac1f-ef692b9b9c2e', 'College football', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('7039b981-c297-4cda-a406-ea9deb602d9d', 'Golf', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('9dff925e-40c2-44c7-8703-9bddca7f78ac', 'Marathons', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('ee3f9e79-ebeb-468f-9e42-e4035d9c80d7', 'Skiing', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('4b30b0d0-2f9f-4378-8a50-5bf3cd7a0076', 'Snowboarding', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('f355be53-f75a-4175-8fb9-1a4ce68cd7d7', 'Swimming', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('4c085cb1-ce50-47e8-9c22-6017f8e3b54b', 'Tennis', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('414b5daa-226b-4342-8e46-f3a7d9f7da8f', 'Thriathlons', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('df315000-3220-4729-ab9d-c0ef847f57ed', 'Volleyball', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('b88067b3-026d-413d-9ca9-f2ee49d4afcf', 'Football', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('d6d21e20-3491-4e57-b6bc-8d988f7d4b91', 'Weight Lifting', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601),
--- ('a4bc03e7-fd22-40f5-9a15-2c5100b39e80', 'Running', 'aec063e8-d8c9-413d-972b-45294fa60511', 1611872601);
-
 INSERT INTO countries (id, name, created_at) VALUES
-('58800b7d-2edf-4aeb-a2e4-622dcd00b131', 'Bulgaria', 1611872601)
+('58800b7d-2edf-4aeb-a2e4-622dcd00b131', 'Bulgaria', 1611872601),
 ('df965c14-ab6c-446e-81df-26925b19e0fd', 'Germany', 1611872601),
 ('e2a71c3b-6aa3-475c-ac5f-87f21baae2c7', 'Sweden', 1611872601),
 ('5bc9e8a1-cfa2-4109-ba58-6c03635e799b', 'Norway', 1611872601),
@@ -632,7 +451,6 @@ INSERT INTO countries (id, name, created_at) VALUES
 ('dee0df50-0bee-448f-bbcf-022d62f67d05', 'Netherlands', 1611872601),
 ('cbaf5725-c349-4919-90ed-8ec8e6a9d47e', 'Denmark', 1611872601),
 ('146094c8-9f20-4561-887a-04e73f3bbeaa', 'Estonia', 1611872601),
--- ('44ff1d9d-3e6f-4864-b7c8-2acdeda19d5d', 'Serbia', 1611872601),
 ('6599f392-bbb4-429e-ae48-4d308b8bfa5b', 'Iceland', 1611872601),
 ('71c21555-f981-42b2-99f7-95f95ece8fdb', 'Hungary', 1611872601),
 ('13657c1c-2684-4aca-b665-255554416c8c', 'Portugal', 1611872601),
@@ -648,12 +466,10 @@ INSERT INTO countries (id, name, created_at) VALUES
 ('f9f2ecd9-4439-4e98-9d57-aec795dcb01c', 'Belgium', 1611872601),
 ('71e0184c-f31e-48bc-a644-a4e828dec2d1', 'Armenia', 1611872601),
 ('2ff5d6b3-e54f-4929-90d5-890494ac8049', 'Albania', 1611872601),
--- ('c2d08dae-e0fa-4bb1-908b-60c6dba9c9dc', 'North Macedonia', 1611872601),
 ('bad6d28c-a1ad-4236-aa99-99af3bafbd6f', 'Turkey', 1611872601),
 ('09aa4f0c-78d8-412e-944c-262bf98a1f2a', 'Slovenia', 1611872601),
 ('b6f8d331-0a84-481e-a1b0-fc1c1543e130', 'Montenegro', 1611872601),
-('c1ad0bc9-72a6-4e53-87ec-cd6c1ada8519', 'Kosovo', 1611872601),
--- ('910368f6-84fd-41c0-a438-caa553bcd645', 'Ukraine', 1611872601);
+('c1ad0bc9-72a6-4e53-87ec-cd6c1ada8519', 'Kosovo', 1611872601);
 
 INSERT INTO cities (id, name, country_id, created_at) VALUES
 ('717fcbaf-a434-4a42-9175-3ccaae9f4ee1', 'Akhtopol', '58800b7d-2edf-4aeb-a2e4-622dcd00b131', 1612308994),

@@ -1,6 +1,7 @@
 const getRandomInt = (min, max) => {
   min = Math.ceil(min)
   max = Math.floor(max)
+
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
@@ -49,12 +50,19 @@ class QuizService {
 
   async backfillCompatability(userId) {
     const user = await this.userRepository.getUserInfoById(userId)
-    const userIds = await this.userRepository.findInterestedIds(user)
+    let lastCreatedAt = null
 
-    for (const uId of userIds) {
-      if (uId === userId) continue
+    while(1) {
+      const users = await this.userRepository.findInterestedIds({ ...user, createdAt: lastCreatedAt })
+      if (0 === users.length) break
 
-      await this.getOrCreateCompatabilityFor(userId, uId)
+      users.map(user => user.id).forEach(async uId => {
+        if (uId === userId) return
+
+        await this.getOrCreateCompatabilityFor(userId, uId)
+      })
+
+      lastCreatedAt = users[users.length - 1].created_at
     }
   }
 

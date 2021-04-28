@@ -92,7 +92,6 @@ class UserRepository {
       SELECT id, gender, interested_in
       FROM users
       WHERE id = $1
-      ORDER BY created_at ASC
     `
     const result = await this.conn.query(query, [userId])
 
@@ -232,13 +231,23 @@ class UserRepository {
     return result.rows.map(user => user.id)
   }
 
-  async findInterestedIds({ gender, interested_in }) {
-    const query = `
-      SELECT id FROM users WHERE interested_in = $1 AND gender = $2
-    `
-    const result = await this.conn.query(query, [gender, interested_in])
+  async findInterestedIds({ gender, interested_in, createdAt }) {
+    let whereCreatedAt = ''
+    const params = [gender, interested_in]
+    if (createdAt) {
+      whereCreatedAt = `AND created_at > $3`
+      params.push(createdAt)
+    }
 
-    return result.rows.map(user => user.id)
+    const query = `
+      SELECT id, created_at FROM users
+      WHERE interested_in = $1 AND gender = $2 ${whereCreatedAt}
+      ORDER BY created_at ASC
+      LIMIT 100
+    `
+    const result = await this.conn.query(query, params)
+
+    return result.rows
   }
 }
 

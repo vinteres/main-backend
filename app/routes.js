@@ -77,7 +77,7 @@ const initRoutes = (app) => {
   app.post('/api/settings/deactivate', auth, handle(UserController, 'deactivate'))
   app.get('/api/email-exists', handle(UserController, 'emailExists'))
   
-  app.get('/api/onboarding/step', authOnboarding, handle(OnboardingController, 'getStep'))
+  app.get('/api/onboarding/step', auth, handle(OnboardingController, 'getStep'))
   app.post('/api/onboarding/account-info', authOnboarding, handle(OnboardingController, 'setAccountInfo'))
   app.post('/api/onboarding/profile-info', authOnboarding, handle(OnboardingController, 'setProfileInfo'))
   app.post('/api/onboarding/interests', authOnboarding, handle(OnboardingController, 'setInterests'))

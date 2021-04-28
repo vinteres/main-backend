@@ -40,7 +40,11 @@ class OnboardingController extends Controller {
 
     const fromAge = (18 > 15 - age) ? 18 : age - 15
     const toAge = (99 < 15 + age) ? 99 : age + 15
-    await searchPreferenceRepository.create(loggedUserId, { fromAge, toAge, cityId: city })
+    if (await searchPreferenceRepository.getForUser(loggedUserId)) {
+      await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId: city })
+    } else {
+      await searchPreferenceRepository.create(loggedUserId, { fromAge, toAge, cityId: city })
+    }
 
     const newStep = step.step + 1
     await onboardingRepository.incrementStep(loggedUserId, newStep)
@@ -134,8 +138,11 @@ class OnboardingController extends Controller {
     }
 
     await onboardingRepository.createUserAnswers(userAnswers)
-    await quizService.backfillCompatability(loggedUserId)
-    await userRepository.setStatus(loggedUserId, 'active')
+    await userRepository.setStatus(loggedUserId, 'active');
+
+    (async () => {
+      await quizService.backfillCompatability(loggedUserId)
+    })();
 
     const { completedAt } = await onboardingRepository.setComplete(loggedUserId)
 
