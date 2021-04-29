@@ -16,3 +16,4 @@
 .history/*
 
 /app/config/config-dev.js
+/app/config/config-production.js
