@@ -5,7 +5,7 @@
   "main": "app/main.js",
   "scripts": {
     "lint": "eslint ./app",
-    "startDev": "ENV=dev nodemon"
+    "start:dev": "ENV=dev nodemon"
   },
   "author": "Velizar Ivanov",
   "license": "ISC",
