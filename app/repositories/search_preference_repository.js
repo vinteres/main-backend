@@ -17,7 +17,16 @@ class SearchPreferenceRepository {
       [fromAge, toAge, cityId, userId]
     )
 
-    return result.rows[0]
+    const searchPreferences = result.rows[0]
+    if (searchPreferences) {
+      return searchPreferences
+    }
+
+    return {
+      from_age: 18,
+      to_age: 50,
+      city_id: null
+    }
   }
 
   async create(userId, { fromAge, toAge, cityId }) {
