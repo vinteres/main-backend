@@ -1,13 +1,9 @@
 const { Pool } = require('pg')
+const config = require('./config/config')
 
 class Connection {
   constructor() {
-    this.pool = new Pool({
-      user: 'postgres',
-      host: 'localhost',
-      database: 'vinterest',
-      port: 5432,
-    })
+    this.pool = new Pool(config.DB)
   }
 
   async getConnection(handle, errorHandle) {
