@@ -16,7 +16,7 @@ class SearchPreferenceRepository {
     return {
       from_age: 18,
       to_age: 50,
-      city_id: null
+      city_id: '58800b7d-2edf-4aeb-a2e4-622dcd00b131'
     }
   }
 
