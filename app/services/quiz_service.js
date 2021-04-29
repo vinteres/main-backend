@@ -38,7 +38,7 @@ class QuizService {
       }
     }
 
-    let percentMatch = Math.ceil(percentage(c, qIds.length))
+    let percentMatch = (0 === c || 0 === qIds.length) ? 0 : Math.ceil(percentage(c, qIds.length))
     if (percentMatch > 100) {
       percentMatch = 100
     }
