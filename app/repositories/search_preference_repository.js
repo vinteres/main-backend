@@ -8,15 +8,6 @@ class SearchPreferenceRepository {
   async getForUser(userId) {
     const result = await this.conn.query('SELECT * FROM search_preferences WHERE user_id = $1', [userId])
 
-    return result.rows[0]
-  }
-
-  async setForUser(userId, { fromAge, toAge, cityId }) {
-    const result = await this.conn.query(
-      'UPDATE search_preferences SET from_age = $1, to_age = $2, city_id = $3 WHERE user_id = $4',
-      [fromAge, toAge, cityId, userId]
-    )
-
     const searchPreferences = result.rows[0]
     if (searchPreferences) {
       return searchPreferences
@@ -27,6 +18,15 @@ class SearchPreferenceRepository {
       to_age: 50,
       city_id: null
     }
+  }
+
+  async setForUser(userId, { fromAge, toAge, cityId }) {
+    const result = await this.conn.query(
+      'UPDATE search_preferences SET from_age = $1, to_age = $2, city_id = $3 WHERE user_id = $4',
+      [fromAge, toAge, cityId, userId]
+    )
+
+    return result.rows[0]
   }
 
   async create(userId, { fromAge, toAge, cityId }) {
