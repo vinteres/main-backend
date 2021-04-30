@@ -3,9 +3,8 @@ const formidable = require('formidable')
 const fs = require('fs')
 const path = require('path')
 const MediaService = require('../services/media_service')
-const { timeAgo } = require('../utils')
+const { timeAgo, isProd } = require('../utils')
 const { sendData } = require('../services/ws_service')
-const { ENV } = require('../config/config')
 
 const fsPromises = fs.promises
 
@@ -71,7 +70,7 @@ class IntroController extends Controller {
 
       const mediaContent = await fsPromises.readFile(oldpath)
 
-      if ('prod' === ENV) {
+      if (isProd()) {
         await new MediaService().s3Upload(media.id, mediaFile.type, mediaContent)
       } else {
         const newpath = `./uploads/${media.id}`

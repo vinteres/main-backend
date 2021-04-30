@@ -1,6 +1,7 @@
 const sharp = require('sharp')
 const AWS = require('aws-sdk')
-const { DOMAIN_MANE, S3_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, CDN_PATH, ENV } = require('../config/config')
+const { DOMAIN_MANE, S3_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, CDN_PATH } = require('../config/config')
+const { isProd } = require('../utils')
 const fs = require('fs').promises
 
 const IMAGE_SIZES = [
@@ -24,7 +25,7 @@ class MediaService {
 
   async resizeAndStore(imagePath, media, contentType) {
     for (const size of IMAGE_SIZES) {
-      if ('prod' === ENV) {
+      if (isProd()) {
         await this.storeS3(imagePath, media, size, contentType)
       } else {
         await this.storeLocaly(imagePath, media, size)
@@ -89,7 +90,7 @@ class MediaService {
   }
 
   static mediaPath(mediaId, size = '') {
-    if ('prod' === ENV) {
+    if (isProd()) {
       return `${CDN_PATH}/${size ? `${size}_` : ''}${mediaId}`
     }
 

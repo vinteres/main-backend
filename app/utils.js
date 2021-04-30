@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt')
+const { ENV } = require('./config/config')
 
 const currentTimeMs = () => Date.now()
 
@@ -64,6 +65,8 @@ const compareHash = async (text, hash) => {
   return bcrypt.compare(text, hash)
 }
 
+const isProd = () => 'production' === ENV
+
 module.exports = {
   currentTimeMs,
   mapByKey,
@@ -71,4 +74,5 @@ module.exports = {
   calculateAge,
   hash,
   compareHash,
+  isProd,
 }
