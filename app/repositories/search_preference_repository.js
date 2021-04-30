@@ -8,16 +8,7 @@ class SearchPreferenceRepository {
   async getForUser(userId) {
     const result = await this.conn.query('SELECT * FROM search_preferences WHERE user_id = $1', [userId])
 
-    const searchPreferences = result.rows[0]
-    if (searchPreferences) {
-      return searchPreferences
-    }
-
-    return {
-      from_age: 18,
-      to_age: 50,
-      city_id: 'd81b72fd-8520-4403-aba3-17e1eddfc20f'
-    }
+    return result.rows[0]
   }
 
   async setForUser(userId, { fromAge, toAge, cityId }) {
