@@ -35,7 +35,7 @@ class OnboardingController extends Controller {
     const age = calculateAge(new Date(birthday))
     await userRepository.setOnboardingAccountInfo(
       loggedUserId,
-      { name, title, description, birthday, gender, interested_in, city }
+      { name, title, description, birthday, gender, interested_in, city, age }
     )
 
     const fromAge = (18 > 15 - age) ? 18 : age - 15
