@@ -13,6 +13,8 @@ const ChatRepository = require('./repositories/chat_repository')
 const NotificationRepository = require('./repositories/notification_repository')
 const UserRepository = require('./repositories/user_repository')
 const compression = require('compression')
+const path = require('path')
+const fs = require('fs')
 
 const app = express()
 const port = 4000
@@ -23,6 +25,25 @@ const wss = new WebSocket.Server({ server })
 app.use(compression())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+
+app.use((req, res, next) => {
+  if (['OPTIONS', 'HEAD'].includes(req.method) || /\./.test(req.originalUrl)) {
+    next();
+    return
+  }
+
+  const d = new Date();
+  const time = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+  const logFilePath = path.join(__dirname, `/../app.log`)
+
+  fs.appendFile(
+    logFilePath,
+    `${req.method} ${req.originalUrl} AT ${time}\nTOKEN: ${req.headers['x-auth-token']}\nUser agent: ${req.headers['user-agent']}\n\n`,
+    (err) => {}
+  );
+
+  next();
+})
 
 app.use(express.static(process.cwd() + '../../socialSpa/dist/socialSpa/'))
 
