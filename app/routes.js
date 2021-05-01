@@ -87,7 +87,7 @@ const initRoutes = (app) => {
   app.post('/api/search-preferences', authActive, handle(UserController, 'setSearchPreferences'))
 
   app.get('*', (req, res) => {
-    const dir = path.resolve(process.cwd() + '/../socialSpa/dist/socialSpa/index.html')
+    const dir = path.resolve(process.cwd() + '/dist/index.html')
     res.sendFile(dir)
   })
 }

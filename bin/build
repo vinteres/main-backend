@@ -1,0 +1,7 @@
+#!/bin/sh
+
+cd ../socialSpa
+npm run build
+cd ../main-backend
+rm -rf dist
+cp -r ../socialSpa/dist/socialSpa dist

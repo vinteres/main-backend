@@ -1,0 +1,5 @@
+#!/bin/sh
+
+bash bin/build
+export ENV=production
+npm run start-process:prod

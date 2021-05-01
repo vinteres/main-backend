@@ -45,7 +45,7 @@ app.use((req, res, next) => {
   next();
 })
 
-app.use(express.static(process.cwd() + '../../socialSpa/dist/socialSpa/'))
+app.use(express.static(process.cwd() + '/dist/'))
 
 app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*')

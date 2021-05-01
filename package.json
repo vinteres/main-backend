@@ -6,7 +6,9 @@
   "scripts": {
     "lint": "eslint ./app",
     "start:dev": "ENV=dev nodemon",
-    "start:prod": "pm2 start ecosystem.config.js --env production"
+    "build:prod": "bash bin/build",
+    "start-process:prod": "pm2 start ecosystem.config.js --env production",
+    "start:prod": "bash bin/start-prod"
   },
   "author": "Velizar Ivanov",
   "license": "ISC",
