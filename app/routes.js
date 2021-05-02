@@ -16,14 +16,27 @@ const UserRepository = require('./repositories/user_repository')
 
 const sendError = Controller.sendError
 
+const SESSION_LIFETIME = 1800000 // 30 min
+
 const auth = (req, res, next, statuses = []) => {
   const token = req.headers['x-auth-token']
   if (!token) return sendError(res, 401, 'Unauthenticated')
 
   getConnection(async (client) => {
     const sessionTokenRepository = new SessionTokenRepository(client)
-    const userId = await sessionTokenRepository.getUserId(token)
-    if (!userId) return sendError(res, 401, 'Unauthenticated')
+    const sessionInfo = await sessionTokenRepository.getByToken(token)
+    if (!sessionInfo) {
+      return sendError(res, 401, 'Unauthenticated')
+    }
+    if (!sessionInfo.remember && SESSION_LIFETIME < Date.now() - sessionInfo.created_at) {
+      await sessionTokenRepository.removeByToken(token)
+
+      return sendError(res, 401, 'Unauthenticated')
+    }
+
+    const userId = sessionInfo.user_id
+
+    console.log(sessionInfo)
 
     const userRepository = new UserRepository(client)
     const { user_status } = await userRepository.getUserById(userId)

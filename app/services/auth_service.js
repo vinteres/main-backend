@@ -32,14 +32,6 @@ class AuthService {
     }
   }
 
-  async removeAuthTokensForUser(userId) {
-    const query = `
-      DELETE FROM session_tokens WHERE user_id = $1
-    `
-
-    return await this.conn.query(query, [userId])
-  }
-
   async removeAuthToken(token) {
     const query = `
       DELETE FROM session_tokens WHERE token = $1
