@@ -13,6 +13,7 @@
   "author": "Velizar Ivanov",
   "license": "ISC",
   "dependencies": {
+    "@supercharge/request-ip": "^1.1.2",
     "aws-sdk": "^2.848.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",

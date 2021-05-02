@@ -15,6 +15,7 @@ const UserRepository = require('./repositories/user_repository')
 const compression = require('compression')
 const path = require('path')
 const fs = require('fs')
+const requestIp = require('@supercharge/request-ip')
 
 const app = express()
 const port = 4000
@@ -38,7 +39,7 @@ app.use((req, res, next) => {
 
   fs.appendFile(
     logFilePath,
-    `${req.method} ${req.originalUrl} AT ${time}\nTOKEN: ${req.headers['x-auth-token']}\nUser agent: ${req.headers['user-agent']}\n\n`,
+    `${req.method} ${req.originalUrl} AT ${time} | IP: ${requestIp.getClientIp(req)} | TOKEN: ${req.headers['x-auth-token']} | AGENT: ${req.headers['user-agent']}\n`,
     (err) => {}
   );
 
