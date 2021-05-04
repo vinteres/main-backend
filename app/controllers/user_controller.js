@@ -90,11 +90,9 @@ class UserController extends Controller {
       compatabilityMap[tId] = item.percent
     })
 
-    users.map(user => {
+    users.forEach(user => {
       user.profile_image = MediaService.getProfileImagePath(user)
       user.compatability = compatabilityMap[user.id]
-
-      return user
     })
 
     await userService.setMutualInterests(loggedUserId, users)

@@ -54,15 +54,39 @@ class UserService {
     const loggedUserHobbies = userHobbies[userId] || []
     const loggedUserActivities = userActivities[userId] || []
 
-    users.map(user => {
+    users.forEach(user => {
       const userHobbs = userHobbies[user.id] || []
       const userActs = userActivities[user.id] || []
 
       user.mutual_hobbies_count = loggedUserHobbies.filter((n) => userHobbs.indexOf(n) !== -1).length
       user.mutual_ativities_count = loggedUserActivities.filter((n) => userActs.indexOf(n) !== -1).length
 
-      return user
-    })
+      const hobbiesPercentageMatch = user.mutual_hobbies_count > 0 ?
+        Math.trunc((
+          Math.min(user.mutual_hobbies_count, userHobbs.length) /
+          Math.max(user.mutual_hobbies_count, userHobbs.length)
+        ) * 100) :
+        0;
+      const activitiesPercentageMatch = user.mutual_ativities_count ?
+        Math.trunc((
+          Math.min(user.mutual_ativities_count, userActs.length) /
+          Math.max(user.mutual_ativities_count, userActs.length)
+        ) * 100) :
+        0;
+
+      user.hobbiesPercentageMatch = hobbiesPercentageMatch;
+      user.activitiesPercentageMatch = activitiesPercentageMatch;
+    });
+
+    users.forEach(user => {
+      const { compatability, hobbiesPercentageMatch, activitiesPercentageMatch } = user;
+
+      const interestCompatability = (hobbiesPercentageMatch + activitiesPercentageMatch) / 2
+      user.compatability = Math.ceil((compatability + interestCompatability) / 2);
+      if (user.compatability > 100) {
+        user.compatability = 100;
+      }
+    });
   }
 
   async setLocations(users) {
