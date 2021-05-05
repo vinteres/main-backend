@@ -18,6 +18,10 @@ class QuizService {
     return await this.quizRepository.findHighCompatabilitiesForUser(userId)
   }
 
+  async getHighCompatabilityCountForUser(userId) {
+    return await this.quizRepository.highCompatabilityCountForUser(userId)
+  }
+
   async getCompatabilityForUsers(userId, userIds) {
     return await this.quizRepository.findCompatabilities(userId, userIds)
   }
@@ -52,7 +56,7 @@ class QuizService {
     const user = await this.userRepository.getUserInfoById(userId)
     let lastCreatedAt = null
 
-    while(1) {
+    while (1) {
       const users = await this.userRepository.findInterestedIds({ ...user, createdAt: lastCreatedAt })
       if (0 === users.length) break
 

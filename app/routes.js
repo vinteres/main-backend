@@ -36,8 +36,6 @@ const auth = (req, res, next, statuses = []) => {
 
     const userId = sessionInfo.user_id
 
-    console.log(sessionInfo)
-
     const userRepository = new UserRepository(client)
     const { user_status } = await userRepository.getUserById(userId)
 
@@ -80,6 +78,7 @@ const initRoutes = (app) => {
   app.get('/api/matches', authActive, handle(UserController, 'getFriends'))
   app.get('/api/views', authActive, handle(UserController, 'getViewers'))
   app.get('/api/compatabilities', authActive, handle(UserController, 'getCompatabilities'))
+  app.get('/api/compatability-count', authActive, handle(UserController, 'getCompatabilityCount'))
   app.get('/api/notifications', authActive, handle(NotificationController, 'getAll'))
   app.get('/api/chats', authActive, handle(ChatController, 'members'))
   app.get('/api/chat/:userId', authActive, handle(ChatController, 'get'))

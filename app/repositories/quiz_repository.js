@@ -55,6 +55,16 @@ class QuizRepository {
     return result.rows
   }
 
+  async highCompatabilityCountForUser(userId) {
+    const query = `
+      SELECT count(*) FROM user_compatability WHERE
+      (user_one_id = $1 OR user_two_id = $1) AND percent >= $2
+    `
+    const result = await this.conn.query(query, [userId, MIN_COMPATABILITY_PERCENT])
+
+    return result.rows[0].count
+  }
+
   async createCompatability(userOneId, userTwoId, percent) {
     const query = 'INSERT INTO user_compatability (user_one_id, user_two_id, percent) VALUES ($1, $2, $3)'
 

@@ -233,6 +233,18 @@ class UserController extends Controller {
     res.json(users)
   }
 
+  async getCompatabilityCount(req, res) {
+    const token = this.getAuthToken(req)
+
+    const quizService = await this.serviceDiscovery.get('quiz_service')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
+
+    const loggedUserId = await sessionTokenRepository.getUserId(token)
+    const compatabilityCount = await quizService.getHighCompatabilityCountForUser(loggedUserId)
+
+    res.json({ compatabilityCount })
+  }
+
   async uploadImage(req, res) {
     const token = this.getAuthToken(req)
     const position = req.query.position
