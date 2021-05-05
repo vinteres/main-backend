@@ -1,4 +1,4 @@
-# Backend-end for a web app for finding people
+# REST API back-end for [Vinteres.io](https://vinteres.io/) - Find and match with people by personality and interests.
 
 ## Description
 
