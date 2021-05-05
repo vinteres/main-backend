@@ -27,7 +27,10 @@ class UserRepository {
   }
 
   async getUserById(userId) {
-    const query = 'SELECT id, name, title, description, email, gender, interested_in, age, user_status, profile_image_id FROM users WHERE id = $1'
+    const query = `
+      SELECT id, name, title, description, email, gender, interested_in, age, user_status, profile_image_id
+      FROM users WHERE id = $1
+    `
     const result = await this.conn.query(query, [userId])
 
     return result.rows[0]
@@ -42,7 +45,7 @@ class UserRepository {
 
   async searchUsers(page, { gender, interestedIn, cityId, fromAge, toAge }) {
     const query = `
-      SELECT id, name, age, gender, city_id, profile_image_id
+      SELECT id, name, age, gender, city_id, profile_image_id, verified
       FROM users
       WHERE user_status = 'active' AND gender = $1 AND interested_in = $2 AND city_id = $3 AND age >= $4 AND age <= $5
       OFFSET ${(page - 1) * USERS_PER_PAGE}
@@ -77,7 +80,7 @@ class UserRepository {
     const query = `
       SELECT id, name, title, description, email, age, title, gender,
       interested_in, height, smoking, drinking, body, children_status, pet_status,
-      profile_image_id, birthday, city_id
+      profile_image_id, birthday, city_id, verified
       FROM users
       WHERE id = $1 AND user_status = 'active'
       ORDER BY created_at ASC
