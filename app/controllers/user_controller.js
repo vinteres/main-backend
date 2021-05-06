@@ -7,6 +7,7 @@ const { compareHash } = require('../utils')
 const { hash } = require('../utils')
 const SearchPereferenceValidator = require('../models/validators/search_pereference_validator')
 const SignUpValidator = require('../models/validators/sign_up_validator')
+const { isConnected } = require('../services/ws_service')
 
 const mapImages = (images) => images.map(image => ({
   position: image.position,
@@ -60,6 +61,7 @@ class UserController extends Controller {
     user.interests = await hobbieService.getForUser(userId)
     user.activities = await hobbieService.getActivitiesForUser(userId)
     user.reported = await reportRepository.isReported(loggedUserId, user.id)
+    user.online = !!isConnected(user.id)
 
     if (loggedUserId !== userId && 'uncompatible' !== user.relation_status) {
       user.compatability = await quizService.getOrCreateCompatabilityFor(loggedUserId, userId)
@@ -93,6 +95,10 @@ class UserController extends Controller {
     users.forEach(user => {
       user.profile_image = MediaService.getProfileImagePath(user)
       user.compatability = compatabilityMap[user.id]
+    })
+
+    users.forEach(user => {
+      user.online = !!isConnected(user.id)
     })
 
     await userService.setMutualInterests(loggedUserId, users)
@@ -176,6 +182,10 @@ class UserController extends Controller {
     const userIds = await matchService.matchIds(loggedUserId)
     const users = await userRepository.getUsersById(userIds)
 
+    users.forEach(user => {
+      user.online = !!isConnected(user.id)
+    })
+
     res.json(users.map(user => {
       user.profile_image = MediaService.getProfileImagePath(user)
 
@@ -194,6 +204,10 @@ class UserController extends Controller {
     const viewers = await viewsRepository.findFor(loggedUserId)
     const viewerIds = viewers.map(viewer => viewer.viewer_user_id)
     const users = await userRepository.getUsersById(viewerIds)
+
+    users.forEach(user => {
+      user.online = !!isConnected(user.id)
+    })
 
     res.json(viewerIds.map(viewerId => {
       const user = users.find(u => u.id === viewerId)
@@ -220,11 +234,13 @@ class UserController extends Controller {
     })
     const users = await userRepository.getUsersById(Object.keys(compatabilityMap))
 
-    users.map(user => {
+    users.forEach(user => {
       user.profile_image = MediaService.getProfileImagePath(user)
       user.compatability = compatabilityMap[user.id]
+    })
 
-      return user
+    users.forEach(user => {
+      user.online = !!isConnected(user.id)
     })
 
     await userService.setMutualInterests(loggedUserId, users)
