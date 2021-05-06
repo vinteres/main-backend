@@ -71,8 +71,8 @@ class ChatService {
     })
   }
 
-  async createMessage({ userId, chatId, text, cardId }) {
-    const message = await this.chatRepository.createMessage({ userId, chatId, text, cardId })
+  async createMessage({ userId, chatId, text }) {
+    const message = await this.chatRepository.createMessage({ userId, chatId, text })
     await this.chatRepository.updateLastChatMessage(message.chatId, message.createdAt)
 
     return message

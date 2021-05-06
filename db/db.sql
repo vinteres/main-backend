@@ -402,9 +402,9 @@ INSERT INTO "answers" (id, text, question_id, created_at) VALUES
 INSERT INTO "free_time_activities" (id, name, created_at) VALUES
 ('cbce397f-bed7-4239-a3da-f77097ad7705', 'Playing games', 1611872392),
 ('a27202bf-b984-47c9-b54f-e4de5137c772', 'Browsing the internet', 1611872392),
-('4ce4994a-637c-40c6-a171-14bc4174e54d', 'Social media', 1611872392),
+('4ce4994a-637c-40c6-a171-14bc4174e54d', 'Social Media', 1611872392),
 ('c0660d7a-4365-4a24-bf79-2e2fbd5f330a', 'Outdoor activities', 1611872392),
-('9cc4e493-b9ea-4310-bd0c-4b89dfe54542', 'Watching movies & TV', 1611872392),
+('9cc4e493-b9ea-4310-bd0c-4b89dfe54542', 'Watching Movies & TV', 1611872392),
 ('8bb3d045-de56-4ba6-bc16-67d94586ab41', 'Doing my hobbies', 1611872392),
 ('2d275cb0-71d6-42f9-89b1-cd30c56d9844', 'Spending time with friend & family', 1611872392),
 ('97a12e56-ff1c-4f1d-93db-701cabf5391b', 'Reading', 1611872392),

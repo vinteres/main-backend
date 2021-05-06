@@ -16,37 +16,57 @@ const timeAgo = (time) => {
   const now = parseInt(currentTimeMs() / 1000)
   let d = now - parseInt(time / 1000)
   if (d < 60) {
-    return 'few seconds ago'
+    return {
+      key: 'few seconds ago'
+    }
   }
 
   d = Math.floor(d / 60)
   if (d < 60) {
-    return `${d} minute${1 < d ? 's' : ''} ago`
+    return {
+      key: `MINUTE${1 < d ? 'S' : ''}_AGO`,
+      d
+    }
   }
 
   d = Math.floor(d / 60)
   if (d < 24) {
-    return `${d} hour${1 < d ? 's' : ''} ago`
+    return {
+      key: `HOUR${1 < d ? 'S' : ''}_AGO`,
+      d
+    }
   }
 
   d = Math.floor(d / 24)
   if (d < 7) {
-    return `${d} day${1 < d ? 's' : ''} ago`
+    return {
+      key: `DAY${1 < d ? 'S' : ''}_AGO`,
+      d
+    }
   }
 
   d = Math.floor(d / 7)
   if (d < 4) {
-    return `${d} week${1 < d ? 's' : ''} ago`
+    return {
+      key: `WEEK${1 < d ? 'S' : ''}_AGO`,
+      d
+    }
   }
 
   d = Math.floor(d / 4)
   if (d < 4) {
-    return `${d} month${1 < d ? 's' : ''} ago`
+    return {
+      key: `MONTH${1 < d ? 'S' : ''}_AGO`,
+      d
+    }
   }
 
   d = Math.floor(d / 12)
   if (d < 12) {
-    return `${d} year${1 < d ? 's' : ''} ago`
+    return {
+      key: `YEAR${1 < d ? 'S' : ''}`,
+      d
+    }
   }
 }
 
