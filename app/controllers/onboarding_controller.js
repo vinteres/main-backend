@@ -115,7 +115,6 @@ class OnboardingController extends Controller {
 
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
     const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
     const quizService = await this.serviceDiscovery.get('quiz_service')
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
@@ -137,14 +136,57 @@ class OnboardingController extends Controller {
       })
     }
 
-    await onboardingRepository.createUserAnswers(userAnswers)
-    await userRepository.setStatus(loggedUserId, 'active');
+    await onboardingRepository.createUserAnswers(userAnswers);
 
     (async () => {
-      await quizService.backfillCompatability(loggedUserId)
+      await quizService.backfillCompatability(loggedUserId);
     })();
 
-    const { completedAt } = await onboardingRepository.setComplete(loggedUserId)
+    const newStep = step.step + 1
+    await onboardingRepository.incrementStep(loggedUserId, newStep)
+
+    res.json({ step: newStep })
+  }
+
+  async setImageStepPassed(req, res) {
+    const token = this.getAuthToken(req)
+
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
+
+    const loggedUserId = await sessionTokenRepository.getUserId(token)
+    const step = await onboardingRepository.getStep(loggedUserId)
+
+    if (step.completed_at) {
+      return res.status(400).json({ completed: true })
+    } else if (5 != step.step) {
+      return res.status(400).json({ step: step.step })
+    }
+
+    const newStep = step.step + 1
+    await onboardingRepository.incrementStep(loggedUserId, newStep)
+
+    res.json({ step: newStep })
+  }
+
+  async completeOnboarding(req, res) {
+    const token = this.getAuthToken(req)
+
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
+    const userRepository = await this.serviceDiscovery.get('user_repository')
+
+    const loggedUserId = await sessionTokenRepository.getUserId(token)
+    const step = await onboardingRepository.getStep(loggedUserId)
+
+    if (step.completed_at) {
+      return res.status(400).json({ completed: true })
+    } else if (6 != step.step) {
+      return res.status(400).json({ step: step.step })
+    }
+
+    await userRepository.setStatus(loggedUserId, 'active');
+    const { completedAt } = await onboardingRepository.setComplete(loggedUserId);
 
     res.json({ completed: !!completedAt })
   }

@@ -88,13 +88,15 @@ const initRoutes = (app) => {
   app.post('/api/settings/change-password', auth, handle(UserController, 'changePassword'))
   app.post('/api/settings/deactivate', auth, handle(UserController, 'deactivate'))
   app.get('/api/email-exists', handle(UserController, 'emailExists'))
-  
+
   app.get('/api/onboarding/step', auth, handle(OnboardingController, 'getStep'))
   app.post('/api/onboarding/account-info', authOnboarding, handle(OnboardingController, 'setAccountInfo'))
   app.post('/api/onboarding/profile-info', authOnboarding, handle(OnboardingController, 'setProfileInfo'))
   app.post('/api/onboarding/interests', authOnboarding, handle(OnboardingController, 'setInterests'))
   app.get('/api/onboarding/quiz', authOnboarding, handle(QuizController, 'getQuiz'))
   app.post('/api/onboarding/quiz', authOnboarding, handle(OnboardingController, 'setQuizAnswers'))
+  app.post('/api/onboarding/image-pass', authOnboarding, handle(OnboardingController, 'setImageStepPassed'))
+  app.post('/api/onboarding/complete', authOnboarding, handle(OnboardingController, 'completeOnboarding'))
   app.get('/api/search-preferences', authActive, handle(UserController, 'getSearchPreferences'))
   app.post('/api/search-preferences', authActive, handle(UserController, 'setSearchPreferences'))
 

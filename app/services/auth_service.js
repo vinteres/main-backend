@@ -8,7 +8,7 @@ class AuthService {
 
   async login(email, password, remember) {
     const query = `
-      select id, name, email, user_status, password FROM users WHERE email = $1
+      select id, name, email, gender, user_status, password FROM users WHERE email = $1
     `
     const loginError = { loggedIn: false }
 
@@ -28,7 +28,8 @@ class AuthService {
       id: user.id,
       name: user.name,
       email: user.email,
-      status: user.user_status
+      status: user.user_status,
+      gender: user.gender
     }
   }
 
