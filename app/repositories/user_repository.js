@@ -48,6 +48,7 @@ class UserRepository {
       SELECT id, name, age, gender, city_id, profile_image_id, verified
       FROM users
       WHERE user_status = 'active' AND gender = $1 AND interested_in = $2 AND city_id = $3 AND age >= $4 AND age <= $5
+      ORDER BY created_at DESC, verified DESC
       OFFSET ${(page - 1) * USERS_PER_PAGE}
       LIMIT ${USERS_PER_PAGE}
     `
@@ -80,7 +81,7 @@ class UserRepository {
     const query = `
       SELECT id, name, title, description, email, age, title, gender,
       interested_in, height, smoking, drinking, body, children_status, pet_status,
-      profile_image_id, birthday, city_id, verified
+      profile_image_id, birthday, city_id, verified, verification_status
       FROM users
       WHERE id = $1 AND user_status = 'active'
       ORDER BY created_at ASC
@@ -117,6 +118,15 @@ class UserRepository {
       UPDATE users SET city_id = $1 WHERE id = $2
     `
     const result = await this.conn.query(query, [cityId, userId])
+
+    return result.rows[0]
+  }
+
+  async setVerificationStatus(userId, status) {
+    const query = `
+      UPDATE users SET verification_status = $1 WHERE id = $2
+    `
+    const result = await this.conn.query(query, [status, userId])
 
     return result.rows[0]
   }
@@ -251,6 +261,13 @@ class UserRepository {
     const result = await this.conn.query(query, params)
 
     return result.rows
+  }
+
+  async findById(fields, id) {
+    const query = `SELECT ${fields.join(', ')} FROM users WHERE id = $1`
+    const result = await this.conn.query(query, [id])
+
+    return result.rows[0]
   }
 }
 

@@ -13,6 +13,7 @@ const { handle } = require('./controllers/controller')
 const { getConnection } = require('./db')
 const SessionTokenRepository = require('./repositories/session_token_repository')
 const UserRepository = require('./repositories/user_repository')
+const VerificationController = require('./controllers/verification_controller')
 
 const sendError = Controller.sendError
 
@@ -57,6 +58,7 @@ const initRoutes = (app) => {
   app.post('/api/intros/:id/like', authActive, handle(IntroController, 'like'))
   app.post('/api/users/:id/unmatch', authActive, handle(IntroController, 'unmatch'))
   app.post('/api/media/upload', handle(IntroController, 'create'))
+  app.post('/api/verification/upload', handle(VerificationController, 'create'))
   app.post('/api/smile', handle(IntroController, 'smile'))
   app.post('/api/image/upload', handle(UserController, 'uploadImage'))
   app.delete('/api/image', auth, handle(UserController, 'deleteImage'))
@@ -87,6 +89,7 @@ const initRoutes = (app) => {
   app.post('/api/feedback', auth, handle(UserController, 'feedback'))
   app.post('/api/settings/change-password', auth, handle(UserController, 'changePassword'))
   app.post('/api/settings/deactivate', auth, handle(UserController, 'deactivate'))
+  app.get('/api/verification/status', auth, handle(VerificationController, 'status'))
   app.get('/api/email-exists', handle(UserController, 'emailExists'))
 
   app.get('/api/onboarding/step', auth, handle(OnboardingController, 'getStep'))

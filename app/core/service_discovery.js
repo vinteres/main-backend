@@ -11,6 +11,7 @@ const ReportRepository = require('../repositories/report_repository')
 const SearchPreferenceRepository = require('../repositories/search_preference_repository')
 const SessionTokenRepository = require('../repositories/session_token_repository')
 const UserRepository = require('../repositories/user_repository')
+const VerificationRequestRepository = require('../repositories/verification_request_repository')
 const ViewsRepository = require('../repositories/views_repository')
 const AuthService = require('../services/auth_service')
 const ChatService = require('../services/chat_service')
@@ -28,6 +29,7 @@ const DEPENDENCIES = {
   onboarding_repository: { cls: OnboardingRepository, depends: ['db_connection']},
   session_token_repository: { cls: SessionTokenRepository, depends: ['db_connection']},
   views_repository: { cls: ViewsRepository, depends: ['db_connection']},
+  verification_request_repository: { cls: VerificationRequestRepository, depends: ['db_connection']},
   search_preference_repository: { cls: SearchPreferenceRepository, depends: ['db_connection']},
   hobbie_repository: { cls: HobbieRepository, depends: ['db_connection']},
   notification_repository: { cls: NotificationRepository, depends: ['db_connection']},

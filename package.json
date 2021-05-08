@@ -8,7 +8,10 @@
     "start:dev": "ENV=dev nodemon",
     "build:prod": "bash bin/build",
     "start-process:prod": "pm2 start ecosystem.config.js --env production",
-    "start:prod": "bash bin/start-prod"
+    "start:prod": "bash bin/start-prod",
+    "migrate": "knex migrate:up",
+    "migrate:down": "knex migrate:down",
+    "migrate:make": "knex migrate:make"
   },
   "author": "Velizar Ivanov",
   "license": "ISC",
@@ -21,6 +24,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "formidable": "^1.2.2",
+    "knex": "^0.95.4",
     "pg": "^8.5.1",
     "sharp": "^0.27.1",
     "unirest": "^0.6.0",
