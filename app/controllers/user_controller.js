@@ -122,18 +122,40 @@ class UserController extends Controller {
       employment_status, education_status
     } = await userRepository.getUserProfileById(loggedUserId)
 
+    const accountSettings = {
+      name,
+      title,
+      description,
+      birthday,
+      email,
+      gender,
+      interested_in
+    }
+
+    const profileSettings = {
+      smoking,
+      drinking,
+      height,
+      body,
+      children_status,
+      pet_status,
+      employment_status,
+      education_status
+    }
+
     const day = birthday.getDate() < 10 ? `0${birthday.getDate()}` : birthday.getDate()
     const month = birthday.getMonth() < 10 ? `0${birthday.getMonth() + 1}` : (birthday.getMonth() + 1)
     const bd = `${birthday.getFullYear()}/${month}/${day}`
 
-    const settings = {
-      accountSettings: {
-        name, title, description, birthday: bd, email, gender, interested_in
-      },
-      profileSettings: {
-        smoking, drinking, height, body, children_status, pet_status, employment_status, education_status
-      }
-    }
+    Object.keys(profileSettings).forEach(key => {
+      if (!profileSettings[key]) profileSettings[key] = 'not_tell';
+    });
+
+    Object.keys(accountSettings).forEach(key => {
+      if (!accountSettings[key]) accountSettings[key] = 'not_tell';
+    });
+
+    const settings = { accountSettings, profileSettings }
 
     res.json(settings)
   }
