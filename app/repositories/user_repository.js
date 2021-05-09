@@ -1,4 +1,6 @@
+const { query } = require('express')
 const { v4 } = require('uuid')
+const QueryBuilder = require('../core/query_builder')
 const { calculateAge, currentTimeMs } = require('../utils')
 
 const USERS_PER_PAGE = 24
@@ -83,7 +85,8 @@ class UserRepository {
     const query = `
       SELECT id, name, title, description, email, age, title, gender,
       interested_in, height, smoking, drinking, body, children_status, pet_status,
-      profile_image_id, birthday, city_id, verified, verification_status
+      profile_image_id, birthday, city_id, verified, verification_status,
+      education_status, employment_status, interested_in, looking_for_type
       FROM users
       WHERE id = $1 AND user_status = 'active'
       ORDER BY created_at ASC
@@ -161,16 +164,9 @@ class UserRepository {
     return result.rows[0]
   }
 
-  async setProfileSettings(userId, {
-    smoking, drinking, height, body, children_status, pet_status
-  }) {
-    const query = `
-      UPDATE users SET smoking = $1, drinking = $2, height = $3, body = $4, children_status = $5, pet_status = $6
-      WHERE id = $7
-    `
-    const result = await this.conn.query(query,
-      [smoking, drinking, height, body, children_status, pet_status, userId]
-    )
+  async setProfileSettings(id, fields) {
+    const { query, values } = QueryBuilder.update('users', fields, { id })
+    const result = await this.conn.query(query, values)
 
     return result.rows[0]
   }
@@ -279,6 +275,25 @@ class UserRepository {
     const result = await this.conn.query(query, ids)
 
     return result.rows
+  }
+
+  async update(userId, fieldsToUpdate) {
+    const fields = []
+    const values = []
+
+    Object.keys(fieldsToUpdate).forEach(field => {
+      fields.push(field);
+      values.push(fieldsToUpdate[field]);
+    });
+
+    const query = `
+      UPDATE users
+      SET ${fields.map((field, ix) => `${field} = $${ix + 1}`).join(', ')}
+      WHERE id = $${fields.length + 1}
+    `
+    const result = await this.conn.query(query, [...values, userId])
+
+    return result.rows[0]
   }
 }
 

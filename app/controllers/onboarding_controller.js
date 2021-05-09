@@ -55,7 +55,11 @@ class OnboardingController extends Controller {
 
   async setProfileInfo(req, res) {
     const token = this.getAuthToken(req)
-    const { smoking, drinking, height, body, children_status, pet_status } = req.body
+    const payload = req.body;
+
+    Object.keys(payload).forEach(key => {
+      if ('not_tell' === payload[key]) payload[key] = null;
+    });
 
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
     const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
@@ -70,10 +74,7 @@ class OnboardingController extends Controller {
       return res.status(400).json({ step: step.step })
     }
 
-    await userRepository.setProfileSettings(
-      loggedUserId,
-      { smoking, drinking, height, body, children_status, pet_status }
-    )
+    await userRepository.setProfileSettings(loggedUserId, payload)
 
     const newStep = step.step + 1
     await onboardingRepository.incrementStep(loggedUserId, newStep)

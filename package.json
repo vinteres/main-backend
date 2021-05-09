@@ -6,11 +6,11 @@
   "scripts": {
     "lint": "eslint ./app",
     "start:dev": "ENV=dev nodemon",
-    "build:prod": "bash bin/build",
+    "build:prod": "ENV=production bash bin/build",
     "start-process:prod": "pm2 start ecosystem.config.js --env production",
     "start:prod": "bash bin/start-prod",
-    "migrate": "knex migrate:up",
-    "migrate:down": "knex migrate:down",
+    "migrate": "knex migrate:latest --env ${ENV}",
+    "migrate:down": "knex migrate:down --env ${ENV}",
     "migrate:make": "knex migrate:make"
   },
   "author": "Velizar Ivanov",

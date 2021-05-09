@@ -118,7 +118,8 @@ class UserController extends Controller {
     const loggedUserId = await sessionTokenRepository.getUserId(token)
     const {
       name, title, description, birthday, email, gender, interested_in,
-      smoking, drinking, height, body, children_status, pet_status
+      smoking, drinking, height, body, children_status, pet_status,
+      employment_status, education_status
     } = await userRepository.getUserProfileById(loggedUserId)
 
     const day = birthday.getDate() < 10 ? `0${birthday.getDate()}` : birthday.getDate()
@@ -130,7 +131,7 @@ class UserController extends Controller {
         name, title, description, birthday: bd, email, gender, interested_in
       },
       profileSettings: {
-        smoking, drinking, height, body, children_status, pet_status
+        smoking, drinking, height, body, children_status, pet_status, employment_status, education_status
       }
     }
 
@@ -155,16 +156,17 @@ class UserController extends Controller {
 
   async setProfileSettings(req, res) {
     const token = this.getAuthToken(req)
-    const { smoking, drinking, height, body, children_status, pet_status } = req.body
+    const payload = req.body;
+
+    Object.keys(payload).forEach(key => {
+      if ('not_tell' === payload[key]) payload[key] = null;
+    });
 
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
     const userRepository = await this.serviceDiscovery.get('user_repository')
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const user = await userRepository.setProfileSettings(
-      loggedUserId,
-      { smoking, drinking, height, body, children_status, pet_status }
-    )
+    const user = await userRepository.setProfileSettings(loggedUserId, payload)
 
     res.json(user)
   }
@@ -453,16 +455,19 @@ class UserController extends Controller {
 
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
     const searchPreferenceRepository = await this.serviceDiscovery.get('search_preference_repository')
+    const userRepository = await this.serviceDiscovery.get('user_repository')
     const locationService = await this.serviceDiscovery.get('location_service')
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
     const searchPreferences = await searchPreferenceRepository.getForUser(loggedUserId)
+    const { looking_for_type } = await userRepository.findById(['looking_for_type'], loggedUserId)
 
     const location = await locationService.getLocationById(searchPreferences.city_id)
 
     return res.json({
       fromAge: searchPreferences.from_age,
       toAge: searchPreferences.to_age,
+      lookingFor: looking_for_type || 0,
       location: {
         cityId: location.id,
         name: '',
@@ -473,7 +478,7 @@ class UserController extends Controller {
 
   async setSearchPreferences(req, res) {
     const token = this.getAuthToken(req)
-    const { fromAge, toAge, cityId } = req.body
+    const { fromAge, toAge, cityId, lookingFor } = req.body
 
     const validator = new SearchPereferenceValidator({ fromAge, toAge, cityId })
     if (!validator.validate()) {
@@ -484,6 +489,12 @@ class UserController extends Controller {
     const searchPreferenceRepository = await this.serviceDiscovery.get('search_preference_repository')
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
+
+    if (undefined !== lookingFor) {
+      const userRepository = await this.serviceDiscovery.get('user_repository')
+      await userRepository.update(loggedUserId, { looking_for_type: lookingFor })
+    }
+
     await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId })
 
     res.status(201).end()

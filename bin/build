@@ -1,9 +1,12 @@
 #!/bin/sh
 
+npm i
+npm run migrate
+
 cd ../socialSpa
 npm i
 npm run build
+
 cd ../main-backend
 rm -rf dist
 cp -r ../socialSpa/dist/socialSpa dist
-npm i

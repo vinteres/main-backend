@@ -1,7 +1,7 @@
 const { DB } = require('./app/config/config')
 
 module.exports = {
-  development: {
+  dev: {
     client: 'postgresql',
     connection: {
       user: DB.user,
