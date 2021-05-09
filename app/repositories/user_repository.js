@@ -43,16 +43,18 @@ class UserRepository {
     return result.rows[0].password
   }
 
-  async searchUsers(page, { gender, interestedIn, cityId, fromAge, toAge }) {
+  async searchUsers(page, { gender, interestedIn, cityId, fromAge, toAge, searchingUserId }) {
     const query = `
       SELECT id, name, age, gender, city_id, profile_image_id, verified
       FROM users
-      WHERE user_status = 'active' AND gender = $1 AND interested_in = $2 AND city_id = $3 AND age >= $4 AND age <= $5
+      WHERE user_status = 'active' AND gender = $1 AND interested_in = $2 AND city_id = $3 AND id != $4 AND age >= $5 AND age <= $6
       ORDER BY created_at DESC, verified DESC
       OFFSET ${(page - 1) * USERS_PER_PAGE}
       LIMIT ${USERS_PER_PAGE}
     `
-    const result = await this.conn.query(query, [gender, interestedIn, cityId, fromAge, toAge])
+    const result = await this.conn.query(query, [
+      gender, interestedIn, cityId, searchingUserId, fromAge, toAge
+    ])
 
     return result.rows
   }
@@ -268,6 +270,15 @@ class UserRepository {
     const result = await this.conn.query(query, [id])
 
     return result.rows[0]
+  }
+
+  async findByIds(fields, ids) {
+    if (0 === ids.length) return [];
+
+    const query = `SELECT ${fields.join(', ')} FROM users WHERE id IN (${ids.map((_, ix) => `$${ix + 1}`).join(', ')})`
+    const result = await this.conn.query(query, ids)
+
+    return result.rows
   }
 }
 

@@ -1,5 +1,6 @@
 const { Controller } = require('./controller')
 const { calculateAge } = require('../utils')
+const PageRepository = require('../repositories/page_repository')
 
 class OnboardingController extends Controller {
   async getStep(req, res) {
@@ -175,6 +176,8 @@ class OnboardingController extends Controller {
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
     const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
     const userRepository = await this.serviceDiscovery.get('user_repository')
+    const chatRepository = await this.serviceDiscovery.get('chat_repository')
+    const chatService = await this.serviceDiscovery.get('chat_service')
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
     const step = await onboardingRepository.getStep(loggedUserId)
@@ -187,6 +190,23 @@ class OnboardingController extends Controller {
 
     await userRepository.setStatus(loggedUserId, 'active');
     const { completedAt } = await onboardingRepository.setComplete(loggedUserId);
+
+    // CREATE GREETING MESSAGE
+    const loggedUser = await userRepository.findById(['id', 'name'], loggedUserId);
+    const chatId = await chatRepository.createChat();
+    const pageId = PageRepository.getAppPageId();
+    await chatRepository.createChatMembers(chatId, [
+      { id: pageId, type: 'page' },
+      { id: loggedUser.id }
+    ]);
+    const text = [
+      `Здравей, ${loggedUser.name}`,
+      "",
+      "Добре дошли във Vinteres! Нашата цел е да направим най-добрия сайт за серйозни запознанста в България.",
+      "",
+      "Поздрави и успех",
+    ].join("\n")
+    await chatService.createAndSend({ userId: pageId, chatId, text })
 
     res.json({ completed: !!completedAt })
   }

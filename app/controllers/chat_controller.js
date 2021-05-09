@@ -3,6 +3,7 @@ const { getProfileImagePath } = require('../services/media_service')
 const { Controller } = require('./controller')
 const { timeAgo } = require('../utils')
 const MediaService = require('../services/media_service')
+const ChatMemberType = require('../models/enums/chat_member_type')
 
 class ChatController extends Controller {
   async members(req, res) {
@@ -11,17 +12,20 @@ class ChatController extends Controller {
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
     const chatRepository = await this.serviceDiscovery.get('chat_repository')
     const userRepository = await this.serviceDiscovery.get('user_repository')
+    const pageRepository = await this.serviceDiscovery.get('page_repository')
     const matchRepository = await this.serviceDiscovery.get('match_repository')
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
 
-    const chatIds = await chatRepository.getUserChatIds(loggedUserId)
+    const chatIds = await chatRepository.getChatIdsForUser(loggedUserId)
     const chats = await chatRepository.getChatsById(chatIds)
 
-    const membersData = await chatRepository.getChatsMembers(chatIds)
+    const membersData = await chatRepository.getChatsMembersInChats(chatIds)
 
-    const chatMembers = membersData.filter(member => member.user_id !== loggedUserId)
-    const tu = membersData.filter(member => member.user_id === loggedUserId)
+    const chatMembers = membersData.filter(member => member.rel_id !== loggedUserId)
+    const chatUserMembers = chatMembers.filter(member => ChatMemberType.USER === member.rel_type)
+    const chatPageMembers = chatMembers.filter(member => ChatMemberType.PAGE === member.rel_type)
+    const tu = membersData.filter(member => member.rel_id === loggedUserId)
 
     let matches = []
     if (0 < chatMembers.length) {
@@ -35,28 +39,37 @@ class ChatController extends Controller {
       })
     }
 
-    const userImages = await userRepository.getUsersImage(chatMembers.map(user => user.user_id))
+    const userImages = await userRepository.getUsersImage(chatUserMembers.map(user => user.rel_id))
+    const pageImages = await pageRepository.findByIds(
+      ['id', 'name', 'profile_image_id'],
+      chatPageMembers.map(user => user.rel_id)
+    )
 
-    chatMembers.map(user => {
-      const u = userImages.find(userImage => user.user_id === userImage.id)
+    chatMembers.forEach(member => {
+      if (ChatMemberType.USER === member.rel_type) {
+        const imageItem = userImages.find(image => member.rel_id === image.id)
 
-      user.name = u.name
-      user.gender = u.gender
-      user.profileImage = getProfileImagePath(u)
+        member.name = imageItem.name
+        // user.gender = u.gender
+        member.profileImage = getProfileImagePath(imageItem)
+      } else if (ChatMemberType.PAGE === member.rel_type) {
+        const imageItem = pageImages.find(image => member.rel_id === image.id)
 
-      return user
+        member.name = imageItem.name
+        member.profileImage = MediaService.mediaPath(imageItem.profile_image_id, 'small')
+      }
     })
 
     let result = chats.map(chat => {
       const member = chatMembers.find(item => item.chat_id === chat.id)
-      const matched = matches.find(match => match === member.user_id)
-      if (!matched) return
+      const matched = matches.find(match => match === member.rel_id)
+      if (ChatMemberType.USER === member.rel_type && !matched) return
 
       const lastMessageAt = chat.last_message_at
       const notSeenCount = tu.find(item => item.chat_id === chat.id).not_seen_count
 
       return {
-        id: member.user_id,
+        id: member.rel_id,
         name: member.name,
         profileImage: member.profileImage,
         chat_id: member.chat_id,
@@ -64,7 +77,7 @@ class ChatController extends Controller {
         notSeenCount
       }
     })
-    result = result.filter(user => user)
+    result = result.filter(user => !!user)
 
     res.json(result)
   }
@@ -78,43 +91,67 @@ class ChatController extends Controller {
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
     const matchRepository = await this.serviceDiscovery.get('match_repository')
     const userRepository = await this.serviceDiscovery.get('user_repository')
+    const pageRepository = await this.serviceDiscovery.get('page_repository')
+    const con = await this.serviceDiscovery.get('db_connection')
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const matched = await matchRepository.areMatched(loggedUserId, userId)
 
-    if (!matched) {
-      return res.json({
-        member: false
+    try {
+      con.query('BEGIN')
+
+      let chatId = await chatRepository.getCommonChatId(loggedUserId, userId)
+      let memberType = await chatRepository.findRelType(chatId, userId)
+
+      if ('page' !== memberType) {
+        const matched = await matchRepository.areMatched(loggedUserId, userId)
+        if (!matched) {
+          return res.json({
+            member: false
+          })
+        }
+      }
+
+      if (!chatId) {
+        chatId = await chatRepository.createChat()
+        await chatRepository.createChatMembers(chatId, [{ id: loggedUserId }, { id: userId }])
+      }
+      await chatService.seeChatMessages(chatId, loggedUserId)
+
+      con.query('COMMIT')
+
+      memberType = memberType || 'user'
+
+      let messages = await chatRepository.getChatMessages(chatId)
+      let user
+      if (ChatMemberType.USER === memberType) {
+        user = await userRepository.getUserById(userId)
+      } else if (ChatMemberType.PAGE === memberType) {
+        user = await pageRepository.findById(['id', 'name', 'profile_image_id'], userId)
+      }
+
+      messages = messages.reverse()
+
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage) {
+        lastMessage.postedAgo = timeAgo(lastMessage.created_at)
+      }
+
+      res.json({
+        member: true,
+        chatId,
+        user: {
+          id: user.id,
+          type: memberType,
+          name: user.name,
+          profileImage: MediaService.getProfileImagePath(user),
+        },
+        messages,
+        hasMoreMsgs: ChatRepository.messagesPerPage() === messages.length
       })
+
+    } finally {
+      con.query('ROLLBACK')
     }
-    let chatId = await chatRepository.getCommonChatId(loggedUserId, userId)
-    if (!chatId) {
-      chatId = await chatRepository.createChat()
-      await chatRepository.createChatMembers(chatId, [loggedUserId, userId])
-    }
-    await chatService.seeChatMessages(chatId, loggedUserId)
-
-    let messages = await chatRepository.getChatMessages(chatId)
-    const user = await userRepository.getUserById(userId)
-
-    messages = messages.reverse()
-
-    const lastMessage = messages[messages.length - 1]
-    if (lastMessage) {
-      lastMessage.postedAgo = timeAgo(lastMessage.created_at)
-    }
-
-    res.json({
-      member: true,
-      chatId,
-      user: {
-        id: user.id,
-        name: user.name,
-        profileImage: MediaService.getProfileImagePath(user),
-      },
-      messages,
-      hasMoreMsgs: ChatRepository.messagesPerPage() === messages.length
-    })
   }
 
   async loadOlder(req, res) {

@@ -34,9 +34,7 @@ class UserController extends Controller {
     const loggedUserId = await sessionTokenRepository.getUserId(token)
     const user = await userRepository.getUserProfileById(userId)
 
-    if (!user) {
-      return res.status(404).end()
-    }
+    if (!user) return res.status(404).end();
 
     const images = await mediaRepository.getUserImages(userId)
     const location = await locationService.getLocationById(user.city_id)
@@ -304,13 +302,13 @@ class UserController extends Controller {
     const token = this.getAuthToken(req)
     const position = req.query.position
 
-    const conn = await this.serviceDiscovery.get('db_connection')
+    const con = await this.serviceDiscovery.get('db_connection')
     const userRepository = await this.serviceDiscovery.get('user_repository')
     const mediaRepository = await this.serviceDiscovery.get('media_repository')
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
 
     try {
-      conn.query('BEGIN')
+      con.query('BEGIN')
       const loggedUserId = await sessionTokenRepository.getUserId(token)
 
       const userImage = await mediaRepository.getUserImage(loggedUserId, position)
@@ -329,7 +327,7 @@ class UserController extends Controller {
 
         return
       }
-      conn.query('COMMIT')
+      con.query('COMMIT')
 
       const userImages = await mediaRepository.getUserImages(loggedUserId)
 
@@ -338,7 +336,7 @@ class UserController extends Controller {
         images: mapImages(userImages)
       })
     } finally {
-      conn.query('ROLLBACK')
+      con.query('ROLLBACK')
     }
   }
 

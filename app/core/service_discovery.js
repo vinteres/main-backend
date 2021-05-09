@@ -6,6 +6,7 @@ const MatchRepository = require('../repositories/match_repository')
 const MediaRepository = require('../repositories/media_repository')
 const NotificationRepository = require('../repositories/notification_repository')
 const OnboardingRepository = require('../repositories/onboarding_repository')
+const PageRepository = require('../repositories/page_repository')
 const QuizRepository = require('../repositories/quiz_repository')
 const ReportRepository = require('../repositories/report_repository')
 const SearchPreferenceRepository = require('../repositories/search_preference_repository')
@@ -25,6 +26,7 @@ const UserService = require('../services/user_service')
 
 const DEPENDENCIES = {
   user_repository: { cls: UserRepository, depends: ['db_connection']},
+  page_repository: { cls: PageRepository, depends: ['db_connection']},
   quiz_repository: { cls: QuizRepository, depends: ['db_connection']},
   onboarding_repository: { cls: OnboardingRepository, depends: ['db_connection']},
   session_token_repository: { cls: SessionTokenRepository, depends: ['db_connection']},
@@ -53,7 +55,7 @@ const DEPENDENCIES = {
   location_service: { cls: LocationService, depends: ['location_repository']},
   intro_service: { cls: IntroService, depends: ['intro_repository', 'match_repository']},
   auth_service: { cls: AuthService, depends: ['db_connection']},
-  chat_service: { cls: ChatService, depends: ['chat_repository']},
+  chat_service: { cls: ChatService, depends: ['chat_repository', 'user_repository', 'page_repository']},
   hobbie_service: { cls: HobbieService, depends: ['hobbie_repository']},
   match_service: { cls: MatchService, depends: ['match_repository']},
 }

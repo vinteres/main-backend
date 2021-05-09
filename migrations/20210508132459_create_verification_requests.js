@@ -1,5 +1,5 @@
 
-exports.up = function(knex) {
+exports.up = (knex) => {
   return knex.raw(`
     CREATE TABLE verification_requests (
       id UUID PRIMARY KEY,
@@ -13,7 +13,7 @@ exports.up = function(knex) {
   `)
 };
 
-exports.down = function(knex) {
+exports.down = (knex) => {
   return knex.raw(`
     DROP TABLE verification_requests
   `)

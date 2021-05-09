@@ -27,6 +27,7 @@ class UserService {
       cityId: searchPreferences.city_id,
       fromAge: searchPreferences.from_age,
       toAge: searchPreferences.to_age,
+      searchingUserId: searchingUser.id
     }
 
     const users = await this.userRepository.searchUsers(page || 1, search)
