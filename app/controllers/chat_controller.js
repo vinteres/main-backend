@@ -149,8 +149,10 @@ class ChatController extends Controller {
         hasMoreMsgs: ChatRepository.messagesPerPage() === messages.length
       })
 
-    } finally {
+    } catch (e) {
       con.query('ROLLBACK')
+
+      throw e
     }
   }
 

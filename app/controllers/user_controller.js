@@ -290,36 +290,51 @@ class UserController extends Controller {
     const mediaRepository = await this.serviceDiscovery.get('media_repository')
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
     const userRepository = await this.serviceDiscovery.get('user_repository')
+    const con = await this.serviceDiscovery.get('db_connection')
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
 
-    const userImage = await mediaRepository.getUserImage(loggedUserId, position)
-    if (userImage) {
-      await mediaRepository.deleteUserImage(loggedUserId, position)
-      if (1 == position) {
-        await userRepository.setUserProfileImage(loggedUserId, null)
+    try {
+      con.query('BEGIN')
+
+      const userImage = await mediaRepository.getUserImage(loggedUserId, position)
+      if (userImage) {
+        await mediaRepository.deleteUserImage(loggedUserId, position)
+        if (1 == position) {
+          await userRepository.setUserProfileImage(loggedUserId, null)
+        }
+        await mediaRepository.deleteMediaMetadata([userImage.image_id])
+        await new MediaService().deleteMedia(['big', 'small'].map(size => `${size}_${userImage.image_id}`))
       }
-      await mediaRepository.deleteMediaMetadata([userImage.image_id])
-      await new MediaService().deleteMedia(['big', 'small'].map(size => `${size}_${userImage.image_id}`))
-    }
 
-    const form = new formidable.IncomingForm()
-    form.parse(req, async (err, fields, files) => {
-      const media = await mediaRepository.createMediaMetadata('image', files['image'].type)
-      await mediaRepository.createUserImage(loggedUserId, media.id, position)
-      const userImages = await mediaRepository.getUserImages(loggedUserId)
+      const form = new formidable.IncomingForm()
+      form.parse(req, async (err, fields, files) => {
+        try {
+          const media = await mediaRepository.createMediaMetadata('image', files['image'].type)
+          await mediaRepository.createUserImage(loggedUserId, media.id, position)
+          const userImages = await mediaRepository.getUserImages(loggedUserId)
 
-      if (1 == position) {
-        await userRepository.setUserProfileImage(loggedUserId, media.id)
-      }
-      const oldpath = files['image'].path
+          if (1 == position) {
+            await userRepository.setUserProfileImage(loggedUserId, media.id)
+          }
+          const oldpath = files['image'].path
 
-      await new MediaService().resizeAndStore(oldpath, media.id, files['image'].type)
+          await new MediaService().resizeAndStore(oldpath, media.id, files['image'].type)
 
-      res.json({
-        images: mapImages(userImages)
+          con.query('COMMIT')
+
+          res.json({
+            images: mapImages(userImages)
+          })
+        } catch (e) {
+          con.query('ROLLBACK')
+        }
       })
-    })
+    } catch (e) {
+      con.query('ROLLBACK')
+
+      throw e
+    }
   }
 
   async deleteImage(req, res) {
@@ -355,12 +370,13 @@ class UserController extends Controller {
 
       const userImages = await mediaRepository.getUserImages(loggedUserId)
 
-
       res.json({
         images: mapImages(userImages)
       })
-    } finally {
+    } catch (e) {
       con.query('ROLLBACK')
+
+      throw e
     }
   }
 
