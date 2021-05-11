@@ -16,10 +16,6 @@ class QueryBuilder {
     const { fields, values } = f(fieldsToUpdate);
     const whereFields = f(where);
 
-    console.log('FIELDS', fields)
-    console.log('whereFields', whereFields.fields)
-    
-
     const query = `
       UPDATE ${table}
       SET ${fields.map((field, ix) => `${field} = $${ix + 1}`).join(', ')}

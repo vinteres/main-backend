@@ -39,8 +39,6 @@ class ProfileQuestionsController extends Controller {
     const token = this.getAuthToken(req)
     const { categoryId, questionId, answer } = req.body;
 
-    console.log(categoryId, questionId, answer)
-
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
     const profileQuestionsRepository = await this.serviceDiscovery.get('profile_questions_repository')
 

@@ -1,19 +1,9 @@
 const UserRepository = require('../repositories/user_repository')
 const { Controller } = require('./controller')
-const formidable = require('formidable')
 const MediaService = require('../services/media_service')
 const { item } = require('../data_builders/intro_builder')
-const { compareHash } = require('../utils')
-const { hash } = require('../utils')
-const SearchPereferenceValidator = require('../models/validators/search_pereference_validator')
 const SignUpValidator = require('../models/validators/sign_up_validator')
 const { isConnected } = require('../services/ws_service')
-
-const mapImages = (images) => images.map(image => ({
-  position: image.position,
-  small: MediaService.mediaPath(image.image_id, 'small'),
-  big: MediaService.mediaPath(image.image_id, 'big'),
-}))
 
 class UserController extends Controller {
   async get(req, res) {
@@ -39,7 +29,7 @@ class UserController extends Controller {
     const images = await mediaRepository.getUserImages(userId)
     const location = await locationService.getLocationById(user.city_id)
     user.location = location
-    user.images = mapImages(images)
+    user.images = MediaService.mapImages(images)
 
     if (loggedUserId !== userId) {
       user.relation_status = await introService.relationBetween(loggedUserId, userId)
@@ -107,90 +97,6 @@ class UserController extends Controller {
     }
 
     res.json(responseData)
-  }
-
-  async getSettings(req, res) {
-    const token = this.getAuthToken(req)
-
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const {
-      name, title, description, birthday, email, gender, interested_in,
-      smoking, drinking, height, body, children_status, pet_status,
-      employment_status, education_status
-    } = await userRepository.getUserProfileById(loggedUserId)
-
-    const accountSettings = {
-      name,
-      title,
-      description,
-      birthday,
-      email,
-      gender,
-      interested_in
-    }
-
-    const profileSettings = {
-      smoking,
-      drinking,
-      height,
-      body,
-      children_status,
-      pet_status,
-      employment_status,
-      education_status
-    }
-
-    const day = birthday.getDate() < 10 ? `0${birthday.getDate()}` : birthday.getDate()
-    const month = birthday.getMonth() < 10 ? `0${birthday.getMonth() + 1}` : (birthday.getMonth() + 1)
-    const bd = `${birthday.getFullYear()}/${month}/${day}`
-
-    Object.keys(profileSettings).forEach(key => {
-      if (!profileSettings[key]) profileSettings[key] = 'not_tell';
-    });
-
-    Object.keys(accountSettings).forEach(key => {
-      if (!accountSettings[key]) accountSettings[key] = 'not_tell';
-    });
-
-    const settings = { accountSettings, profileSettings }
-
-    res.json(settings)
-  }
-
-  async setAccountSettings(req, res) {
-    const token = this.getAuthToken(req)
-    const { name, title, description, birthday, email, gender, interested_in } = req.body
-
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const user = await userRepository.setAccountSettings(
-      loggedUserId,
-      { name, title, description, birthday, email, gender, interested_in }
-    )
-
-    res.json(user)
-  }
-
-  async setProfileSettings(req, res) {
-    const token = this.getAuthToken(req)
-    const payload = req.body;
-
-    Object.keys(payload).forEach(key => {
-      if ('not_tell' === payload[key]) payload[key] = null;
-    });
-
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const user = await userRepository.setProfileSettings(loggedUserId, payload)
-
-    res.json(user)
   }
 
   async getFriends(req, res) {
@@ -283,103 +189,6 @@ class UserController extends Controller {
     res.json({ compatabilityCount })
   }
 
-  async uploadImage(req, res) {
-    const token = this.getAuthToken(req)
-    const position = req.query.position
-
-    const mediaRepository = await this.serviceDiscovery.get('media_repository')
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-    const con = await this.serviceDiscovery.get('db_connection')
-
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-
-    try {
-      con.query('BEGIN')
-
-      const userImage = await mediaRepository.getUserImage(loggedUserId, position)
-      if (userImage) {
-        await mediaRepository.deleteUserImage(loggedUserId, position)
-        if (1 == position) {
-          await userRepository.setUserProfileImage(loggedUserId, null)
-        }
-        await mediaRepository.deleteMediaMetadata([userImage.image_id])
-        await new MediaService().deleteMedia(['big', 'small'].map(size => `${size}_${userImage.image_id}`))
-      }
-
-      const form = new formidable.IncomingForm()
-      form.parse(req, async (err, fields, files) => {
-        try {
-          const media = await mediaRepository.createMediaMetadata('image', files['image'].type)
-          await mediaRepository.createUserImage(loggedUserId, media.id, position)
-          const userImages = await mediaRepository.getUserImages(loggedUserId)
-
-          if (1 == position) {
-            await userRepository.setUserProfileImage(loggedUserId, media.id)
-          }
-          const oldpath = files['image'].path
-
-          await new MediaService().resizeAndStore(oldpath, media.id, files['image'].type)
-
-          con.query('COMMIT')
-
-          res.json({
-            images: mapImages(userImages)
-          })
-        } catch (e) {
-          con.query('ROLLBACK')
-        }
-      })
-    } catch (e) {
-      con.query('ROLLBACK')
-
-      throw e
-    }
-  }
-
-  async deleteImage(req, res) {
-    const token = this.getAuthToken(req)
-    const position = req.query.position
-
-    const con = await this.serviceDiscovery.get('db_connection')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-    const mediaRepository = await this.serviceDiscovery.get('media_repository')
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-
-    try {
-      con.query('BEGIN')
-      const loggedUserId = await sessionTokenRepository.getUserId(token)
-
-      const userImage = await mediaRepository.getUserImage(loggedUserId, position)
-      if (userImage) {
-        if (1 == position) {
-          const nextImage = await mediaRepository.getUserImage(loggedUserId, +position + 1)
-          const imageId = nextImage ? nextImage.image_id : null
-          await userRepository.setUserProfileImage(loggedUserId, imageId)
-        }
-        await mediaRepository.deleteUserImage(loggedUserId, position)
-        await mediaRepository.deleteMediaMetadata([userImage.image_id])
-        await new MediaService().deleteMedia(['big', 'small'].map(size => `${size}_${userImage.image_id}`))
-        await mediaRepository.changeUserImagePosition(loggedUserId, position)
-      } else {
-        res.json({ images: [] })
-
-        return
-      }
-      con.query('COMMIT')
-
-      const userImages = await mediaRepository.getUserImages(loggedUserId)
-
-      res.json({
-        images: mapImages(userImages)
-      })
-    } catch (e) {
-      con.query('ROLLBACK')
-
-      throw e
-    }
-  }
-
   async report(req, res) {
     const token = this.getAuthToken(req)
     const { type, details, toUserId } = req.body
@@ -402,59 +211,6 @@ class UserController extends Controller {
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
     await reportRepository.createFeedback({ userId: loggedUserId, type, details })
-
-    res.status(201).end()
-  }
-
-  async changePassword(req, res) {
-    const token = this.getAuthToken(req)
-    const { password, newPassword } = req.body
-
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const passwordHash = await userRepository.getUserPasswordById(loggedUserId)
-
-    const matches = await compareHash(password, passwordHash)
-    if (!matches) {
-      return res.status(400).end()
-    }
-    const newPasswordHash = await hash(newPassword)
-    await userRepository.setPassword(loggedUserId, newPasswordHash)
-
-    res.status(201).end()
-  }
-
-  async deactivate(req, res) {
-    const token = this.getAuthToken(req)
-    const { password } = req.body
-
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-    const authService = await this.serviceDiscovery.get('auth_service')
-
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const passwordHash = await userRepository.getUserPasswordById(loggedUserId)
-    const matches = await compareHash(password, passwordHash)
-    if (!matches) {
-      return res.status(400).end()
-    }
-    await userRepository.setStatus(loggedUserId, 'deleted')
-    await authService.removeAuthToken(token)
-
-    res.status(201).end()
-  }
-
-  async setLocation(req, res) {
-    const token = this.getAuthToken(req)
-    const { locationId } = req.params
-
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    await userRepository.setCityId(loggedUserId, locationId)
 
     res.status(201).end()
   }
@@ -484,56 +240,6 @@ class UserController extends Controller {
     const exists = await userRepository.emailExists(email)
 
     if (exists) return res.json({ exists })
-
-    res.status(201).end()
-  }
-
-  async getSearchPreferences(req, res) {
-    const token = this.getAuthToken(req)
-
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const searchPreferenceRepository = await this.serviceDiscovery.get('search_preference_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-    const locationService = await this.serviceDiscovery.get('location_service')
-
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const searchPreferences = await searchPreferenceRepository.getForUser(loggedUserId)
-    const { looking_for_type } = await userRepository.findById(['looking_for_type'], loggedUserId)
-
-    const location = await locationService.getLocationById(searchPreferences.city_id)
-
-    return res.json({
-      fromAge: searchPreferences.from_age,
-      toAge: searchPreferences.to_age,
-      lookingFor: looking_for_type || 0,
-      location: {
-        cityId: location.id,
-        name: '',
-        fullName: location.fullName
-      }
-    })
-  }
-
-  async setSearchPreferences(req, res) {
-    const token = this.getAuthToken(req)
-    const { fromAge, toAge, cityId, lookingFor } = req.body
-
-    const validator = new SearchPereferenceValidator({ fromAge, toAge, cityId })
-    if (!validator.validate()) {
-      return res.status(400).json(validator.errors)
-    }
-
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const searchPreferenceRepository = await this.serviceDiscovery.get('search_preference_repository')
-
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-
-    if (undefined !== lookingFor) {
-      const userRepository = await this.serviceDiscovery.get('user_repository')
-      await userRepository.update(loggedUserId, { looking_for_type: lookingFor })
-    }
-
-    await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId })
 
     res.status(201).end()
   }

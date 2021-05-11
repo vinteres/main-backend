@@ -97,6 +97,14 @@ class MediaService {
     return `${DOMAIN_MANE}/api/media/${size ? `${size}_` : ''}${mediaId}`
   }
 
+  static mapImages(images) {
+    return images.map(image => ({
+      position: image.position,
+      small: MediaService.mediaPath(image.image_id, 'small'),
+      big: MediaService.mediaPath(image.image_id, 'big'),
+    }));
+  }
+
   static getProfileImagePath(user) {
     if (user.profile_image_id) {
       return MediaService.mediaPath(user.profile_image_id, 'small')

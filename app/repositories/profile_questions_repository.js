@@ -13,7 +13,6 @@ class ProfileQuestionsRepository {
   }
 
   async findUserAnswers(userId) {
-    console.log(userId)
     const query = `
       SELECT qa.*, q.text AS question_text
       FROM profile_question_answers qa
