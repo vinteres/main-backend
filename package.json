@@ -5,13 +5,13 @@
   "main": "app/main.js",
   "scripts": {
     "lint": "eslint ./app",
-    "start:dev": "ENV=dev nodemon",
+    "start:dev": "ENV=development nodemon",
     "build:prod": "ENV=production bash bin/build",
     "start-process:prod": "pm2 start ecosystem.config.js --env production",
     "start:prod": "bash bin/start-prod",
     "migrate": "knex migrate:latest --env ${ENV}",
     "migrate:down": "knex migrate:down --env ${ENV}",
-    "migrate:make": "knex migrate:make"
+    "migrate:make": "ENV=development knex migrate:make"
   },
   "author": "Velizar Ivanov",
   "license": "ISC",

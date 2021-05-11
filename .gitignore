@@ -15,7 +15,7 @@
 !.vscode/extensions.json
 .history/*
 
-/app/config/config-dev.js
+/app/config/config-development.js
 /app/config/config-production.js
 
 app.log

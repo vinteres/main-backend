@@ -279,6 +279,74 @@ CREATE TABLE user_views (
 );
 
 
+INSERT INTO "profile_question_categories" VALUES
+(1, '', 1613141667),
+(2, '', 1613141667),
+(3, '', 1613141667),
+(4, '', 1613141667),
+(5, '', 1613141667),
+(6, '', 1613141667),
+(7, '', 1613141667),
+(8, '', 1613141667),
+(9, '', 1613141667),
+(10, '', 1613141667),
+(11, '', 1613141667),
+(12, '', 1613141667),
+(13, '', 1613141667),
+(14, '', 1613141667);
+
+INSERT INTO "profile_questions" VALUES
+(1, 1, 'The first thing people notice about me.', 1613141667),
+(2, 2, 'My ideal first date.', 1613141667),
+(3, 3, 'I would describe my appearance like this', 1613141667),
+(4, 4, 'The most important thing I''m looking for in a person.', 1613141667),
+(5, 5, 'I spend my free time.', 1613141667),
+(6, 6, 'My best attributes.', 1613141667),
+
+-- Values
+(7, 7, 'A relationship deal breaker for me.', 1613141667),
+(8, 7, 'The personality traits that I''m most proud of.', 1613141667),
+(9, 7, 'The first thing I look for in a partner and/or friend.', 1613141667),
+(10, 7, 'How I define beauty.', 1613141667),
+
+(11, 8, 'My family or friends would describe me as...', 1613141667),
+(12, 8, 'Something that my family would be surprised to learn about me.', 1613141667),
+
+-- Dreams
+(13, 9, 'If I could snap my fingers and instantly make the world better, I would do...', 1613141667),
+(14, 9, 'If I could I would make ..... unwritten rule mandatory if you could.', 1613141667),
+(15, 9, 'If I could live anywhere, it would it be...', 1613141667),
+(16, 9, 'If I could choose to do anything for a day, it would be...', 1613141667),
+(17, 9, 'If I could only eat one meal for the rest of your life, it would be...', 1613141667),
+(18, 9, 'If I could change anything about myself it would be...', 1613141667),
+(19, 9, 'If I could go back in time to change one thing, it would it...', 1613141667),
+(20, 9, 'If I were a super-hero, my powers would be...', 1613141667),
+(21, 9, 'My realworld super power is...', 1613141667),
+
+(22, 10, 'My favorite vacation place...', 1613141667),
+(23, 10, 'The last movie I went to...', 1613141667),
+
+(24, 11, 'My proudest accomplishment...', 1613141667),
+(25, 11, 'My most useless talent is...', 1613141667),
+(26, 11, 'My pet peeves...', 1613141667),
+(27, 11, 'My weaknesses...', 1613141667),
+(28, 11, 'My passions are...', 1613141667),
+
+(29, 12, 'If I won the lottery I would...', 1613141667),
+(30, 12, 'I could not go a day without...', 1613141667),
+(31, 12, 'A popular trend that bothers me...', 1613141667),
+
+(34, 13, 'My favorite animal...', 1613141667),
+(35, 13, 'The most daring thing I''ve ever done...', 1613141667),
+(36, 13, 'The most unusual thing I''ve ever eaten...', 1613141667),
+(37, 13, 'The most embarrassing thing that has ever happened to me...', 1613141667),
+(38, 13, 'Most private thing that I''m willing to admit...', 1613141667),
+
+(39, 14, 'One day I''ll be...', 1613141667),
+(40, 14, 'When I was small I wanted to be...', 1613141667),
+(41, 14, 'My life goals are...', 1613141667),
+(42, 14, 'My dream job is...', 1613141667),
+(43, 14, 'If money was no object, what would I do all day...', 1613141667);
 
 INSERT INTO "questions" (id, text, quiz_step, created_at) VALUES
 ('f0319ccb-8f5d-4c90-b3b6-ada2dc10d718', 'Why do you want a relationship?', 1, 1613141667),
@@ -409,6 +477,9 @@ INSERT INTO "free_time_activities" (id, name, created_at) VALUES
 ('2d275cb0-71d6-42f9-89b1-cd30c56d9844', 'Spending time with friend & family', 1611872392),
 ('97a12e56-ff1c-4f1d-93db-701cabf5391b', 'Reading', 1611872392),
 ('9943856e-5ade-4f0b-8cc9-74ef8957d0f4', 'Sports', 1611872392);
+-- Jogging
+-- Going out
+-- Party
 
 INSERT INTO "hobbies" (id, name, created_at) VALUES
 ('4f300118-ada6-4bcc-96a4-b99338d6a64d', 'Photography', 1611872392),

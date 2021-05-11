@@ -7,6 +7,7 @@ const MediaRepository = require('../repositories/media_repository')
 const NotificationRepository = require('../repositories/notification_repository')
 const OnboardingRepository = require('../repositories/onboarding_repository')
 const PageRepository = require('../repositories/page_repository')
+const ProfileQuestionsRepository = require('../repositories/profile_questions_repository')
 const QuizRepository = require('../repositories/quiz_repository')
 const ReportRepository = require('../repositories/report_repository')
 const SearchPreferenceRepository = require('../repositories/search_preference_repository')
@@ -41,6 +42,7 @@ const DEPENDENCIES = {
   chat_repository: { cls: ChatRepository, depends: ['db_connection']},
   report_repository: { cls: ReportRepository, depends: ['db_connection']},
   media_repository: { cls: MediaRepository, depends: ['db_connection']},
+  profile_questions_repository: { cls: ProfileQuestionsRepository, depends: ['db_connection'] },
   user_service: { cls: UserService, depends: [
     'user_repository',
     'views_repository',

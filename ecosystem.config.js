@@ -4,7 +4,7 @@ module.exports = {
       name: "vinteres",
       script: "./app/main.js",
       env: {
-        NODE_ENV: "dev",
+        NODE_ENV: "development",
       },
       env_production: {
         NODE_ENV: "production",

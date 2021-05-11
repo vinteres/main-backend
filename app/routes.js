@@ -14,6 +14,7 @@ const { getConnection } = require('./db')
 const SessionTokenRepository = require('./repositories/session_token_repository')
 const UserRepository = require('./repositories/user_repository')
 const VerificationController = require('./controllers/verification_controller')
+const ProfileQuestionsController = require('./controllers/profile_questions_controller')
 
 const sendError = Controller.sendError
 
@@ -57,6 +58,8 @@ const initRoutes = (app) => {
   app.get('/api/intros-to', authActive, handle(IntroController, 'getForUser'))
   app.post('/api/intros/:id/like', authActive, handle(IntroController, 'like'))
   app.post('/api/users/:id/unmatch', authActive, handle(IntroController, 'unmatch'))
+  app.get('/api/users/:id/profile-answers', auth, handle(ProfileQuestionsController, 'get'))
+  app.post('/api/users/profile-answer', auth, handle(ProfileQuestionsController, 'save'))
   app.post('/api/media/upload', handle(IntroController, 'create'))
   app.post('/api/verification/upload', handle(VerificationController, 'create'))
   app.post('/api/smile', handle(IntroController, 'smile'))
