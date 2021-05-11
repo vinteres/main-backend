@@ -186,6 +186,19 @@ class SettingsController extends Controller {
 
     res.status(201).end()
   }
+
+  async setDescription(req, res) {
+    const token = this.getAuthToken(req)
+    const { description } = req.body
+
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
+    const userRepository = await this.serviceDiscovery.get('user_repository')
+
+    const loggedUserId = await sessionTokenRepository.getUserId(token)
+    await userRepository.update(loggedUserId, { description })
+
+    res.status(201).end();
+  }
 }
 
 module.exports = SettingsController
