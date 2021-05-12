@@ -79,6 +79,7 @@ class IntroController extends Controller {
         profile_image: MediaService.getProfileImagePath(user),
         name: user.name,
         age: user.age,
+        verified: user.verified,
         online: !!isConnected(user.id),
         intro: {
           timeAgo: timeAgo(intro.created_at),
