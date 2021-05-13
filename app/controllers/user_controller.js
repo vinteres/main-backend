@@ -100,7 +100,7 @@ class UserController extends Controller {
     res.json(responseData)
   }
 
-  async getFriends(req, res) {
+  async getMatches(req, res) {
     const token = this.getAuthToken(req)
 
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
@@ -109,7 +109,9 @@ class UserController extends Controller {
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
     const userIds = await matchService.matchIds(loggedUserId)
-    const users = await userRepository.getUsersById(userIds)
+    const users = await userRepository.findByIds([
+      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified'
+    ], userIds);
 
     users.forEach(user => {
       user.online = !!isConnected(user.id)
@@ -132,7 +134,9 @@ class UserController extends Controller {
     const loggedUserId = await sessionTokenRepository.getUserId(token)
     const viewers = await viewsRepository.findFor(loggedUserId)
     const viewerIds = viewers.map(viewer => viewer.viewer_user_id)
-    const users = await userRepository.getUsersById(viewerIds)
+    const users = await userRepository.findByIds([
+      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified'
+    ], viewerIds);
 
     users.forEach(user => {
       user.online = !!isConnected(user.id)
@@ -161,7 +165,10 @@ class UserController extends Controller {
       const tId = item.user_one_id === loggedUserId ? item.user_two_id : item.user_one_id
       compatibilityMap[tId] = item.percent
     })
-    const users = await userRepository.getUsersById(Object.keys(compatibilityMap))
+
+    const users = await userRepository.findByIds([
+      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified'
+    ], Object.keys(compatibilityMap))
 
     users.forEach(user => {
       user.profile_image = MediaService.getProfileImagePath(user)

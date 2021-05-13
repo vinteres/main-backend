@@ -84,7 +84,7 @@ const initRoutes = (app) => {
   app.post('/api/user/location/:locationId', authActive, handle(SettingsController, 'setLocation'))
   app.post('/api/account-settings', authActive, handle(SettingsController, 'setAccountSettings'))
   app.post('/api/profile-settings', authActive, handle(SettingsController, 'setProfileSettings'))
-  app.get('/api/matches', authActive, handle(UserController, 'getFriends'))
+  app.get('/api/matches', authActive, handle(UserController, 'getMatches'))
   app.get('/api/views', authActive, handle(UserController, 'getViewers'))
   app.get('/api/compatibilities', authActive, handle(UserController, 'getCompatibilities'))
   app.get('/api/compatibility-count', authActive, handle(UserController, 'getCompatibilityCount'))
