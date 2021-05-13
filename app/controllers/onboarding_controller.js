@@ -141,7 +141,7 @@ class OnboardingController extends Controller {
     await onboardingRepository.createUserAnswers(userAnswers);
 
     (async () => {
-      await quizService.backfillCompatability(loggedUserId);
+      await quizService.backfillCompatibility(loggedUserId);
     })();
 
     const newStep = step.step + 1

@@ -7,7 +7,8 @@ class Connection {
   }
 
   async getConnection(handle, errorHandle) {
-    const client = await this.pool.connect()
+    const client = await this.getClient();
+
     try {
       await handle(client)
     } catch(err) {

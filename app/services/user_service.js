@@ -1,5 +1,7 @@
 const { hash } = require('../utils')
 
+const hasCompatibility = ({ compatibility }) => compatibility && 0 < compatibility;
+
 class UserService {
   constructor(userRepository, viewRepository, searchPreferenceRepository, onboardingRepository, hobbieRepository, notificationService, locationService) {
     this.viewRepository = viewRepository
@@ -49,44 +51,51 @@ class UserService {
     }
   }
 
-  async setMutualInterests(userId, users) {
+  async setMutualInterestsAndUpdateCompatibility(userId, users) {
+    if (!Array.isArray(users)) users = [users];
+    if (0 === users.length) return;
+
     const userHobbies = await this.hobbieRepository.getIdForUsers([userId, ...users.map(user => user.id)])
     const userActivities = await this.hobbieRepository.getActivitiesIdForUsers([userId, ...users.map(user => user.id)])
     const loggedUserHobbies = userHobbies[userId] || []
     const loggedUserActivities = userActivities[userId] || []
 
     users.forEach(user => {
-      const userHobbs = userHobbies[user.id] || []
-      const userActs = userActivities[user.id] || []
+      const userItemHobbies = userHobbies[user.id] || []
+      const userItemActivities = userActivities[user.id] || []
 
-      user.mutual_hobbies_count = loggedUserHobbies.filter((n) => userHobbs.indexOf(n) !== -1).length
-      user.mutual_ativities_count = loggedUserActivities.filter((n) => userActs.indexOf(n) !== -1).length
-
-      const hobbiesPercentageMatch = user.mutual_hobbies_count > 0 ?
-        Math.trunc((
-          Math.min(user.mutual_hobbies_count, userHobbs.length) /
-          Math.max(user.mutual_hobbies_count, userHobbs.length)
-        ) * 100) :
-        0;
-      const activitiesPercentageMatch = user.mutual_ativities_count ?
-        Math.trunc((
-          Math.min(user.mutual_ativities_count, userActs.length) /
-          Math.max(user.mutual_ativities_count, userActs.length)
-        ) * 100) :
-        0;
-
-      user.hobbiesPercentageMatch = hobbiesPercentageMatch;
-      user.activitiesPercentageMatch = activitiesPercentageMatch;
+      user.mutual_hobbies_count = loggedUserHobbies.filter((n) => userItemHobbies.indexOf(n) !== -1).length
+      user.mutual_ativities_count = loggedUserActivities.filter((n) => userItemActivities.indexOf(n) !== -1).length
     });
 
     users.forEach(user => {
-      const { compatability, hobbiesPercentageMatch, activitiesPercentageMatch } = user;
+      const userItemHobbies = userHobbies[user.id] || []
+      const userItemActivities = userActivities[user.id] || []
 
-      const interestCompatability = (hobbiesPercentageMatch + activitiesPercentageMatch) / 2
-      user.compatability = Math.ceil((compatability + interestCompatability) / 2);
-      if (user.compatability > 100) {
-        user.compatability = 100;
+      if (!hasCompatibility(user)) return;
+
+      if (0 < loggedUserHobbies.length || 0 < userItemHobbies.length) {
+        const hobbiesPercentageMatch = user.mutual_hobbies_count > 0 ?
+        Math.trunc((
+          Math.min(user.mutual_hobbies_count, userItemHobbies.length) /
+          Math.max(user.mutual_hobbies_count, userItemHobbies.length)
+        ) * 100) :
+        0;
+
+        user.compatibility = Math.ceil((user.compatibility + hobbiesPercentageMatch) / 2);
       }
+      if (0 < loggedUserActivities.length || 0 < userItemActivities.length) {
+        const activitiesPercentageMatch = user.mutual_ativities_count ?
+        Math.trunc((
+          Math.min(user.mutual_ativities_count, userItemActivities.length) /
+          Math.max(user.mutual_ativities_count, userItemActivities.length)
+        ) * 100) :
+        0;
+
+        user.compatibility = Math.ceil((user.compatibility + activitiesPercentageMatch) / 2);
+      }
+
+      if (user.compatibility > 100) user.compatibility = 100;
     });
   }
 

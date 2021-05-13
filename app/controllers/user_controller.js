@@ -52,7 +52,8 @@ class UserController extends Controller {
     user.online = !!isConnected(user.id)
 
     if (loggedUserId !== userId && 'uncompatible' !== user.relation_status) {
-      user.compatability = await quizService.getOrCreateCompatabilityFor(loggedUserId, userId)
+      user.compatibility = await quizService.getCompatibilityFor(loggedUserId, userId)
+      await userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, user)
     }
 
     userService.view(loggedUserId, userId)
@@ -73,23 +74,23 @@ class UserController extends Controller {
     const loggedUser = await userRepository.getUserById(loggedUserId)
     const { users, totalCount } = await userService.getUsers(page, loggedUser)
 
-    const compatabilities = await quizService.getCompatabilityForUsers(loggedUserId, users.map(user => user.id))
-    const compatabilityMap = {}
-    compatabilities.forEach(item => {
+    const compatibilities = await quizService.getCompatibilityForUsers(loggedUserId, users.map(user => user.id))
+    const compatibilityMap = {}
+    compatibilities.forEach(item => {
       const tId = item.user_one_id === loggedUserId ? item.user_two_id : item.user_one_id
-      compatabilityMap[tId] = item.percent
-    })
+      compatibilityMap[tId] = item.percent
+    });
 
     users.forEach(user => {
       user.profile_image = MediaService.getProfileImagePath(user)
-      user.compatability = compatabilityMap[user.id]
+      user.compatibility = compatibilityMap[user.id]
     })
 
     users.forEach(user => {
       user.online = !!isConnected(user.id)
     })
 
-    await userService.setMutualInterests(loggedUserId, users)
+    await userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, users)
 
     const responseData = {
       users,
@@ -145,7 +146,7 @@ class UserController extends Controller {
     }))
   }
 
-  async getCompatabilities(req, res) {
+  async getCompatibilities(req, res) {
     const token = this.getAuthToken(req)
 
     const quizService = await this.serviceDiscovery.get('quiz_service')
@@ -154,39 +155,39 @@ class UserController extends Controller {
     const userService = await this.serviceDiscovery.get('user_service')
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const compatabilities = await quizService.getHighCompatabilitiesForUser(loggedUserId)
-    const compatabilityMap = {}
-    compatabilities.forEach(item => {
+    const compatibilities = await quizService.getHighCompatibilitiesForUser(loggedUserId)
+    const compatibilityMap = {}
+    compatibilities.forEach(item => {
       const tId = item.user_one_id === loggedUserId ? item.user_two_id : item.user_one_id
-      compatabilityMap[tId] = item.percent
+      compatibilityMap[tId] = item.percent
     })
-    const users = await userRepository.getUsersById(Object.keys(compatabilityMap))
+    const users = await userRepository.getUsersById(Object.keys(compatibilityMap))
 
     users.forEach(user => {
       user.profile_image = MediaService.getProfileImagePath(user)
-      user.compatability = compatabilityMap[user.id]
+      user.compatibility = compatibilityMap[user.id]
     })
 
     users.forEach(user => {
       user.online = !!isConnected(user.id)
     })
 
-    await userService.setMutualInterests(loggedUserId, users)
+    await userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, users)
     await userService.setLocations(users)
 
     res.json(users)
   }
 
-  async getCompatabilityCount(req, res) {
+  async getCompatibilityCount(req, res) {
     const token = this.getAuthToken(req)
 
     const quizService = await this.serviceDiscovery.get('quiz_service')
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
 
     const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const compatabilityCount = await quizService.getHighCompatabilityCountForUser(loggedUserId)
+    const compatibilityCount = await quizService.getHighCompatibilityCountForUser(loggedUserId)
 
-    res.json({ compatabilityCount })
+    res.json({ compatibilityCount })
   }
 
   async report(req, res) {

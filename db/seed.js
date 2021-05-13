@@ -4,6 +4,10 @@ const { currentTimeMs, calculateAge } = require('../app/utils.js');
 const environment = process.env.ENVIRONMENT || 'development'
 const config = require('../knexfile.js')[environment];
 const knex = require('knex')(config);
+const QuizService = require('../app/services/quiz_service');
+const QuizRepository = require('../app/repositories/quiz_repository');
+const UserRepository = require('../app/repositories/user_repository');
+const { getClient } = require('../app/db');
 
 const password = '$2b$10$PP8qMh/3uVjqpF46Z9d71eDMxWj6WkAAt4kvze6fA1VFSWP1JmOfG'; // 1234
 const cityId = 'd81b72fd-8520-4403-aba3-17e1eddfc20f'; // Sofia
@@ -33,7 +37,7 @@ const buildUser = (i, gender, offset = 0) => {
     birthday,
     age: calculateAge(new Date(birthday)),
     gender,
-    interested_in: 'male' === gender ? 'female': 'male',
+    interested_in: 'male' === gender ? 'female' : 'male',
     city_id: cityId,
     user_status: 'active',
     verification_status: verificationStatus,
@@ -64,27 +68,35 @@ addUsers = async () => {
   return users;
 };
 
-setUsersCompatibility = async (users) => {
-  const compatibilities = [];
+setUsersCompatibility = async (users, con) => {
+  const quizService = new QuizService(
+    new QuizRepository(con),
+    new UserRepository(con)
+  )
+  const answers = await knex('answers');
 
-  const hasEntry = (id1, id2) =>
-    compatibilities.find(
-      ({ user_one_id, user_two_id }) => (user_one_id === id1 && user_two_id === id2) || (user_one_id === id2 && user_two_id === id1)
-    );
+  const qa = {};
+  answers.forEach(({ id, question_id }) => {
+    if (!qa[question_id]) qa[question_id] = [];
 
-  users.forEach(user => {
-    possibleCompatibilities = users.filter(uItem => uItem.gender === user.interested_in && user.gender === uItem.interested_in && uItem.id !== user.id);
-    possibleCompatibilities.forEach(item => {
-      if (hasEntry(user.id, item.id)) return;
-
-      compatibilities.push({ user_one_id: i.id, user_two_id: item.id });
-    });
+    qa[question_id].push(id)
   });
 
-  for (({ user_one_id, user_two_id }) of compatibilities) {
-    const percent = randomNumberBetween(101); // random number between 0 and 100 (including 0 and 100)
+  for (const user of users) {
+    const userAnswers = [];
+    Object.keys(qa).forEach(question_id => {
+      userAnswers.push({
+        user_id: user.id,
+        question_id,
+        answer_id: qa[question_id][randomNumberBetween(qa[question_id].length)]
+      })
+    });
 
-    await knex('user_compatability').insert({ user_one_id, user_two_id, percent });
+    await knex('user_answers').insert(userAnswers);
+  };
+
+  for (const user of users) {
+    await quizService.backfillCompatibility(user.id)
   };
 };
 
@@ -118,8 +130,23 @@ const createPages = async () => {
 };
 
 (async () => {
-  const users = await addUsers();
-  await setUsersCompatibility(users.map(compatibilityInfo));
-  await setUsersSearchPreferences(users.map(user => user.id));
-  await createPages();
+  const con = await getClient();
+  try {
+    con.query('BEGIN');
+
+    const users = await addUsers();
+    await setUsersCompatibility(users.map(compatibilityInfo), con);
+    await setUsersSearchPreferences(users.map(user => user.id));
+    await createPages();
+
+    con.query('COMMIT');
+
+    console.log('DONE!');
+  } catch (e) {
+    console.error(e)
+
+    con.query('ROLLBACK');
+  } finally {
+    con.release();
+  }
 })();

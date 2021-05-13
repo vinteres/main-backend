@@ -1,3 +1,6 @@
+const MIN_PERCENT_MATCH = 60;
+const MAX_MATCHES = 100;
+
 const getRandomInt = (min, max) => {
   min = Math.ceil(min)
   max = Math.floor(max)
@@ -7,6 +10,31 @@ const getRandomInt = (min, max) => {
 
 const percentage = (count, total) => 100 * count / total
 
+const mapBy = (o, k) => {
+  if (!o) return [];
+
+  const result = {};
+  for (const i of Object.keys(o) || []) {
+    const oi = o[i];
+    result[oi[k]] = oi.answer_id;
+  }
+
+  return result;
+};
+
+const getCompatibilityPercentBetween = (userOneAnswers, userTwoAnswers) => {
+  const qIds = Object.keys(userOneAnswers)
+  let c = 0
+  for (const qid of qIds) {
+    if (userOneAnswers[qid] === userTwoAnswers[qid]) c++;
+  }
+
+  let percentMatch = (0 === c || 0 === qIds.length) ? 0 : Math.ceil(percentage(c, qIds.length))
+  if (percentMatch > 100) percentMatch = 100;
+
+  return percentMatch
+}
+
 class QuizService {
   constructor(quizRepository, userRepository, onboardingRepository) {
     this.quizRepository = quizRepository
@@ -14,60 +42,80 @@ class QuizService {
     this.onboardingRepository = onboardingRepository
   }
 
-  async getHighCompatabilitiesForUser(userId) {
-    return await this.quizRepository.findHighCompatabilitiesForUser(userId)
+  async getHighCompatibilitiesForUser(userId) {
+    return await this.quizRepository.findHighCompatibilitiesForUser(userId)
   }
 
-  async getHighCompatabilityCountForUser(userId) {
-    return await this.quizRepository.highCompatabilityCountForUser(userId)
+  async getHighCompatibilityCountForUser(userId) {
+    return await this.quizRepository.highCompatibilityCountForUser(userId)
   }
 
-  async getCompatabilityForUsers(userId, userIds) {
-    return await this.quizRepository.findCompatabilities(userId, userIds)
+  async getCompatibilityForUsers(userId, userIds) {
+    return await this.quizRepository.findCompatibilities(userId, userIds)
   }
 
-  async getOrCreateCompatabilityFor(userOneId, userTwoId) {
-    const compatability = await this.quizRepository.findCompatability(userOneId, userTwoId)
-    if (compatability) {
-      return compatability.percent
+  async getCompatibilityFor(userOneId, userTwoId) {
+    const compatibility = await this.quizRepository.findCompatibility(userOneId, userTwoId);
+    if (compatibility) {
+      return compatibility.percent;
     }
 
-    const userOneAnswers = await this.quizRepository.findAllForUser(userOneId)
-    const userTwoAnswers = await this.quizRepository.findAllForUser(userTwoId)
-    const qIds = Object.keys(userOneAnswers)
-    let c = 0
-    for (const qid of qIds) {
-      if (userOneAnswers[qid] === userTwoAnswers[qid]) {
-        c++
-      }
-    }
-
-    let percentMatch = (0 === c || 0 === qIds.length) ? 0 : Math.ceil(percentage(c, qIds.length))
-    if (percentMatch > 100) {
-      percentMatch = 100
-    }
-
-    await this.quizRepository.createCompatability(userOneId, userTwoId, percentMatch)
-
-    return percentMatch
+    return 0;
   }
 
-  async backfillCompatability(userId) {
+  async backfillCompatibility(userId) {
+    const compatibilities = await this._getCompatibility(userId);
+
+    await this.quizRepository.createCompatibilities(compatibilities);
+  }
+
+  async _getCompatibility(userId) {
     const user = await this.userRepository.getUserInfoById(userId)
+    let foundMatches = 0
     let lastCreatedAt = null
 
+    const userOneAnswers = await this.quizRepository.findAllAnswersForUser(userId);
+    const existingCompatibility = await this._getExistingCompatibilityFor(userId);
+
+    const compatibilities = [];
+
     while (1) {
-      const users = await this.userRepository.findInterestedIds({ ...user, createdAt: lastCreatedAt })
-      if (0 === users.length) break
+      const users = await this.userRepository.findInterestedIds({ ...user, createdAt: lastCreatedAt });
+      if (0 === users.length) break;
 
-      users.map(user => user.id).forEach(async uId => {
-        if (uId === userId) return
+      const userIds = users.map(user => user.id);
+      const usersAnswers = await this.quizRepository.findAllAnswersForUsers(userIds);
 
-        await this.getOrCreateCompatabilityFor(userId, uId)
-      })
+      for (const iUserId of userIds) {
+        if (existingCompatibility.find(({ user_two_id }) => user_two_id === iUserId)) continue;
+
+        const userAnswers = mapBy(usersAnswers[iUserId], 'question_id');
+        const percentMatch = getCompatibilityPercentBetween(userOneAnswers, userAnswers);
+
+        if (percentMatch >= MIN_PERCENT_MATCH) {
+          compatibilities.push([userId, iUserId, percentMatch]);
+          foundMatches++;
+
+          if (foundMatches >= MAX_MATCHES) return compatibilities;
+        }
+      }
 
       lastCreatedAt = users[users.length - 1].created_at
     }
+
+    return compatibilities;
+  }
+
+  async _getExistingCompatibilityFor(userId) {
+    const r = await this.quizRepository.findHighCompatibilitiesForUser(userId);
+
+    return r.map(({ user_one_id, user_two_id }) => {
+      if (userId === user_one_id) {
+        return { user_one_id, user_two_id };
+      }
+
+      return { user_one_id: userId, user_two_id: user_one_id };
+    });
   }
 
   /**
