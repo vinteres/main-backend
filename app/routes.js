@@ -101,6 +101,7 @@ const initRoutes = (app) => {
 
   app.get('/api/onboarding/step', auth, handle(OnboardingController, 'getStep'))
   app.post('/api/onboarding/account-info', authOnboarding, handle(OnboardingController, 'setAccountInfo'))
+  app.post('/api/onboarding/about', authOnboarding, handle(OnboardingController, 'setAbout'))
   app.post('/api/onboarding/profile-info', authOnboarding, handle(OnboardingController, 'setProfileInfo'))
   app.post('/api/onboarding/interests', authOnboarding, handle(OnboardingController, 'setInterests'))
   app.get('/api/onboarding/quiz', authOnboarding, handle(QuizController, 'getQuiz'))

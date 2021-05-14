@@ -2,6 +2,16 @@ const { Controller } = require('./controller')
 const { calculateAge } = require('../utils')
 const PageRepository = require('../repositories/page_repository')
 
+const STEPS = {
+  ACCOUNT_INFO: 1,
+  ABOUT: 2,
+  PROFILE_INFO: 3,
+  INTERESTS: 4,
+  PHOTO: 5,
+  QUIZ: 6,
+  COMPLETE: 7,
+}
+
 class OnboardingController extends Controller {
   async getStep(req, res) {
     const token = this.getAuthToken(req)
@@ -17,7 +27,7 @@ class OnboardingController extends Controller {
 
   async setAccountInfo(req, res) {
     const token = this.getAuthToken(req)
-    const { name, title, description, birthday, gender, interested_in, city } = req.body
+    const { name, birthday, gender, interested_in, city } = req.body
 
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
     const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
@@ -29,14 +39,14 @@ class OnboardingController extends Controller {
 
     if (step.completed_at) {
       return res.status(400).json({ completed: true })
-    } else if (1 != step.step) {
+    } else if (STEPS.ACCOUNT_INFO != step.step) {
       return res.status(400).json({ step: step.step })
     }
 
     const age = calculateAge(new Date(birthday))
     await userRepository.setOnboardingAccountInfo(
       loggedUserId,
-      { name, title, description, birthday, gender, interested_in, city, age }
+      { name, birthday, gender, interested_in, city, age }
     )
 
     const fromAge = (18 > 15 - age) ? 18 : age - 15
@@ -46,6 +56,31 @@ class OnboardingController extends Controller {
     } else {
       await searchPreferenceRepository.create(loggedUserId, { fromAge, toAge, cityId: city })
     }
+
+    const newStep = step.step + 1
+    await onboardingRepository.incrementStep(loggedUserId, newStep)
+
+    res.json({ step: newStep })
+  }
+
+  async setAbout(req, res) {
+    const token = this.getAuthToken(req)
+    const { title, description } = req.body
+
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
+    const userRepository = await this.serviceDiscovery.get('user_repository')
+
+    const loggedUserId = await sessionTokenRepository.getUserId(token)
+    const step = await onboardingRepository.getStep(loggedUserId)
+
+    if (step.completed_at) {
+      return res.status(400).json({ completed: true })
+    } else if (STEPS.ABOUT != step.step) {
+      return res.status(400).json({ step: step.step })
+    }
+
+    await userRepository.update(loggedUserId, { title, description })
 
     const newStep = step.step + 1
     await onboardingRepository.incrementStep(loggedUserId, newStep)
@@ -70,7 +105,7 @@ class OnboardingController extends Controller {
 
     if (step.completed_at) {
       return res.status(400).json({ completed: true })
-    } else if (2 != step.step) {
+    } else if (STEPS.PROFILE_INFO != step.step) {
       return res.status(400).json({ step: step.step })
     }
 
@@ -95,7 +130,7 @@ class OnboardingController extends Controller {
 
     if (step.completed_at) {
       return res.status(400).json({ completed: true })
-    } else if (3 != step.step) {
+    } else if (STEPS.INTERESTS != step.step) {
       return res.status(400).json({ step: step.step })
     }
 
@@ -104,6 +139,27 @@ class OnboardingController extends Controller {
 
     hobbieRepository.deleteActivitiesForUser(loggedUserId)
     hobbieRepository.setActivitiesForUser(loggedUserId, activities)
+
+    const newStep = step.step + 1
+    await onboardingRepository.incrementStep(loggedUserId, newStep)
+
+    res.json({ step: newStep })
+  }
+
+  async setImageStepPassed(req, res) {
+    const token = this.getAuthToken(req)
+
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
+
+    const loggedUserId = await sessionTokenRepository.getUserId(token)
+    const step = await onboardingRepository.getStep(loggedUserId)
+
+    if (step.completed_at) {
+      return res.status(400).json({ completed: true })
+    } else if (STEPS.PHOTO != step.step) {
+      return res.status(400).json({ step: step.step })
+    }
 
     const newStep = step.step + 1
     await onboardingRepository.incrementStep(loggedUserId, newStep)
@@ -124,7 +180,7 @@ class OnboardingController extends Controller {
 
     if (step.completed_at) {
       return res.status(400).json({ completed: true })
-    } else if (4 != step.step) {
+    } else if (STEPS.QUIZ != step.step) {
       return res.status(400).json({ step: step.step })
     }
 
@@ -150,27 +206,6 @@ class OnboardingController extends Controller {
     res.json({ step: newStep })
   }
 
-  async setImageStepPassed(req, res) {
-    const token = this.getAuthToken(req)
-
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
-
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const step = await onboardingRepository.getStep(loggedUserId)
-
-    if (step.completed_at) {
-      return res.status(400).json({ completed: true })
-    } else if (5 != step.step) {
-      return res.status(400).json({ step: step.step })
-    }
-
-    const newStep = step.step + 1
-    await onboardingRepository.incrementStep(loggedUserId, newStep)
-
-    res.json({ step: newStep })
-  }
-
   async completeOnboarding(req, res) {
     const token = this.getAuthToken(req)
 
@@ -185,7 +220,7 @@ class OnboardingController extends Controller {
 
     if (step.completed_at) {
       return res.status(400).json({ completed: true })
-    } else if (6 != step.step) {
+    } else if (STEPS.COMPLETE != step.step) {
       return res.status(400).json({ step: step.step })
     }
 

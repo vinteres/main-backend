@@ -1,4 +1,3 @@
-const { query } = require('express')
 const { v4 } = require('uuid')
 const QueryBuilder = require('../core/query_builder')
 const { calculateAge, currentTimeMs } = require('../utils')
@@ -151,14 +150,14 @@ class UserRepository {
   }
 
   async setOnboardingAccountInfo(userId, {
-    title, description, birthday, gender, interested_in, city, age
+    name, birthday, gender, interested_in, city, age
   }) {
     const query = `
-      UPDATE users SET city_id = $1, title = $2, description = $3, birthday = $4, gender = $5, interested_in = $6, age = $7
+      UPDATE users SET city_id = $1, name = $2, birthday = $3, gender = $4, interested_in = $5, age = $6
       WHERE id = $8
     `
     const result = await this.conn.query(query,
-      [city, title, description, birthday, gender, interested_in, age, userId]
+      [city, name, new Date(birthday), gender, interested_in, age, userId]
     )
 
     return result.rows[0]
