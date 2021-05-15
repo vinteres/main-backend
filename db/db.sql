@@ -248,10 +248,10 @@ INSERT INTO "free_time_activities" (id, name, created_at) VALUES
 ('8bb3d045-de56-4ba6-bc16-67d94586ab41', 'Doing my hobbies', 1611872392),
 ('2d275cb0-71d6-42f9-89b1-cd30c56d9844', 'Spending time with friend & family', 1611872392),
 ('97a12e56-ff1c-4f1d-93db-701cabf5391b', 'Reading', 1611872392),
-('9943856e-5ade-4f0b-8cc9-74ef8957d0f4', 'Sports', 1611872392);
--- Jogging
--- Going out
--- Party
+('9943856e-5ade-4f0b-8cc9-74ef8957d0f4', 'Sports', 1611872392),
+('6f89c5de-c44f-4709-abfe-10582920c100', 'Jogging', 1611872392),
+('b9d152cb-6c6f-4955-8248-c424379ed500', 'Going out', 1611872392),
+('1ee2d297-74e7-4e36-bec8-e4bdbf0a4042', 'Party', 1611872392);
 
 INSERT INTO "hobbies" (id, name, created_at) VALUES
 ('4f300118-ada6-4bcc-96a4-b99338d6a64d', 'Photography', 1611872392),
