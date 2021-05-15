@@ -23,7 +23,7 @@ const dateItem = (n) => n < 10 ? `0${n}` : n;
 const buildUser = (i, gender, offset = 0) => {
   const ti = i + 1 + offset;
   const name = 'male' === gender ? `MaleNa_${i + 1}` : `FemaleNa_${i + 1}`;
-  const email = `mx1${ti}@mail.com`;
+  const email = `m${ti}@mail.com`;
   const birthday = `${1980 + randomNumberBetween(16)}/${dateItem(1 + randomNumberBetween(11))}/${dateItem(1 + randomNumberBetween(27))}`;
   const verificationStatus = generateVerificationStatus();
   const verified = 'verified' === verificationStatus;

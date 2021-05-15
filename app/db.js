@@ -1,5 +1,6 @@
 const { Pool } = require('pg')
-const config = require('./config/config')
+const config = require('./config/config');
+const { isProd } = require('./utils');
 
 class Connection {
   constructor() {
@@ -20,7 +21,22 @@ class Connection {
   }
 
   async getClient() {
-    return await this.pool.connect()
+    const con = await this.pool.connect()
+
+    if (isProd()) return con;
+
+    return {
+      async query(query, params) {
+        console.log(new Date())
+        console.log(query.trim().split(/\s+/).join(' '))
+        console.log()
+
+        return con.query(query, params)
+      },
+      async release() {
+        return await con.release()
+      }
+    }
   }
 }
 

@@ -153,8 +153,7 @@ class UserRepository {
     name, birthday, gender, interested_in, city, age
   }) {
     const query = `
-      UPDATE users SET city_id = $1, name = $2, birthday = $3, gender = $4, interested_in = $5, age = $6
-      WHERE id = $8
+      UPDATE users SET city_id = $1, name = $2, birthday = $3, gender = $4, interested_in = $5, age = $6 WHERE id = $7
     `
     const result = await this.conn.query(query,
       [city, name, new Date(birthday), gender, interested_in, age, userId]
