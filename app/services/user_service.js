@@ -68,35 +68,35 @@ class UserService {
       user.mutual_ativities_count = loggedUserActivities.filter((n) => userItemActivities.indexOf(n) !== -1).length
     });
 
-    users.forEach(user => {
-      const userItemHobbies = userHobbies[user.id] || []
-      const userItemActivities = userActivities[user.id] || []
+    // users.forEach(user => {
+    //   const userItemHobbies = userHobbies[user.id] || []
+    //   const userItemActivities = userActivities[user.id] || []
 
-      if (!hasCompatibility(user)) return;
+    //   if (!hasCompatibility(user)) return;
 
-      if (0 < loggedUserHobbies.length || 0 < userItemHobbies.length) {
-        const hobbiesPercentageMatch = user.mutual_hobbies_count > 0 ?
-        Math.trunc((
-          Math.min(user.mutual_hobbies_count, userItemHobbies.length) /
-          Math.max(user.mutual_hobbies_count, userItemHobbies.length)
-        ) * 100) :
-        0;
+    //   if (0 < loggedUserHobbies.length || 0 < userItemHobbies.length) {
+    //     const hobbiesPercentageMatch = user.mutual_hobbies_count > 0 ?
+    //     Math.trunc((
+    //       Math.min(user.mutual_hobbies_count, userItemHobbies.length) /
+    //       Math.max(user.mutual_hobbies_count, userItemHobbies.length)
+    //     ) * 100) :
+    //     0;
 
-        user.compatibility = Math.ceil((user.compatibility + hobbiesPercentageMatch) / 2);
-      }
-      if (0 < loggedUserActivities.length || 0 < userItemActivities.length) {
-        const activitiesPercentageMatch = user.mutual_ativities_count ?
-        Math.trunc((
-          Math.min(user.mutual_ativities_count, userItemActivities.length) /
-          Math.max(user.mutual_ativities_count, userItemActivities.length)
-        ) * 100) :
-        0;
+    //     user.compatibility = Math.ceil((user.compatibility + hobbiesPercentageMatch) / 2);
+    //   }
+    //   if (0 < loggedUserActivities.length || 0 < userItemActivities.length) {
+    //     const activitiesPercentageMatch = user.mutual_ativities_count ?
+    //     Math.trunc((
+    //       Math.min(user.mutual_ativities_count, userItemActivities.length) /
+    //       Math.max(user.mutual_ativities_count, userItemActivities.length)
+    //     ) * 100) :
+    //     0;
 
-        user.compatibility = Math.ceil((user.compatibility + activitiesPercentageMatch) / 2);
-      }
+    //     user.compatibility = Math.ceil((user.compatibility + activitiesPercentageMatch) / 2);
+    //   }
 
-      if (user.compatibility > 100) user.compatibility = 100;
-    });
+    //   if (user.compatibility > 100) user.compatibility = 100;
+    // });
   }
 
   async setLocations(users) {
