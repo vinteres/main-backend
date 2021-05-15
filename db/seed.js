@@ -46,20 +46,19 @@ const buildUser = (i, gender, offset = 0) => {
   };
 };
 
-const compatibilityInfo = ({ id, gender, interested_in }) => ({ id, gender, interested_in });
-
 addUsers = async () => {
+  const USERS_PER_GENDER = 200;
   const users = [];
 
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < USERS_PER_GENDER; i++) {
     const user = buildUser(i, 'male');
     await knex('users').insert(user);
 
     users.push(user);
   }
 
-  for (let i = 0; i < 200; i++) {
-    const user = buildUser(i, 'female', 200);
+  for (let i = 0; i < USERS_PER_GENDER; i++) {
+    const user = buildUser(i, 'female', USERS_PER_GENDER);
     await knex('users').insert(user);
 
     users.push(user);
@@ -96,8 +95,8 @@ setUsersCompatibility = async (users, con) => {
   };
 
   for (const user of users) {
-    await quizService.backfillCompatibility(user.id)
-  };
+    await quizService.backfillCompatibility(user.id);
+  }
 };
 
 const setUsersSearchPreferences = async (userIds) => {
@@ -132,20 +131,13 @@ const createPages = async () => {
 (async () => {
   const con = await getClient();
   try {
-    con.query('BEGIN');
-
     const users = await addUsers();
-    await setUsersCompatibility(users.map(compatibilityInfo), con);
+
+    await setUsersCompatibility(users, con);
     await setUsersSearchPreferences(users.map(user => user.id));
     await createPages();
 
-    con.query('COMMIT');
-
     console.log('DONE!');
-  } catch (e) {
-    console.error(e)
-
-    con.query('ROLLBACK');
   } finally {
     con.release();
   }

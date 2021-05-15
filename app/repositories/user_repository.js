@@ -97,9 +97,7 @@ class UserRepository {
 
   async getUserInfoById(userId) {
     const query = `
-      SELECT id, gender, interested_in
-      FROM users
-      WHERE id = $1
+      SELECT id, gender, interested_in FROM users WHERE id = $1
     `
     const result = await this.conn.query(query, [userId])
 
@@ -244,14 +242,14 @@ class UserRepository {
     let whereCreatedAt = ''
     const params = [gender, interested_in]
     if (createdAt) {
-      whereCreatedAt = `AND created_at > $3`
+      whereCreatedAt = `AND created_at < $3`
       params.push(createdAt)
     }
 
     const query = `
       SELECT id, created_at FROM users
       WHERE interested_in = $1 AND gender = $2 ${whereCreatedAt}
-      ORDER BY created_at ASC
+      ORDER BY created_at DESC
       LIMIT 100
     `
     const result = await this.conn.query(query, params)
