@@ -33,12 +33,12 @@ INSERT INTO "profile_questions" VALUES
 
 -- Dreams
 (13, 9, 'If I could snap my fingers and instantly make the world better, I would do...', 1613141667),
-(14, 9, 'If I could I would make ..... unwritten rule mandatory if you could.', 1613141667),
+(14, 9, 'If I could I would make ..... unwritten rule mandatory.', 1613141667),
 (15, 9, 'If I could live anywhere, it would it be...', 1613141667),
 (16, 9, 'If I could choose to do anything for a day, it would be...', 1613141667),
-(17, 9, 'If I could only eat one meal for the rest of your life, it would be...', 1613141667),
+(17, 9, 'If I could only eat one meal for the rest of my life, it would be...', 1613141667),
 (18, 9, 'If I could change anything about myself it would be...', 1613141667),
-(19, 9, 'If I could go back in time to change one thing, it would it...', 1613141667),
+(19, 9, 'If I could go back in time to change one thing, it would be...', 1613141667),
 (20, 9, 'If I were a super-hero, my powers would be...', 1613141667),
 (21, 9, 'My realworld super power is...', 1613141667),
 
