@@ -15,9 +15,10 @@ module.exports = {
   production: {
     client: 'postgresql',
     connection: {
-      user: DB.user,
-      database: DB.database,
-      password: DB.password
+      ...DB,
+      ssl: {
+        ca: require('fs').readFileSync(require('path').resolve('/root/.postgresql/postgresql.crt'))
+      }
     },
     pool: {
       min: 2,
