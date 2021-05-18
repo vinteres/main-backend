@@ -111,23 +111,6 @@ const setUsersSearchPreferences = async (userIds) => {
   }
 };
 
-const createPages = async () => {
-  const profileImageId = '57660d42-b3f9-45fd-90ab-d162cea75500';
-
-  await knex('media_metadatas').insert({
-    id: profileImageId,
-    type: 'image',
-    mime_type: 'image/jpeg',
-    created_at: currentTimeMs()
-  });
-  await knex('pages').insert({
-    id: PageRepository.getAppPageId(),
-    name: 'Vinteres',
-    profile_image_id: profileImageId,
-    created_at: currentTimeMs()
-  });
-};
-
 (async () => {
   const con = await getClient();
   try {
@@ -135,7 +118,6 @@ const createPages = async () => {
 
     await setUsersCompatibility(users, con);
     await setUsersSearchPreferences(users.map(user => user.id));
-    await createPages();
 
     console.log('DONE!');
   } finally {

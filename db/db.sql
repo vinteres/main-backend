@@ -1,3 +1,9 @@
+INSERT INTO "media_metadatas" (id, type, mime_type, created_at) VALUES
+('57660d42-b3f9-45fd-90ab-d162cea75500', 'image', 'image/png', 1620503505403);
+
+INSERT INTO "pages" (id, name, profile_image_id, created_at) VALUES
+('d71e949a-f899-4160-8356-42a9e7616acb', 'Vinteres', '57660d42-b3f9-45fd-90ab-d162cea75500', 1620503505403);
+
 INSERT INTO "profile_question_categories" VALUES
 (1, '', 1613141667),
 (2, '', 1613141667),
