@@ -12,7 +12,7 @@ class AuthService {
     `
     const loginError = { loggedIn: false }
 
-    const result = await this.conn.query(query, [email])
+    const result = await this.conn.query(query, [email.trim()])
     const user = result.rows[0]
     if (!user || 'deleted' === user.user_status) return loginError
     const match = await compareHash(password, user.password)

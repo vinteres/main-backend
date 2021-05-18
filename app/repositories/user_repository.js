@@ -13,18 +13,18 @@ class UserRepository {
     return USERS_PER_PAGE
   }
 
-  async create({ email, name, password }) {
+  async create({ email, password }) {
     const id = v4()
     const status = 'onboarding'
     const createdAt = currentTimeMs()
     const query = `
-      INSERT INTO users (id, email, name, password, user_status, verified, created_at) VALUES
-        ($1, $2, $3, $4, $5, false, $6)
+      INSERT INTO users (id, email, password, user_status, verified, created_at) VALUES
+        ($1, $2, $3, $4, false, $5)
     `
 
-    await this.conn.query(query, [id, email, name, password, status, createdAt])
+    await this.conn.query(query, [id, email.trim(), password, status, createdAt])
 
-    return { id, email, name, status, createdAt }
+    return { id, email, status, createdAt }
   }
 
   async getUserById(userId) {
@@ -154,7 +154,7 @@ class UserRepository {
       UPDATE users SET city_id = $1, name = $2, birthday = $3, gender = $4, interested_in = $5, age = $6 WHERE id = $7
     `
     const result = await this.conn.query(query,
-      [city, name, new Date(birthday), gender, interested_in, age, userId]
+      [city, name.trim(), new Date(birthday), gender, interested_in, age, userId]
     )
 
     return result.rows[0]

@@ -13,9 +13,9 @@ class UserService {
     this.locationService = locationService
   }
 
-  async signUp({ email, name, password }) {
+  async signUp({ email, password }) {
     password = await hash(password)
-    const user = await this.userRepository.create({ email, name, password })
+    const user = await this.userRepository.create({ email, password })
     const onboarding = await this.onboardingRepository.create(user.id)
 
     return { user, onboarding }

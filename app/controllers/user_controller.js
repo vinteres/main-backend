@@ -224,9 +224,9 @@ class UserController extends Controller {
   }
 
   async signUp(req, res) {
-    const { email, name, password } = req.body
+    const { email, password } = req.body
 
-    const validator = new SignUpValidator({ email, name, password })
+    const validator = new SignUpValidator({ email, password })
     if (!validator.validate()) {
       return res.status(400).json(validator.errors)
     }
@@ -234,7 +234,7 @@ class UserController extends Controller {
     const userService = await this.serviceDiscovery.get('user_service')
     const authService = await this.serviceDiscovery.get('auth_service')
 
-    const result = await userService.signUp({ email, name, password })
+    const result = await userService.signUp({ email, password })
     const token = await authService.createAuthTokenForUser(result.user.id, false)
     result.user.token = token
 
