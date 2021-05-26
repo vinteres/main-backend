@@ -1,57 +1,57 @@
 class LocationService {
   constructor(locationRepository) {
-    this.locationRepository = locationRepository
+    this.locationRepository = locationRepository;
   }
 
   async getCitiesForCountry(countryId) {
-    const cities = await this.locationRepository.findCitiesByCountryId(countryId)
-    const country = await this.locationRepository.findCountryById(countryId)
+    const cities = await this.locationRepository.findCitiesByCountryId(countryId);
+    const country = await this.locationRepository.findCountryById(countryId);
 
     return cities.map(city => {
-      city.name = `${city.name}, ${country.name}`
+      city.name = `${city.name}, ${country.name}`;
 
-      return city
-    })
+      return city;
+    });
   }
 
   async getCitiesById(cityIds) {
-    if (!cityIds || 0 === cityIds.length) return []
+    if (!cityIds || 0 === cityIds.length) return [];
 
-    const cities = await this.locationRepository.findCitiesById(cityIds)
-    const countries = await this.locationRepository.findCountriesById(cities.map(city => city.country_id))
+    const cities = await this.locationRepository.findCitiesById(cityIds);
+    const countries = await this.locationRepository.findCountriesById(cities.map(city => city.country_id));
 
     return cities.map(city => {
-      const country = countries.find(c => c.id === city.country_id)
-      city.name = `${city.name}, ${country.name}`
+      const country = countries.find(c => c.id === city.country_id);
+      city.name = `${city.name}, ${country.name}`;
 
-      return city
-    })
+      return city;
+    });
   }
 
   async getLocationById(cityId) {
-    const city = await this.locationRepository.findCityById(cityId)
-    if (!city) return null
+    const city = await this.locationRepository.findCityById(cityId);
+    if (!city) return null;
 
-    const country = await this.locationRepository.findCountryById(city.country_id)
+    const country = await this.locationRepository.findCountryById(city.country_id);
 
-    city.fullName = `${city.name}, ${country.name}`
+    city.fullName = `${city.name}, ${country.name}`;
 
-    return city
+    return city;
   }
 
   async search(text) {
-    if (2 > text.length) return []
+    if (2 > text.length) return [];
 
-    const cities = await this.locationRepository.search(text)
-    const countries = await this.locationRepository.findCountriesById(cities.map(city => city.country_id))
+    const cities = await this.locationRepository.search(text);
+    const countries = await this.locationRepository.findCountriesById(cities.map(city => city.country_id));
 
     return cities.map(city => {
-      const country = countries.find(country => country.id === city.country_id)
-      city.fullName = `${city.name}, ${country.name}`
+      const country = countries.find(country => country.id === city.country_id);
+      city.fullName = `${city.name}, ${country.name}`;
 
-      return city
-    })
+      return city;
+    });
   }
 }
 
-module.exports = LocationService
+module.exports = LocationService;

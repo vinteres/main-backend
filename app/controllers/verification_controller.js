@@ -1,70 +1,70 @@
-const { Controller } = require('./controller')
-const MediaService = require('../services/media_service')
-const formidable = require('formidable')
-const { isProd } = require('../utils')
-const fs = require('fs').promises
+const { Controller } = require('./controller');
+const MediaService = require('../services/media_service');
+const formidable = require('formidable');
+const { isProd } = require('../utils');
+const fs = require('fs').promises;
 
 const formParse = (req) => {
-  const form = new formidable.IncomingForm()
+  const form = new formidable.IncomingForm();
 
   return new Promise((resolve, reject) => {
     form.parse(req, async (err, fields, files) => {
       if (err) {
-        reject(err)
+        reject(err);
 
-        return
+        return;
       }
 
-      resolve({ fields, files })
-    })
-  })
-}
+      resolve({ fields, files });
+    });
+  });
+};
 
 class VerificationController extends Controller {
   async status(req, res) {
-    const token = this.getAuthToken(req)
+    const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const userRepository = await this.serviceDiscovery.get('user_repository');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
     const { profile_image_id, verification_status } = await userRepository.findById(
       ['profile_image_id', 'verification_status'],
       loggedUserId
-    )
+    );
 
     res.json({
       profileImageId: profile_image_id,
       verificationStatus: verification_status
-    })
+    });
   }
 
   async create(req, res) {
-    const token = this.getAuthToken(req)
+    const token = this.getAuthToken(req);
 
-    const con = await this.serviceDiscovery.get('db_connection')
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const introRepository = await this.serviceDiscovery.get('intro_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-    const verificationRequestrepository = await this.serviceDiscovery.get('verification_request_repository')
+    const con = await this.serviceDiscovery.get('db_connection');
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const introRepository = await this.serviceDiscovery.get('intro_repository');
+    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const verificationRequestrepository = await this.serviceDiscovery.get('verification_request_repository');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
     try {
-      const { files } = await formParse(req)
+      const { files } = await formParse(req);
 
-      con.query('BEGIN')
+      con.query('BEGIN');
 
-      const mediaFile = files['media-blob']
-      const media = await introRepository.createMediaMetadata('image', mediaFile.type)
-      const oldpath = mediaFile.path
+      const mediaFile = files['media-blob'];
+      const media = await introRepository.createMediaMetadata('image', mediaFile.type);
+      const oldpath = mediaFile.path;
 
-      const mediaContent = await fs.readFile(oldpath)
+      const mediaContent = await fs.readFile(oldpath);
 
       if (isProd()) {
-        await new MediaService().s3Upload(media.id, mediaFile.type, mediaContent)
+        await new MediaService().s3Upload(media.id, mediaFile.type, mediaContent);
       } else {
-        const newpath = `./uploads/${media.id}`
-        await fs.rename(oldpath, newpath)
+        const newpath = `./uploads/${media.id}`;
+        await fs.rename(oldpath, newpath);
       }
 
       await verificationRequestrepository.create({
@@ -74,15 +74,15 @@ class VerificationController extends Controller {
       });
       await userRepository.setVerificationStatus(loggedUserId, 'pending');
 
-      con.query('COMMIT')
+      con.query('COMMIT');
 
-      res.status(201).end()
+      res.status(201).end();
     } catch (e) {
-      con.query('ROLLBACK')
+      con.query('ROLLBACK');
 
-      throw e
+      throw e;
     }
   }
 }
 
-module.exports = VerificationController
+module.exports = VerificationController;

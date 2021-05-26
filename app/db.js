@@ -1,53 +1,53 @@
-const { Pool } = require('pg')
+const { Pool } = require('pg');
 const config = require('./config/config');
 const { isProd } = require('./utils');
 
 class Connection {
   constructor() {
-    this.pool = new Pool(config.DB)
+    this.pool = new Pool(config.DB);
   }
 
   async getConnection(handle, errorHandle) {
     const client = await this.getClient();
 
     try {
-      await handle(client)
+      await handle(client);
     } catch(err) {
-      console.error(err)
-      if (errorHandle) errorHandle()
+      console.error(err);
+      if (errorHandle) errorHandle();
     } finally {
-      client.release()
+      client.release();
     }
   }
 
   async getClient() {
-    const con = await this.pool.connect()
+    const con = await this.pool.connect();
 
     if (isProd()) return con;
 
     return {
       async query(query, params) {
-        console.log(new Date())
-        console.log(query.trim().split(/\s+/).join(' '))
-        console.log()
+        console.log(new Date());
+        console.log(query.trim().split(/\s+/).join(' '));
+        console.log();
 
-        return con.query(query, params)
+        return con.query(query, params);
       },
       async release() {
-        return await con.release()
+        return await con.release();
       }
-    }
+    };
   }
 }
 
-const connection = new Connection()
+const connection = new Connection();
 
 module.exports = {
   Connection,
   getConnection(handle, errorHandle) {
-    return connection.getConnection(handle, errorHandle)
+    return connection.getConnection(handle, errorHandle);
   },
   getClient() {
-    return connection.getClient()
+    return connection.getClient();
   }
-}
+};

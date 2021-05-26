@@ -1,72 +1,72 @@
-const ChatRepository = require('../repositories/chat_repository')
-const { getProfileImagePath } = require('../services/media_service')
-const { Controller } = require('./controller')
-const { timeAgo } = require('../utils')
-const MediaService = require('../services/media_service')
-const ChatMemberType = require('../models/enums/chat_member_type')
+const ChatRepository = require('../repositories/chat_repository');
+const { getProfileImagePath } = require('../services/media_service');
+const { Controller } = require('./controller');
+const { timeAgo } = require('../utils');
+const MediaService = require('../services/media_service');
+const ChatMemberType = require('../models/enums/chat_member_type');
 
 class ChatController extends Controller {
   async members(req, res) {
-    const token = this.getAuthToken(req)
+    const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const chatRepository = await this.serviceDiscovery.get('chat_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-    const pageRepository = await this.serviceDiscovery.get('page_repository')
-    const matchRepository = await this.serviceDiscovery.get('match_repository')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const chatRepository = await this.serviceDiscovery.get('chat_repository');
+    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const pageRepository = await this.serviceDiscovery.get('page_repository');
+    const matchRepository = await this.serviceDiscovery.get('match_repository');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
 
-    const chatIds = await chatRepository.getChatIdsForUser(loggedUserId)
-    const chats = await chatRepository.getChatsById(chatIds)
+    const chatIds = await chatRepository.getChatIdsForUser(loggedUserId);
+    const chats = await chatRepository.getChatsById(chatIds);
 
-    const membersData = await chatRepository.getChatsMembersInChats(chatIds)
+    const membersData = await chatRepository.getChatsMembersInChats(chatIds);
 
-    const chatMembers = membersData.filter(member => member.rel_id !== loggedUserId)
-    const chatUserMembers = chatMembers.filter(member => ChatMemberType.USER === member.rel_type)
-    const chatPageMembers = chatMembers.filter(member => ChatMemberType.PAGE === member.rel_type)
-    const tu = membersData.filter(member => member.rel_id === loggedUserId)
+    const chatMembers = membersData.filter(member => member.rel_id !== loggedUserId);
+    const chatUserMembers = chatMembers.filter(member => ChatMemberType.USER === member.rel_type);
+    const chatPageMembers = chatMembers.filter(member => ChatMemberType.PAGE === member.rel_type);
+    const tu = membersData.filter(member => member.rel_id === loggedUserId);
 
-    let matches = []
+    let matches = [];
     if (0 < chatMembers.length) {
-      matches = await matchRepository.getMatchesFor(loggedUserId)
+      matches = await matchRepository.getMatchesFor(loggedUserId);
       matches = matches.map(match => {
         if (match.user_one_id === loggedUserId) {
-          return match.user_two_id
+          return match.user_two_id;
         }
 
-        return match.user_one_id
-      })
+        return match.user_one_id;
+      });
     }
 
-    const userImages = await userRepository.getUsersImage(chatUserMembers.map(user => user.rel_id))
+    const userImages = await userRepository.getUsersImage(chatUserMembers.map(user => user.rel_id));
     const pageImages = await pageRepository.findByIds(
       ['id', 'name', 'profile_image_id'],
       chatPageMembers.map(user => user.rel_id)
-    )
+    );
 
     chatMembers.forEach(member => {
       if (ChatMemberType.USER === member.rel_type) {
-        const imageItem = userImages.find(image => member.rel_id === image.id)
+        const imageItem = userImages.find(image => member.rel_id === image.id);
 
-        member.name = imageItem.name
+        member.name = imageItem.name;
         // user.gender = u.gender
-        member.profileImage = getProfileImagePath(imageItem)
+        member.profileImage = getProfileImagePath(imageItem);
       } else if (ChatMemberType.PAGE === member.rel_type) {
-        const imageItem = pageImages.find(image => member.rel_id === image.id)
+        const imageItem = pageImages.find(image => member.rel_id === image.id);
 
-        member.name = imageItem.name
-        member.profileImage = MediaService.mediaPath(imageItem.profile_image_id, 'small')
+        member.name = imageItem.name;
+        member.profileImage = MediaService.mediaPath(imageItem.profile_image_id, 'small');
       }
-    })
+    });
 
     let result = chats.map(chat => {
-      const member = chatMembers.find(item => item.chat_id === chat.id)
-      const matched = matches.find(match => match === member.rel_id)
-      if (ChatMemberType.USER === member.rel_type && !matched) return
+      const member = chatMembers.find(item => item.chat_id === chat.id);
+      const matched = matches.find(match => match === member.rel_id);
+      if (ChatMemberType.USER === member.rel_type && !matched) return;
 
-      const lastMessageAt = chat.last_message_at
-      const notSeenCount = tu.find(item => item.chat_id === chat.id).not_seen_count
+      const lastMessageAt = chat.last_message_at;
+      const notSeenCount = tu.find(item => item.chat_id === chat.id).not_seen_count;
 
       return {
         id: member.rel_id,
@@ -75,65 +75,65 @@ class ChatController extends Controller {
         chat_id: member.chat_id,
         lastMessageAt,
         notSeenCount
-      }
-    })
-    result = result.filter(user => !!user)
+      };
+    });
+    result = result.filter(user => !!user);
 
-    res.json(result)
+    res.json(result);
   }
 
   async get(req, res) {
-    const token = this.getAuthToken(req)
-    const userId = req.params.userId
+    const token = this.getAuthToken(req);
+    const userId = req.params.userId;
 
-    const chatRepository = await this.serviceDiscovery.get('chat_repository')
-    const chatService = await this.serviceDiscovery.get('chat_service')
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const matchRepository = await this.serviceDiscovery.get('match_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-    const pageRepository = await this.serviceDiscovery.get('page_repository')
-    const con = await this.serviceDiscovery.get('db_connection')
+    const chatRepository = await this.serviceDiscovery.get('chat_repository');
+    const chatService = await this.serviceDiscovery.get('chat_service');
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const matchRepository = await this.serviceDiscovery.get('match_repository');
+    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const pageRepository = await this.serviceDiscovery.get('page_repository');
+    const con = await this.serviceDiscovery.get('db_connection');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
 
     try {
-      con.query('BEGIN')
+      con.query('BEGIN');
 
-      let chatId = await chatRepository.getCommonChatId(loggedUserId, userId)
-      let memberType = await chatRepository.findRelType(chatId, userId)
+      let chatId = await chatRepository.getCommonChatId(loggedUserId, userId);
+      let memberType = await chatRepository.findRelType(chatId, userId);
 
       if ('page' !== memberType) {
-        const matched = await matchRepository.areMatched(loggedUserId, userId)
+        const matched = await matchRepository.areMatched(loggedUserId, userId);
         if (!matched) {
           return res.json({
             member: false
-          })
+          });
         }
       }
 
       if (!chatId) {
-        chatId = await chatRepository.createChat()
-        await chatRepository.createChatMembers(chatId, [{ id: loggedUserId }, { id: userId }])
+        chatId = await chatRepository.createChat();
+        await chatRepository.createChatMembers(chatId, [{ id: loggedUserId }, { id: userId }]);
       }
-      await chatService.seeChatMessages(chatId, loggedUserId)
+      await chatService.seeChatMessages(chatId, loggedUserId);
 
-      con.query('COMMIT')
+      con.query('COMMIT');
 
-      memberType = memberType || 'user'
+      memberType = memberType || 'user';
 
-      let messages = await chatRepository.getChatMessages(chatId)
-      let user
+      let messages = await chatRepository.getChatMessages(chatId);
+      let user;
       if (ChatMemberType.USER === memberType) {
-        user = await userRepository.getUserById(userId)
+        user = await userRepository.getUserById(userId);
       } else if (ChatMemberType.PAGE === memberType) {
-        user = await pageRepository.findById(['id', 'name', 'profile_image_id'], userId)
+        user = await pageRepository.findById(['id', 'name', 'profile_image_id'], userId);
       }
 
-      messages = messages.reverse()
+      messages = messages.reverse();
 
-      const lastMessage = messages[messages.length - 1]
+      const lastMessage = messages[messages.length - 1];
       if (lastMessage) {
-        lastMessage.postedAgo = timeAgo(lastMessage.created_at)
+        lastMessage.postedAgo = timeAgo(lastMessage.created_at);
       }
 
       res.json({
@@ -147,43 +147,43 @@ class ChatController extends Controller {
         },
         messages,
         hasMoreMsgs: ChatRepository.messagesPerPage() === messages.length
-      })
+      });
 
     } catch (e) {
-      con.query('ROLLBACK')
+      con.query('ROLLBACK');
 
-      throw e
+      throw e;
     }
   }
 
   async loadOlder(req, res) {
-    const token = this.getAuthToken(req)
-    const chatId = req.params.userId
-    const ts = req.query.t
+    const token = this.getAuthToken(req);
+    const chatId = req.params.userId;
+    const ts = req.query.t;
 
-    const chatRepository = await this.serviceDiscovery.get('chat_repository')
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
+    const chatRepository = await this.serviceDiscovery.get('chat_repository');
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const isChatMember = await chatRepository.isChatMember(chatId, loggedUserId)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const isChatMember = await chatRepository.isChatMember(chatId, loggedUserId);
 
     if (!isChatMember) {
-      return res.status(403).end()
+      return res.status(403).end();
     }
 
-    let messages = await chatRepository.loadChatMessages(chatId, ts)
-    messages = messages.reverse()
+    let messages = await chatRepository.loadChatMessages(chatId, ts);
+    messages = messages.reverse();
 
-    const lastMessage = messages[messages.length - 1]
+    const lastMessage = messages[messages.length - 1];
     if (lastMessage) {
-      lastMessage.postedAgo = timeAgo(lastMessage.created_at)
+      lastMessage.postedAgo = timeAgo(lastMessage.created_at);
     }
 
     res.json({
       messages,
       hasMoreMsgs: ChatRepository.messagesPerPage() === messages.length
-    })
+    });
   }
 }
 
-module.exports = ChatController
+module.exports = ChatController;

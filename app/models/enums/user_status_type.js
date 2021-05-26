@@ -3,6 +3,6 @@ const UserStatusType = Object.freeze({
   ACTIVE: 'active',
   SUSPENDED: 'suspended',
   DELETED: 'deleted'
-})
+});
 
-module.exports = UserStatusType
+module.exports = UserStatusType;

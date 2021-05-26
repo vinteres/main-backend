@@ -8,7 +8,7 @@ const f = (fieldsMap) => {
   });
 
   return { fields, values };
-}
+};
 
 class QueryBuilder {
 
@@ -20,13 +20,13 @@ class QueryBuilder {
       UPDATE ${table}
       SET ${fields.map((field, ix) => `${field} = $${ix + 1}`).join(', ')}
       WHERE ${whereFields.fields.map((field, ix) => `${field} = $${fields.length + ix + 1}`).join(' AND ')}
-    `
+    `;
 
     return {
       query,
       values: [...values, ...whereFields.values]
-    }
+    };
   }
 }
 
-module.exports = QueryBuilder
+module.exports = QueryBuilder;

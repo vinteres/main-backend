@@ -1,5 +1,5 @@
-const MediaService = require('../services/media_service')
-const { timeAgo } = require('../utils')
+const MediaService = require('../services/media_service');
+const { timeAgo } = require('../utils');
 
 const item = (intro) => ({
   id: intro.id,
@@ -9,8 +9,8 @@ const item = (intro) => ({
   type: intro.type,
   message: intro.message,
   mediaPath: MediaService.mediaPath(intro.media_metadata_id)
-})
+});
 
 module.exports = {
   item,
-}
+};

@@ -1,4 +1,4 @@
-const Validator = require('./validator')
+const Validator = require('./validator');
 
 class SignUpValidator extends Validator {
   validate() {
@@ -7,11 +7,11 @@ class SignUpValidator extends Validator {
     // }
     // if (!/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/.test(this.attributes.password)) {
     if (!/^.{8,}$/.test(this.attributes.password)) {
-      this.errors.password = { invalid: true }
+      this.errors.password = { invalid: true };
     }
 
-    return 0 === Object.keys(this.errors).length
+    return 0 === Object.keys(this.errors).length;
   }
 }
 
-module.exports = SignUpValidator
+module.exports = SignUpValidator;

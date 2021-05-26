@@ -5,6 +5,6 @@ const ReportType = Object.freeze({
   FAKE: 'fake',
   UNDERAGE: 'underage',
   OTHER: 'other'
-})
+});
 
-module.exports = ReportType
+module.exports = ReportType;

@@ -1,12 +1,12 @@
 class Validator {
   constructor(attributes = {}) {
-    this.attributes = attributes
-    this.errors = {}
+    this.attributes = attributes;
+    this.errors = {};
   }
 
   validate() {
-    return true
+    return true;
   }
 }
 
-module.exports = Validator
+module.exports = Validator;

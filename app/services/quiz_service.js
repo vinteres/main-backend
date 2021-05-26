@@ -2,13 +2,13 @@ const MIN_PERCENT_MATCH = 60;
 const MAX_MATCHES = 100;
 
 const getRandomInt = (min, max) => {
-  min = Math.ceil(min)
-  max = Math.floor(max)
+  min = Math.ceil(min);
+  max = Math.floor(max);
 
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
 
-const percentage = (count, total) => 100 * count / total
+const percentage = (count, total) => 100 * count / total;
 
 const mapBy = (o, k) => {
   if (!o) return [];
@@ -23,35 +23,35 @@ const mapBy = (o, k) => {
 };
 
 const getCompatibilityPercentBetween = (userOneAnswers, userTwoAnswers) => {
-  const qIds = Object.keys(userOneAnswers)
-  let c = 0
+  const qIds = Object.keys(userOneAnswers);
+  let c = 0;
   for (const qid of qIds) {
     if (userOneAnswers[qid] === userTwoAnswers[qid]) c++;
   }
 
-  let percentMatch = (0 === c || 0 === qIds.length) ? 0 : Math.ceil(percentage(c, qIds.length))
+  let percentMatch = (0 === c || 0 === qIds.length) ? 0 : Math.ceil(percentage(c, qIds.length));
   if (percentMatch > 100) percentMatch = 100;
 
-  return percentMatch
-}
+  return percentMatch;
+};
 
 class QuizService {
   constructor(quizRepository, userRepository, onboardingRepository) {
-    this.quizRepository = quizRepository
-    this.userRepository = userRepository
-    this.onboardingRepository = onboardingRepository
+    this.quizRepository = quizRepository;
+    this.userRepository = userRepository;
+    this.onboardingRepository = onboardingRepository;
   }
 
   async getHighCompatibilitiesForUser(userId) {
-    return await this.quizRepository.findHighCompatibilitiesForUser(userId)
+    return await this.quizRepository.findHighCompatibilitiesForUser(userId);
   }
 
   async getHighCompatibilityCountForUser(userId) {
-    return await this.quizRepository.highCompatibilityCountForUser(userId)
+    return await this.quizRepository.highCompatibilityCountForUser(userId);
   }
 
   async getCompatibilityForUsers(userId, userIds) {
-    return await this.quizRepository.findCompatibilities(userId, userIds)
+    return await this.quizRepository.findCompatibilities(userId, userIds);
   }
 
   async getCompatibilityFor(userOneId, userTwoId) {
@@ -70,9 +70,9 @@ class QuizService {
   }
 
   async _getCompatibility(userId) {
-    const user = await this.userRepository.getUserInfoById(userId)
-    let foundMatches = 0
-    let lastCreatedAt = null
+    const user = await this.userRepository.getUserInfoById(userId);
+    let foundMatches = 0;
+    let lastCreatedAt = null;
 
     const userOneAnswers = await this.quizRepository.findAllAnswersForUser(userId);
     const existingCompatibility = await this._getExistingCompatibilityFor(userId);
@@ -100,7 +100,7 @@ class QuizService {
         }
       }
 
-      lastCreatedAt = users[users.length - 1].created_at
+      lastCreatedAt = users[users.length - 1].created_at;
     }
 
     return compatibilities;
@@ -122,35 +122,35 @@ class QuizService {
    * For tests only
    */
   async backfillAnswers() {
-    const questions = await this.quizRepository.findAllQuestions()
-    const answers = await this.quizRepository.findAllAnswers(questions.map(question => question.id))
-    const qa = {}
+    const questions = await this.quizRepository.findAllQuestions();
+    const answers = await this.quizRepository.findAllAnswers(questions.map(question => question.id));
+    const qa = {};
     for (const answer of answers) {
-      if (!qa[answer.question_id]) qa[answer.question_id] = []
-      qa[answer.question_id].push(answer.id)
+      if (!qa[answer.question_id]) qa[answer.question_id] = [];
+      qa[answer.question_id].push(answer.id);
     }
 
-    const userIds = await this.userRepository.findAllIds()
+    const userIds = await this.userRepository.findAllIds();
     for (const userId of userIds) {
-      const ua = {}
+      const ua = {};
       for (const qId of Object.keys(qa)) {
-        const aId = qa[qId][getRandomInt(0, qa[qId].length - 1)]
-        ua[qId] = aId
+        const aId = qa[qId][getRandomInt(0, qa[qId].length - 1)];
+        ua[qId] = aId;
       }
 
-      const userAnswers = []
+      const userAnswers = [];
       for (const questionId of Object.keys(ua)) {
-        const answerId = ua[questionId]
+        const answerId = ua[questionId];
         userAnswers.push({
           userId: userId,
           answerId,
           questionId
-        })
+        });
       }
 
-      await this.onboardingRepository.createUserAnswers(userAnswers)
+      await this.onboardingRepository.createUserAnswers(userAnswers);
     }
   }
 }
 
-module.exports = QuizService
+module.exports = QuizService;

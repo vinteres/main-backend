@@ -1,6 +1,6 @@
-const { Controller } = require('./controller')
-const { calculateAge } = require('../utils')
-const PageRepository = require('../repositories/page_repository')
+const { Controller } = require('./controller');
+const { calculateAge } = require('../utils');
+const PageRepository = require('../repositories/page_repository');
 
 const STEPS = {
   ACCOUNT_INFO: 1,
@@ -10,188 +10,188 @@ const STEPS = {
   PHOTO: 5,
   QUIZ: 6,
   COMPLETE: 7,
-}
+};
 
 class OnboardingController extends Controller {
   async getStep(req, res) {
-    const token = this.getAuthToken(req)
+    const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const step = await onboardingRepository.getStep(loggedUserId)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const step = await onboardingRepository.getStep(loggedUserId);
 
-    res.json(step)
+    res.json(step);
   }
 
   async setAccountInfo(req, res) {
-    const token = this.getAuthToken(req)
-    const { name, birthday, gender, interested_in, city } = req.body
+    const token = this.getAuthToken(req);
+    const { name, birthday, gender, interested_in, city } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-    const searchPreferenceRepository = await this.serviceDiscovery.get('search_preference_repository')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
+    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const searchPreferenceRepository = await this.serviceDiscovery.get('search_preference_repository');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const step = await onboardingRepository.getStep(loggedUserId)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const step = await onboardingRepository.getStep(loggedUserId);
 
     if (step.completed_at) {
-      return res.status(400).json({ completed: true })
+      return res.status(400).json({ completed: true });
     } else if (STEPS.ACCOUNT_INFO != step.step) {
-      return res.status(400).json({ step: step.step })
+      return res.status(400).json({ step: step.step });
     }
 
-    const age = calculateAge(new Date(birthday))
+    const age = calculateAge(new Date(birthday));
     await userRepository.setOnboardingAccountInfo(
       loggedUserId,
       { name, birthday, gender, interested_in, city, age }
-    )
+    );
 
-    const fromAge = (18 > 15 - age) ? 18 : age - 15
-    const toAge = (99 < 15 + age) ? 99 : age + 15
+    const fromAge = (18 > 15 - age) ? 18 : age - 15;
+    const toAge = (99 < 15 + age) ? 99 : age + 15;
     if (await searchPreferenceRepository.getForUser(loggedUserId)) {
-      await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId: city })
+      await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId: city });
     } else {
-      await searchPreferenceRepository.create(loggedUserId, { fromAge, toAge, cityId: city })
+      await searchPreferenceRepository.create(loggedUserId, { fromAge, toAge, cityId: city });
     }
 
-    const newStep = step.step + 1
-    await onboardingRepository.incrementStep(loggedUserId, newStep)
+    const newStep = step.step + 1;
+    await onboardingRepository.incrementStep(loggedUserId, newStep);
 
-    res.json({ step: newStep })
+    res.json({ step: newStep });
   }
 
   async setAbout(req, res) {
-    const token = this.getAuthToken(req)
-    const { title, description } = req.body
+    const token = this.getAuthToken(req);
+    const { title, description } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
+    const userRepository = await this.serviceDiscovery.get('user_repository');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const step = await onboardingRepository.getStep(loggedUserId)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const step = await onboardingRepository.getStep(loggedUserId);
 
     if (step.completed_at) {
-      return res.status(400).json({ completed: true })
+      return res.status(400).json({ completed: true });
     } else if (STEPS.ABOUT != step.step) {
-      return res.status(400).json({ step: step.step })
+      return res.status(400).json({ step: step.step });
     }
 
-    await userRepository.update(loggedUserId, { title, description })
+    await userRepository.update(loggedUserId, { title, description });
 
-    const newStep = step.step + 1
-    await onboardingRepository.incrementStep(loggedUserId, newStep)
+    const newStep = step.step + 1;
+    await onboardingRepository.incrementStep(loggedUserId, newStep);
 
-    res.json({ step: newStep })
+    res.json({ step: newStep });
   }
 
   async setProfileInfo(req, res) {
-    const token = this.getAuthToken(req)
+    const token = this.getAuthToken(req);
     const payload = req.body;
 
     Object.keys(payload).forEach(key => {
       if ('not_tell' === payload[key]) payload[key] = null;
     });
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
+    const userRepository = await this.serviceDiscovery.get('user_repository');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const step = await onboardingRepository.getStep(loggedUserId)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const step = await onboardingRepository.getStep(loggedUserId);
 
     if (step.completed_at) {
-      return res.status(400).json({ completed: true })
+      return res.status(400).json({ completed: true });
     } else if (STEPS.PROFILE_INFO != step.step) {
-      return res.status(400).json({ step: step.step })
+      return res.status(400).json({ step: step.step });
     }
 
-    await userRepository.setProfileSettings(loggedUserId, payload)
+    await userRepository.setProfileSettings(loggedUserId, payload);
 
-    const newStep = step.step + 1
-    await onboardingRepository.incrementStep(loggedUserId, newStep)
+    const newStep = step.step + 1;
+    await onboardingRepository.incrementStep(loggedUserId, newStep);
 
-    res.json({ step: newStep })
+    res.json({ step: newStep });
   }
 
   async setInterests(req, res) {
-    const token = this.getAuthToken(req)
-    const { hobbies, activities } = req.body
+    const token = this.getAuthToken(req);
+    const { hobbies, activities } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
-    const hobbieRepository = await this.serviceDiscovery.get('hobbie_repository')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
+    const hobbieRepository = await this.serviceDiscovery.get('hobbie_repository');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const step = await onboardingRepository.getStep(loggedUserId)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const step = await onboardingRepository.getStep(loggedUserId);
 
     if (step.completed_at) {
-      return res.status(400).json({ completed: true })
+      return res.status(400).json({ completed: true });
     } else if (STEPS.INTERESTS != step.step) {
-      return res.status(400).json({ step: step.step })
+      return res.status(400).json({ step: step.step });
     }
 
-    hobbieRepository.deleteForUser(loggedUserId)
-    hobbieRepository.setForUser(loggedUserId, hobbies)
+    hobbieRepository.deleteForUser(loggedUserId);
+    hobbieRepository.setForUser(loggedUserId, hobbies);
 
-    hobbieRepository.deleteActivitiesForUser(loggedUserId)
-    hobbieRepository.setActivitiesForUser(loggedUserId, activities)
+    hobbieRepository.deleteActivitiesForUser(loggedUserId);
+    hobbieRepository.setActivitiesForUser(loggedUserId, activities);
 
-    const newStep = step.step + 1
-    await onboardingRepository.incrementStep(loggedUserId, newStep)
+    const newStep = step.step + 1;
+    await onboardingRepository.incrementStep(loggedUserId, newStep);
 
-    res.json({ step: newStep })
+    res.json({ step: newStep });
   }
 
   async setImageStepPassed(req, res) {
-    const token = this.getAuthToken(req)
+    const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const step = await onboardingRepository.getStep(loggedUserId)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const step = await onboardingRepository.getStep(loggedUserId);
 
     if (step.completed_at) {
-      return res.status(400).json({ completed: true })
+      return res.status(400).json({ completed: true });
     } else if (STEPS.PHOTO != step.step) {
-      return res.status(400).json({ step: step.step })
+      return res.status(400).json({ step: step.step });
     }
 
-    const newStep = step.step + 1
-    await onboardingRepository.incrementStep(loggedUserId, newStep)
+    const newStep = step.step + 1;
+    await onboardingRepository.incrementStep(loggedUserId, newStep);
 
-    res.json({ step: newStep })
+    res.json({ step: newStep });
   }
 
   async setQuizAnswers(req, res) {
-    const token = this.getAuthToken(req)
-    const { answers } = req.body
+    const token = this.getAuthToken(req);
+    const { answers } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
-    const quizService = await this.serviceDiscovery.get('quiz_service')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
+    const quizService = await this.serviceDiscovery.get('quiz_service');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const step = await onboardingRepository.getStep(loggedUserId)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const step = await onboardingRepository.getStep(loggedUserId);
 
     if (step.completed_at) {
-      return res.status(400).json({ completed: true })
+      return res.status(400).json({ completed: true });
     } else if (STEPS.QUIZ != step.step) {
-      return res.status(400).json({ step: step.step })
+      return res.status(400).json({ step: step.step });
     }
 
-    const userAnswers = []
+    const userAnswers = [];
     for (const questionId of Object.keys(answers)) {
-      const answerId = answers[questionId]
+      const answerId = answers[questionId];
       userAnswers.push({
         userId: loggedUserId,
         answerId,
         questionId
-      })
+      });
     }
 
     await onboardingRepository.createUserAnswers(userAnswers);
@@ -200,28 +200,28 @@ class OnboardingController extends Controller {
       await quizService.backfillCompatibility(loggedUserId);
     })();
 
-    const newStep = step.step + 1
-    await onboardingRepository.incrementStep(loggedUserId, newStep)
+    const newStep = step.step + 1;
+    await onboardingRepository.incrementStep(loggedUserId, newStep);
 
-    res.json({ step: newStep })
+    res.json({ step: newStep });
   }
 
   async completeOnboarding(req, res) {
-    const token = this.getAuthToken(req)
+    const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository')
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository')
-    const userRepository = await this.serviceDiscovery.get('user_repository')
-    const chatRepository = await this.serviceDiscovery.get('chat_repository')
-    const chatService = await this.serviceDiscovery.get('chat_service')
+    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
+    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const chatRepository = await this.serviceDiscovery.get('chat_repository');
+    const chatService = await this.serviceDiscovery.get('chat_service');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token)
-    const step = await onboardingRepository.getStep(loggedUserId)
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const step = await onboardingRepository.getStep(loggedUserId);
 
     if (step.completed_at) {
-      return res.status(400).json({ completed: true })
+      return res.status(400).json({ completed: true });
     } else if (STEPS.COMPLETE != step.step) {
-      return res.status(400).json({ step: step.step })
+      return res.status(400).json({ step: step.step });
     }
 
     await userRepository.setStatus(loggedUserId, 'active');
@@ -237,20 +237,20 @@ class OnboardingController extends Controller {
     ]);
     const text = [
       `Здравей, ${loggedUser.name}`,
-      "",
-      "Добре дошли във Vinteres!",
-      "",
-      "Ние сме сайт за запознанства, който се цели да сближи хора по характер и интереси.",
-      "За това как работи може да видите тук: https://vinteres.io/#how-it-works",
-      "",
-      "При въпроси или проблеми може да се свържете от опцията \"Обратна връзка\" или да пишете тук.",
-      "",
-      "Желаем ви успех!",
-    ].join("\n")
-    await chatService.createAndSend({ userId: pageId, chatId, text })
+      '',
+      'Добре дошли във Vinteres!',
+      '',
+      'Ние сме сайт за запознанства, който се цели да сближи хора по характер и интереси.',
+      'За това как работи може да видите тук: https://vinteres.io/#how-it-works',
+      '',
+      'При въпроси или проблеми може да се свържете от опцията "Обратна връзка" или да пишете тук.',
+      '',
+      'Желаем ви успех!',
+    ].join('\n');
+    await chatService.createAndSend({ userId: pageId, chatId, text });
 
-    res.json({ completed: !!completedAt })
+    res.json({ completed: !!completedAt });
   }
 }
 
-module.exports = OnboardingController
+module.exports = OnboardingController;
