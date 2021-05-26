@@ -79,7 +79,7 @@ class QuizService {
 
     const compatibilities = [];
 
-    while (1) {
+    for (;;) {
       const users = await this.userRepository.findInterestedIds({ ...user, createdAt: lastCreatedAt });
       if (0 === users.length) break;
 

@@ -107,7 +107,7 @@ class QuizRepository {
 
       for (const a of chunk) {
         a.forEach(i => params.push(i));
-        q.push(a.map(i => `$${c++}`).join(', '));
+        q.push(a.map(() => `$${c++}`).join(', '));
       }
 
       const query = `

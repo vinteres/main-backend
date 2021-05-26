@@ -40,7 +40,7 @@ app.use((req, res, next) => {
   fs.appendFile(
     logFilePath,
     `${req.method} ${req.originalUrl} AT ${time} | IP: ${requestIp.getClientIp(req)} | TOKEN: ${req.headers['x-auth-token']} | AGENT: ${req.headers['user-agent']}\n`,
-    (err) => {}
+    () => {}
   );
 
   next();

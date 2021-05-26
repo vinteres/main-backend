@@ -38,10 +38,6 @@ class SettingsController extends Controller {
       education_status
     };
 
-    const day = birthday.getDate() < 10 ? `0${birthday.getDate()}` : birthday.getDate();
-    const month = birthday.getMonth() < 10 ? `0${birthday.getMonth() + 1}` : (birthday.getMonth() + 1);
-    const bd = `${birthday.getFullYear()}/${month}/${day}`;
-
     Object.keys(profileSettings).forEach(key => {
       if (!profileSettings[key]) profileSettings[key] = 'not_tell';
     });

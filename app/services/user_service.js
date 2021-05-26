@@ -1,6 +1,6 @@
 const { hash } = require('../utils');
 
-const hasCompatibility = ({ compatibility }) => compatibility && 0 < compatibility;
+// const hasCompatibility = ({ compatibility }) => compatibility && 0 < compatibility;
 
 class UserService {
   constructor(userRepository, viewRepository, searchPreferenceRepository, onboardingRepository, hobbieRepository, notificationService, locationService) {
@@ -68,6 +68,7 @@ class UserService {
       user.mutual_ativities_count = loggedUserActivities.filter((n) => userItemActivities.indexOf(n) !== -1).length;
     });
 
+    // Experimental compatibility modification based on mutual interests.
     // users.forEach(user => {
     //   const userItemHobbies = userHobbies[user.id] || []
     //   const userItemActivities = userActivities[user.id] || []

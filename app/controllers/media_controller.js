@@ -69,7 +69,7 @@ class MediaController extends Controller {
         await new MediaService().deleteMedia(['big', 'small'].map(size => `${size}_${userImage.image_id}`));
       }
 
-      const { fields, files } = await parseForm(req);
+      const { files } = await parseForm(req);
 
       const media = await mediaRepository.createMediaMetadata('image', files['image'].type);
       await mediaRepository.createUserImage(loggedUserId, media.id, position);
