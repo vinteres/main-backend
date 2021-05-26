@@ -132,7 +132,7 @@ INSERT INTO "answers" (id, text, question_id, created_at) VALUES
 ('d83f13ce-c68d-40d2-a37c-06b89f37ae17', 'Vegetarian', 'e36e7664-6f41-452b-8777-189d40255e56', 1621006987),
 ('1c8fc749-ddc9-4b2a-a1fa-2a20bc2e62b9', 'Vegan', 'e36e7664-6f41-452b-8777-189d40255e56', 1621006987),
 ('629d093b-c0fa-49b7-a9c1-6264f3862ace', 'Neither', 'e36e7664-6f41-452b-8777-189d40255e56', 1621006987),
-('8b043764-3ac1-41de-aeba-5351986717be', 'After every meal', '5209e3d0-949c-47d7-9bbd-82a595b7bbd2', 1621006987),
+('8b043764-3ac1-41de-aeba-5351986717be', 'Once a day', '5209e3d0-949c-47d7-9bbd-82a595b7bbd2', 1621006987),
 ('38194a30-0951-47bb-b14a-92782cc273fa', 'Few times a day', '5209e3d0-949c-47d7-9bbd-82a595b7bbd2', 1621006987),
 ('a17751f4-11d9-42c3-82ad-4f53d62bf924', 'Few times a week', '5209e3d0-949c-47d7-9bbd-82a595b7bbd2', 1621006987),
 ('0f4f2c66-bb5f-45d1-8368-b42b0235111d', 'Not very ofter', '5209e3d0-949c-47d7-9bbd-82a595b7bbd2', 1621006987),
