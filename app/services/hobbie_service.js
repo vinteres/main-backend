@@ -7,8 +7,16 @@ class HobbieService {
     return await this.hobbieRepository.getForUser(userId);
   }
 
+  async getCustomHobbiesForUser(userId) {
+    return await this.hobbieRepository.getCustomHobbiesForUser(userId);
+  }
+
   async getActivitiesForUser(userId) {
     return await this.hobbieRepository.getActivitiesForUser(userId);
+  }
+
+  async getCustomActivitiesForUser(userId) {
+    return await this.hobbieRepository.getCustomActivitiesForUser(userId);
   }
 
   async setUserHobbies(userId, hobbies) {

@@ -21,13 +21,26 @@ class HobbieController extends Controller {
 
     const hobbieRepository = await this.serviceDiscovery.get('hobbie_repository');
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const con = await this.serviceDiscovery.get('db_connection');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
 
-    hobbieRepository.deleteForUser(loggedUserId);
-    hobbieRepository.setForUser(loggedUserId, hobbies);
+    try {
+      con.query('BEGIN');
 
-    res.status(201).end();
+      hobbieRepository.deleteForUser(loggedUserId);
+      hobbieRepository.setForUser(loggedUserId, hobbies.filter(hobbie => !hobbie.custom));
+      hobbieRepository.deleteCustomHobbiesForUser(loggedUserId);
+      hobbieRepository.setCustomHobbiesForUser(loggedUserId, hobbies.filter(hobbie => hobbie.custom));
+
+      con.query('COMMIT');
+
+      res.status(201).end();
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      throw e;
+    }
   }
 
   async setActivities(req, res) {
@@ -36,13 +49,26 @@ class HobbieController extends Controller {
 
     const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
     const hobbieRepository = await this.serviceDiscovery.get('hobbie_repository');
+    const con = await this.serviceDiscovery.get('db_connection');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
 
-    hobbieRepository.deleteActivitiesForUser(loggedUserId);
-    hobbieRepository.setActivitiesForUser(loggedUserId, activities);
+    try {
+      con.query('BEGIN');
 
-    res.status(201).end();
+      hobbieRepository.deleteActivitiesForUser(loggedUserId);
+      hobbieRepository.setActivitiesForUser(loggedUserId, activities.filter(activity => !activity.custom));
+      hobbieRepository.deleteCustomActivitiesForUser(loggedUserId);
+      hobbieRepository.setCustomActivitiesForUser(loggedUserId, activities.filter(activity => activity.custom));
+
+      con.query('COMMIT');
+
+      res.status(201).end();
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      throw e;
+    }
   }
 }
 

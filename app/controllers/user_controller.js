@@ -55,6 +55,19 @@ class UserController extends Controller {
       user.compatibility = await quizService.getCompatibilityFor(loggedUserId, userId);
       await userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, user);
     }
+    const customHobbies = await hobbieService.getCustomHobbiesForUser(userId);
+    user.interests.push(...customHobbies.map(hobbie => {
+      hobbie.custom = true;
+
+      return hobbie;
+    }));
+
+    const customActivities = await hobbieService.getCustomActivitiesForUser(userId);
+    user.activities.push(...customActivities.map(activity => {
+      activity.custom = true;
+
+      return activity;
+    }));
 
     userService.view(loggedUserId, userId);
 
