@@ -33,11 +33,16 @@ class Controller {
       error: new Error(msg)
     });
   }
+
+  async getService(name) {
+    return await this.serviceDiscovery.get(name);
+  }
 }
 
 const handle = (controller, action) => {
   return async (req, res) => {
     const inst = new controller();
+
     try {
       return await inst[action](req, res);
     } catch(err) {

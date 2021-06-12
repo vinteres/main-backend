@@ -16,8 +16,8 @@ class OnboardingController extends Controller {
   async getStep(req, res) {
     const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const onboardingRepository = await this.getService('onboarding_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const step = await onboardingRepository.getStep(loggedUserId);
@@ -29,10 +29,10 @@ class OnboardingController extends Controller {
     const token = this.getAuthToken(req);
     const { name, birthday, gender, interested_in, city } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const searchPreferenceRepository = await this.serviceDiscovery.get('search_preference_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const onboardingRepository = await this.getService('onboarding_repository');
+    const userRepository = await this.getService('user_repository');
+    const searchPreferenceRepository = await this.getService('search_preference_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const step = await onboardingRepository.getStep(loggedUserId);
@@ -67,9 +67,9 @@ class OnboardingController extends Controller {
     const token = this.getAuthToken(req);
     const { title, description } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const onboardingRepository = await this.getService('onboarding_repository');
+    const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const step = await onboardingRepository.getStep(loggedUserId);
@@ -96,9 +96,9 @@ class OnboardingController extends Controller {
       if ('not_tell' === payload[key]) payload[key] = null;
     });
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const onboardingRepository = await this.getService('onboarding_repository');
+    const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const step = await onboardingRepository.getStep(loggedUserId);
@@ -121,9 +121,9 @@ class OnboardingController extends Controller {
     const token = this.getAuthToken(req);
     const { hobbies, activities } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
-    const hobbieRepository = await this.serviceDiscovery.get('hobbie_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const onboardingRepository = await this.getService('onboarding_repository');
+    const hobbieRepository = await this.getService('hobbie_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const step = await onboardingRepository.getStep(loggedUserId);
@@ -149,8 +149,8 @@ class OnboardingController extends Controller {
   async setImageStepPassed(req, res) {
     const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const onboardingRepository = await this.getService('onboarding_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const step = await onboardingRepository.getStep(loggedUserId);
@@ -171,9 +171,9 @@ class OnboardingController extends Controller {
     const token = this.getAuthToken(req);
     const { answers } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
-    const quizService = await this.serviceDiscovery.get('quiz_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const onboardingRepository = await this.getService('onboarding_repository');
+    const quizService = await this.getService('quiz_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const step = await onboardingRepository.getStep(loggedUserId);
@@ -209,11 +209,11 @@ class OnboardingController extends Controller {
   async completeOnboarding(req, res) {
     const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const onboardingRepository = await this.serviceDiscovery.get('onboarding_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const chatRepository = await this.serviceDiscovery.get('chat_repository');
-    const chatService = await this.serviceDiscovery.get('chat_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const onboardingRepository = await this.getService('onboarding_repository');
+    const userRepository = await this.getService('user_repository');
+    const chatRepository = await this.getService('chat_repository');
+    const chatService = await this.getService('chat_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const step = await onboardingRepository.getStep(loggedUserId);

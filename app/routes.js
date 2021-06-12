@@ -10,7 +10,7 @@ const OnboardingController = require('./controllers/onboarding_controller');
 const QuizController = require('./controllers/quiz_controller');
 const { Controller } = require('./controllers/controller');
 const { handle } = require('./controllers/controller');
-const { getConnection } = require('./db');
+const { handleWithDBClient } = require('./db');
 const SessionTokenRepository = require('./repositories/session_token_repository');
 const UserRepository = require('./repositories/user_repository');
 const VerificationController = require('./controllers/verification_controller');
@@ -27,7 +27,7 @@ const auth = (req, res, next, statuses = []) => {
   const token = req.headers['x-auth-token'];
   if (!token) return sendError(res, 401, 'Unauthenticated');
 
-  getConnection(async (client) => {
+  handleWithDBClient(async (client) => {
     const sessionTokenRepository = new SessionTokenRepository(client);
     const sessionInfo = await sessionTokenRepository.getByToken(token);
     if (!sessionInfo) {

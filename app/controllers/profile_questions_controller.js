@@ -5,8 +5,8 @@ class ProfileQuestionsController extends Controller {
     const token = this.getAuthToken(req);
     const userId = req.params.id;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const profileQuestionsRepository = await this.serviceDiscovery.get('profile_questions_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const profileQuestionsRepository = await this.getService('profile_questions_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
 
@@ -39,8 +39,8 @@ class ProfileQuestionsController extends Controller {
     const token = this.getAuthToken(req);
     const { categoryId, questionId, answer } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const profileQuestionsRepository = await this.serviceDiscovery.get('profile_questions_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const profileQuestionsRepository = await this.getService('profile_questions_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     await profileQuestionsRepository.insertOrUpdate({

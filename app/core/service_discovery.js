@@ -25,24 +25,26 @@ const NotificationService = require('../services/notification_service');
 const QuizService = require('../services/quiz_service');
 const UserService = require('../services/user_service');
 
+const SERVICE_NAME_DB_CLIENT = 'db_connection';
+
 const DEPENDENCIES = {
-  user_repository: { cls: UserRepository, depends: ['db_connection']},
-  page_repository: { cls: PageRepository, depends: ['db_connection']},
-  quiz_repository: { cls: QuizRepository, depends: ['db_connection']},
-  onboarding_repository: { cls: OnboardingRepository, depends: ['db_connection']},
-  session_token_repository: { cls: SessionTokenRepository, depends: ['db_connection']},
-  views_repository: { cls: ViewsRepository, depends: ['db_connection']},
-  verification_request_repository: { cls: VerificationRequestRepository, depends: ['db_connection']},
-  search_preference_repository: { cls: SearchPreferenceRepository, depends: ['db_connection']},
-  hobbie_repository: { cls: HobbieRepository, depends: ['db_connection']},
-  notification_repository: { cls: NotificationRepository, depends: ['db_connection']},
-  location_repository: { cls: LocationRepository, depends: ['db_connection']},
-  intro_repository: { cls: IntroRepository, depends: ['db_connection']},
-  match_repository: { cls: MatchRepository, depends: ['db_connection']},
-  chat_repository: { cls: ChatRepository, depends: ['db_connection']},
-  report_repository: { cls: ReportRepository, depends: ['db_connection']},
-  media_repository: { cls: MediaRepository, depends: ['db_connection']},
-  profile_questions_repository: { cls: ProfileQuestionsRepository, depends: ['db_connection'] },
+  user_repository: { cls: UserRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  page_repository: { cls: PageRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  quiz_repository: { cls: QuizRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  onboarding_repository: { cls: OnboardingRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  session_token_repository: { cls: SessionTokenRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  views_repository: { cls: ViewsRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  verification_request_repository: { cls: VerificationRequestRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  search_preference_repository: { cls: SearchPreferenceRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  hobbie_repository: { cls: HobbieRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  notification_repository: { cls: NotificationRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  location_repository: { cls: LocationRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  intro_repository: { cls: IntroRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  match_repository: { cls: MatchRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  chat_repository: { cls: ChatRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  report_repository: { cls: ReportRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  media_repository: { cls: MediaRepository, depends: [SERVICE_NAME_DB_CLIENT]},
+  profile_questions_repository: { cls: ProfileQuestionsRepository, depends: [SERVICE_NAME_DB_CLIENT] },
   user_service: { cls: UserService, depends: [
     'user_repository',
     'views_repository',
@@ -56,7 +58,7 @@ const DEPENDENCIES = {
   notification_service: { cls: NotificationService, depends: ['notification_repository', 'user_repository']},
   location_service: { cls: LocationService, depends: ['location_repository']},
   intro_service: { cls: IntroService, depends: ['intro_repository', 'match_repository']},
-  auth_service: { cls: AuthService, depends: ['db_connection']},
+  auth_service: { cls: AuthService, depends: [SERVICE_NAME_DB_CLIENT]},
   chat_service: { cls: ChatService, depends: ['chat_repository', 'user_repository', 'page_repository']},
   hobbie_service: { cls: HobbieService, depends: ['hobbie_repository']},
   match_service: { cls: MatchService, depends: ['match_repository']},
@@ -77,7 +79,7 @@ class ServiceDiscovery {
   }
 
   async create(name) {
-    if ('db_connection' === name) {
+    if (SERVICE_NAME_DB_CLIENT === name) {
       return await this.controller.getConnection();
     }
 
@@ -92,5 +94,7 @@ class ServiceDiscovery {
     return inst;
   }
 }
+
+ServiceDiscovery.SERVICE_NAME_DB_CLIENT = SERVICE_NAME_DB_CLIENT;
 
 module.exports = ServiceDiscovery;

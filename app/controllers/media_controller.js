@@ -20,7 +20,7 @@ class MediaController extends Controller {
   async get(req, response) {
     const targetMediaId = req.params.id;
 
-    const introRepository = await this.serviceDiscovery.get('intro_repository');
+    const introRepository = await this.getService('intro_repository');
 
     const a = targetMediaId.split('_');
     let mediaId;
@@ -49,10 +49,10 @@ class MediaController extends Controller {
     const token = this.getAuthToken(req);
     const position = req.query.position;
 
-    const mediaRepository = await this.serviceDiscovery.get('media_repository');
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const con = await this.serviceDiscovery.get('db_connection');
+    const mediaRepository = await this.getService('media_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
+    const con = await this.getConnection();
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
 
@@ -98,10 +98,10 @@ class MediaController extends Controller {
     const token = this.getAuthToken(req);
     const position = req.query.position;
 
-    const con = await this.serviceDiscovery.get('db_connection');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const mediaRepository = await this.serviceDiscovery.get('media_repository');
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const con = await this.getConnection();
+    const userRepository = await this.getService('user_repository');
+    const mediaRepository = await this.getService('media_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
 
     try {
       con.query('BEGIN');

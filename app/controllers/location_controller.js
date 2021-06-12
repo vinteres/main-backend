@@ -4,7 +4,7 @@ class LocationController extends Controller {
   async search(req, res) {
     const { text } = req.query;
 
-    const locationService = await this.serviceDiscovery.get('location_service');
+    const locationService = await this.getService('location_service');
     const locations = await locationService.search(text);
 
     res.json(locations);
@@ -13,7 +13,7 @@ class LocationController extends Controller {
   async cities(req, res) {
     const { countryId } = req.query;
 
-    const locationService = await this.serviceDiscovery.get('location_service');
+    const locationService = await this.getService('location_service');
     const locations = await locationService.getCitiesForCountry(countryId);
 
     res.json(locations);

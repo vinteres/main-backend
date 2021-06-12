@@ -7,8 +7,8 @@ class LikeController extends Controller {
     const userId = req.params.id;
     let { message } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const introService = await this.serviceDiscovery.get('intro_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const introService = await this.getService('intro_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const relationStatus = await introService.relationBetween(loggedUserId, userId);

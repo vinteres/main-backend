@@ -9,12 +9,12 @@ class IntroController extends Controller {
     const token = this.getAuthToken(req);
     const introId = req.params.id;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const introRepository = await this.serviceDiscovery.get('intro_repository');
-    const introService = await this.serviceDiscovery.get('intro_service');
-    const matchRepository = await this.serviceDiscovery.get('match_repository');
-    const notificationService = await this.serviceDiscovery.get('notification_service');
-    const chatService = await this.serviceDiscovery.get('chat_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const introRepository = await this.getService('intro_repository');
+    const introService = await this.getService('intro_service');
+    const matchRepository = await this.getService('match_repository');
+    const notificationService = await this.getService('notification_service');
+    const chatService = await this.getService('chat_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const intro = await introRepository.getIntroById(introId);
@@ -43,8 +43,8 @@ class IntroController extends Controller {
     const token = this.getAuthToken(req);
     const userId = req.params.id;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const introService = await this.serviceDiscovery.get('intro_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const introService = await this.getService('intro_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     await introService.unmatch(loggedUserId, userId);
@@ -56,9 +56,9 @@ class IntroController extends Controller {
     const token = this.getAuthToken(req);
     const page = req.query.page;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const introRepository = await this.serviceDiscovery.get('intro_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const introRepository = await this.getService('intro_repository');
+    const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     await introRepository.seeIntros(loggedUserId);

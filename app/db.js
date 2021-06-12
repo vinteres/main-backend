@@ -7,7 +7,7 @@ class Connection {
     this.pool = new Pool(config.DB);
   }
 
-  async getConnection(handle, errorHandle) {
+  async handleWithDBClient(handle, errorHandle) {
     const client = await this.getClient();
 
     try {
@@ -44,8 +44,8 @@ const connection = new Connection();
 
 module.exports = {
   Connection,
-  getConnection(handle, errorHandle) {
-    return connection.getConnection(handle, errorHandle);
+  handleWithDBClient(handle, errorHandle) {
+    return connection.handleWithDBClient(handle, errorHandle);
   },
   getClient() {
     return connection.getClient();

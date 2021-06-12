@@ -2,14 +2,14 @@ const { Controller } = require('./controller');
 
 class HobbieController extends Controller {
   async getAll(req, res) {
-    const hobbieRepository = await this.serviceDiscovery.get('hobbie_repository');
+    const hobbieRepository = await this.getService('hobbie_repository');
     const hobbies = await hobbieRepository.findAll();
 
     res.json(hobbies);
   }
 
   async getAllActivities(req, res) {
-    const hobbieRepository = await this.serviceDiscovery.get('hobbie_repository');
+    const hobbieRepository = await this.getService('hobbie_repository');
     const hobbies = await hobbieRepository.findAllActivities();
 
     res.json(hobbies);
@@ -19,9 +19,9 @@ class HobbieController extends Controller {
     const token = this.getAuthToken(req);
     const hobbies = req.body.hobbies;
 
-    const hobbieRepository = await this.serviceDiscovery.get('hobbie_repository');
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const con = await this.serviceDiscovery.get('db_connection');
+    const hobbieRepository = await this.getService('hobbie_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const con = await this.getConnection();
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
 
@@ -47,9 +47,9 @@ class HobbieController extends Controller {
     const token = this.getAuthToken(req);
     const activities = req.body.activities;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const hobbieRepository = await this.serviceDiscovery.get('hobbie_repository');
-    const con = await this.serviceDiscovery.get('db_connection');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const hobbieRepository = await this.getService('hobbie_repository');
+    const con = await this.getConnection();
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
 

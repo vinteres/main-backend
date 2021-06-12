@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');
 const WebSocket = require('ws');
-const { getConnection } = require('./db');
+const { handleWithDBClient } = require('./db');
 const SessionTokenRepository = require('./repositories/session_token_repository');
 const { addConnection, sendData, closeConnection } = require('./services/ws_service');
 const ChatService = require('./services/chat_service');
@@ -71,7 +71,7 @@ wss.on('connection', (ws, req) => {
 
   const token = authToken(req.url);
   let currentUserId;
-  getConnection(async (client) => {
+  handleWithDBClient(async (client) => {
     const sessionTokenRepository = new SessionTokenRepository(client);
     currentUserId = await sessionTokenRepository.getUserId(token);
 
@@ -84,7 +84,7 @@ wss.on('connection', (ws, req) => {
     const data = JSON.parse(message);
     if (!['msg', 'see_msg', 'notifs_count', 'msgs'].includes(data.type)) return;
 
-    getConnection(async (client) => {
+    handleWithDBClient(async (client) => {
       const chatService = new ChatService(new ChatRepository(client));
 
       if ('see_msg' === data.type) {

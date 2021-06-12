@@ -10,16 +10,16 @@ class UserController extends Controller {
     const token = this.getAuthToken(req);
     const userId = req.params.id;
 
-    const quizService = await this.serviceDiscovery.get('quiz_service');
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const userService = await this.serviceDiscovery.get('user_service');
-    const hobbieService = await this.serviceDiscovery.get('hobbie_service');
-    const mediaRepository = await this.serviceDiscovery.get('media_repository');
-    const introRepository = await this.serviceDiscovery.get('intro_repository');
-    const introService = await this.serviceDiscovery.get('intro_service');
-    const reportRepository = await this.serviceDiscovery.get('report_repository');
-    const locationService = await this.serviceDiscovery.get('location_service');
+    const quizService = await this.getService('quiz_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
+    const userService = await this.getService('user_service');
+    const hobbieService = await this.getService('hobbie_service');
+    const mediaRepository = await this.getService('media_repository');
+    const introRepository = await this.getService('intro_repository');
+    const introService = await this.getService('intro_service');
+    const reportRepository = await this.getService('report_repository');
+    const locationService = await this.getService('location_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const user = await userRepository.getUserProfileById(userId);
@@ -78,10 +78,10 @@ class UserController extends Controller {
     const token = this.getAuthToken(req);
     const page = req.query.page;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userService = await this.serviceDiscovery.get('user_service');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const quizService = await this.serviceDiscovery.get('quiz_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userService = await this.getService('user_service');
+    const userRepository = await this.getService('user_repository');
+    const quizService = await this.getService('quiz_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const loggedUser = await userRepository.getUserById(loggedUserId);
@@ -116,9 +116,9 @@ class UserController extends Controller {
   async getMatches(req, res) {
     const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const matchService = await this.serviceDiscovery.get('match_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
+    const matchService = await this.getService('match_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const userIds = await matchService.matchIds(loggedUserId);
@@ -140,9 +140,9 @@ class UserController extends Controller {
   async getViewers(req, res) {
     const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const viewsRepository = await this.serviceDiscovery.get('views_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
+    const viewsRepository = await this.getService('views_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const viewers = await viewsRepository.findFor(loggedUserId);
@@ -166,10 +166,10 @@ class UserController extends Controller {
   async getCompatibilities(req, res) {
     const token = this.getAuthToken(req);
 
-    const quizService = await this.serviceDiscovery.get('quiz_service');
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const userService = await this.serviceDiscovery.get('user_service');
+    const quizService = await this.getService('quiz_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
+    const userService = await this.getService('user_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const compatibilities = await quizService.getHighCompatibilitiesForUser(loggedUserId);
@@ -201,8 +201,8 @@ class UserController extends Controller {
   async getCompatibilityCount(req, res) {
     const token = this.getAuthToken(req);
 
-    const quizService = await this.serviceDiscovery.get('quiz_service');
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const quizService = await this.getService('quiz_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const compatibilityCount = await quizService.getHighCompatibilityCountForUser(loggedUserId);
@@ -214,8 +214,8 @@ class UserController extends Controller {
     const token = this.getAuthToken(req);
     const { type, details, toUserId } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const reportRepository = await this.serviceDiscovery.get('report_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const reportRepository = await this.getService('report_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     await reportRepository.createReport({ fromUserId: loggedUserId, toUserId, type, details });
@@ -227,8 +227,8 @@ class UserController extends Controller {
     const token = this.getAuthToken(req);
     const { type, details } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const reportRepository = await this.serviceDiscovery.get('report_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const reportRepository = await this.getService('report_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     await reportRepository.createFeedback({ userId: loggedUserId, type, details });
@@ -244,8 +244,8 @@ class UserController extends Controller {
       return res.status(400).json(validator.errors);
     }
 
-    const userService = await this.serviceDiscovery.get('user_service');
-    const authService = await this.serviceDiscovery.get('auth_service');
+    const userService = await this.getService('user_service');
+    const authService = await this.getService('auth_service');
 
     const result = await userService.signUp({ email, password });
     const token = await authService.createAuthTokenForUser(result.user.id, false);
@@ -257,7 +257,7 @@ class UserController extends Controller {
   async emailExists(req, res) {
     const { email } = req.query;
 
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const userRepository = await this.getService('user_repository');
     const exists = await userRepository.emailExists(email);
 
     if (exists) return res.json({ exists });

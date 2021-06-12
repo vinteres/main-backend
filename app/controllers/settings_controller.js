@@ -7,8 +7,8 @@ class SettingsController extends Controller {
   async getSettings(req, res) {
     const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const {
@@ -51,8 +51,8 @@ class SettingsController extends Controller {
     const token = this.getAuthToken(req);
     const { name, title, description, birthday, email, gender, interested_in } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const user = await userRepository.setAccountSettings(
@@ -71,8 +71,8 @@ class SettingsController extends Controller {
       if ('not_tell' === payload[key]) payload[key] = null;
     });
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const user = await userRepository.setProfileSettings(loggedUserId, payload);
@@ -84,8 +84,8 @@ class SettingsController extends Controller {
     const token = this.getAuthToken(req);
     const { password, newPassword } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const passwordHash = await userRepository.getUserPasswordById(loggedUserId);
@@ -104,9 +104,9 @@ class SettingsController extends Controller {
     const token = this.getAuthToken(req);
     const { password } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const authService = await this.serviceDiscovery.get('auth_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
+    const authService = await this.getService('auth_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const passwordHash = await userRepository.getUserPasswordById(loggedUserId);
@@ -124,8 +124,8 @@ class SettingsController extends Controller {
     const token = this.getAuthToken(req);
     const { locationId } = req.params;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     await userRepository.setCityId(loggedUserId, locationId);
@@ -136,10 +136,10 @@ class SettingsController extends Controller {
   async getSearchPreferences(req, res) {
     const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const searchPreferenceRepository = await this.serviceDiscovery.get('search_preference_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const locationService = await this.serviceDiscovery.get('location_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const searchPreferenceRepository = await this.getService('search_preference_repository');
+    const userRepository = await this.getService('user_repository');
+    const locationService = await this.getService('location_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const searchPreferences = await searchPreferenceRepository.getForUser(loggedUserId);
@@ -168,13 +168,13 @@ class SettingsController extends Controller {
       return res.status(400).json(validator.errors);
     }
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const searchPreferenceRepository = await this.serviceDiscovery.get('search_preference_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const searchPreferenceRepository = await this.getService('search_preference_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
 
     if (undefined !== lookingFor) {
-      const userRepository = await this.serviceDiscovery.get('user_repository');
+      const userRepository = await this.getService('user_repository');
       await userRepository.update(loggedUserId, { looking_for_type: lookingFor });
     }
 
@@ -187,8 +187,8 @@ class SettingsController extends Controller {
     const token = this.getAuthToken(req);
     const { description } = req.body;
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     await userRepository.update(loggedUserId, { description });

@@ -9,11 +9,11 @@ class ChatController extends Controller {
   async members(req, res) {
     const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const chatRepository = await this.serviceDiscovery.get('chat_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const pageRepository = await this.serviceDiscovery.get('page_repository');
-    const matchRepository = await this.serviceDiscovery.get('match_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const chatRepository = await this.getService('chat_repository');
+    const userRepository = await this.getService('user_repository');
+    const pageRepository = await this.getService('page_repository');
+    const matchRepository = await this.getService('match_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
 
@@ -86,13 +86,13 @@ class ChatController extends Controller {
     const token = this.getAuthToken(req);
     const userId = req.params.userId;
 
-    const chatRepository = await this.serviceDiscovery.get('chat_repository');
-    const chatService = await this.serviceDiscovery.get('chat_service');
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const matchRepository = await this.serviceDiscovery.get('match_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const pageRepository = await this.serviceDiscovery.get('page_repository');
-    const con = await this.serviceDiscovery.get('db_connection');
+    const chatRepository = await this.getService('chat_repository');
+    const chatService = await this.getService('chat_service');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const matchRepository = await this.getService('match_repository');
+    const userRepository = await this.getService('user_repository');
+    const pageRepository = await this.getService('page_repository');
+    const con = await this.getConnection();
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
 
@@ -161,8 +161,8 @@ class ChatController extends Controller {
     const chatId = req.params.userId;
     const ts = req.query.t;
 
-    const chatRepository = await this.serviceDiscovery.get('chat_repository');
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
+    const chatRepository = await this.getService('chat_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const isChatMember = await chatRepository.isChatMember(chatId, loggedUserId);

@@ -24,8 +24,8 @@ class VerificationController extends Controller {
   async status(req, res) {
     const token = this.getAuthToken(req);
 
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const { profile_image_id, verification_status } = await userRepository.findById(
@@ -42,11 +42,11 @@ class VerificationController extends Controller {
   async create(req, res) {
     const token = this.getAuthToken(req);
 
-    const con = await this.serviceDiscovery.get('db_connection');
-    const sessionTokenRepository = await this.serviceDiscovery.get('session_token_repository');
-    const introRepository = await this.serviceDiscovery.get('intro_repository');
-    const userRepository = await this.serviceDiscovery.get('user_repository');
-    const verificationRequestrepository = await this.serviceDiscovery.get('verification_request_repository');
+    const con = await this.getConnection();
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const introRepository = await this.getService('intro_repository');
+    const userRepository = await this.getService('user_repository');
+    const verificationRequestrepository = await this.getService('verification_request_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     try {
