@@ -27,24 +27,25 @@ app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  if (['OPTIONS', 'HEAD'].includes(req.method) || /\./.test(req.originalUrl)) {
-    next();
-    return;
-  }
+// Request file logging.
+// app.use((req, res, next) => {
+//   if (['OPTIONS', 'HEAD'].includes(req.method) || /\./.test(req.originalUrl)) {
+//     next();
+//     return;
+//   }
 
-  const d = new Date();
-  const time = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
-  const logFilePath = path.join(__dirname, '/../app.log');
+//   const d = new Date();
+//   const time = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+//   const logFilePath = path.join(__dirname, '/../app.log');
 
-  fs.appendFile(
-    logFilePath,
-    `${req.method} ${req.originalUrl} AT ${time} | IP: ${requestIp.getClientIp(req)} | TOKEN: ${req.headers['x-auth-token']} | AGENT: ${req.headers['user-agent']}\n`,
-    () => {}
-  );
+//   fs.appendFile(
+//     logFilePath,
+//     `${req.method} ${req.originalUrl} AT ${time} | IP: ${requestIp.getClientIp(req)} | TOKEN: ${req.headers['x-auth-token']} | AGENT: ${req.headers['user-agent']}\n`,
+//     () => {}
+//   );
 
-  next();
-});
+//   next();
+// });
 
 app.use(express.static(process.cwd() + '/dist/'));
 
