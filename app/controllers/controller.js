@@ -1,9 +1,24 @@
+const { v4 } = require('uuid');
+const { SERVICE_NAME_DB_CLIENT } = require('../core/service_discovery');
 const ServiceDiscovery = require('../core/service_discovery');
-const { getClient } = require('../db');
+
+class ServiceDiscoveryRepo {
+  static serviceDiscoveries = {};
+
+  static create(requestId) {
+    ServiceDiscoveryRepo.serviceDiscoveries[requestId] = new ServiceDiscovery();
+
+    return ServiceDiscoveryRepo.serviceDiscoveries[requestId];
+  }
+
+  static destroy(requestId) {
+    delete ServiceDiscoveryRepo.serviceDiscoveries[requestId];
+  }
+}
 
 class Controller {
-  constructor() {
-    this.serviceDiscovery = new ServiceDiscovery(this);
+  constructor(serviceDiscovery) {
+    this.serviceDiscovery = serviceDiscovery;
   }
 
   getAuthToken(req) {
@@ -16,16 +31,10 @@ class Controller {
 
   async getConnection() {
     if (!this.connection) {
-      this.connection = await getClient();
+      this.connection = this.serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
     }
 
     return this.connection;
-  }
-
-  closeConnection() {
-    if (this.connection) {
-      this.connection.release();
-    }
   }
 
   static sendError(res, code = 500, msg = '') {
@@ -41,7 +50,9 @@ class Controller {
 
 const handle = (controller, action) => {
   return async (req, res) => {
-    const inst = new controller();
+    const requestId = v4();
+    const serviceDiscovery = ServiceDiscoveryRepo.create(requestId);
+    const inst = new controller(serviceDiscovery);
 
     try {
       return await inst[action](req, res);
@@ -50,7 +61,10 @@ const handle = (controller, action) => {
 
       return Controller.sendError(res);
     } finally {
-      inst.closeConnection();
+      const con = serviceDiscovery.services[SERVICE_NAME_DB_CLIENT];
+      if (con) con.release();
+
+      ServiceDiscoveryRepo.destroy(requestId);
     }
   };
 };

@@ -1,3 +1,4 @@
+const { getClient } = require('../db');
 const ChatRepository = require('../repositories/chat_repository');
 const HobbieRepository = require('../repositories/hobbie_repository');
 const IntroRepository = require('../repositories/intro_repository');
@@ -65,8 +66,7 @@ const DEPENDENCIES = {
 };
 
 class ServiceDiscovery {
-  constructor(controller) {
-    this.controller = controller;
+  constructor() {
     this.services = {};
   }
 
@@ -80,7 +80,7 @@ class ServiceDiscovery {
 
   async create(name) {
     if (SERVICE_NAME_DB_CLIENT === name) {
-      return await this.controller.getConnection();
+      return await getClient();
     }
 
     const dependecies = [];
