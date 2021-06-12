@@ -29,7 +29,6 @@ class Connection {
       async query(query, params) {
         console.log(new Date());
         console.log(query.trim().split(/\s+/).join(' '));
-        console.log();
 
         return con.query(query, params);
       },
@@ -43,11 +42,6 @@ class Connection {
 const connection = new Connection();
 
 module.exports = {
-  Connection,
-  handleWithDBClient(handle, errorHandle) {
-    return connection.handleWithDBClient(handle, errorHandle);
-  },
-  getClient() {
-    return connection.getClient();
-  }
+  handleWithDBClient: connection.handleWithDBClient.bind(connection),
+  getClient: connection.getClient.bind(connection)
 };
