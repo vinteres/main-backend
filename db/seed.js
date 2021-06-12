@@ -112,15 +112,12 @@ const setUsersSearchPreferences = async (userIds) => {
 };
 
 (async () => {
-  const con = await getClient();
-  try {
+  await handleWithDBClient(async (con) => {
     const users = await addUsers();
 
     await setUsersCompatibility(users, con);
     await setUsersSearchPreferences(users.map(user => user.id));
 
     console.log('DONE!');
-  } finally {
-    con.release();
-  }
+  });
 })();
