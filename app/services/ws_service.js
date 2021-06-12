@@ -32,7 +32,7 @@ const closeConnection = (userId, ws) => {
   }
 };
 
-const sendData = (userId, data) => {
+const send = (userId, data) => {
   if (!wsConnections[userId]) {
     return;
   }
@@ -55,6 +55,6 @@ const isConnected = (userId) => {
 module.exports = {
   addConnection,
   closeConnection,
-  sendData,
+  send,
   isConnected,
 };

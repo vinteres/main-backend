@@ -1,5 +1,5 @@
 const { timeAgo } = require('../utils');
-const { sendData } = require('./ws_service');
+const { send } = require('./ws_service');
 
 class ChatService {
   constructor(chatRepository, userRepository, pageRepository) {
@@ -87,7 +87,7 @@ class ChatService {
     await this.chatRepository.incrementNotSeenCount(chatId, otherMemberIds);
 
     chatMembers.forEach(member => {
-      sendData(member.rel_id, {
+      send(member.rel_id, {
         type: 'msg',
         text,
         chatId,
@@ -109,7 +109,7 @@ class ChatService {
   async seeChatMessages(chatId, userId) {
     await this.chatRepository.seeChatMessages(chatId, userId);
 
-    sendData(userId, {
+    send(userId, {
       type: 'see_msg',
       msg: await this.getNotSeenCountFor(userId)
     });

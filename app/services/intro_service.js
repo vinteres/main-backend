@@ -1,5 +1,5 @@
 const UserRelationStatusType = require('../models/enums/user_relation_status_type');
-const { sendData } = require('./ws_service');
+const { send } = require('./ws_service');
 
 class IntroService {
   constructor(introRepository, matchRepository) {
@@ -10,7 +10,7 @@ class IntroService {
   async create({ fromUserId, toUserId, type, message, mediaMetadataId }) {
     const intro = await this.introRepository.create({ fromUserId, toUserId, type, message, mediaMetadataId });
 
-    sendData(toUserId, {
+    send(toUserId, {
       ...intro,
       type: 'intro'
     });

@@ -1,4 +1,4 @@
-const { sendData } = require('./ws_service');
+const { send } = require('./ws_service');
 const { mapByKey } = require('../utils');
 const MediaService = require('./media_service');
 
@@ -36,14 +36,13 @@ class NotificationService {
   async seeNotifs(userId) {
     await this.notificationRepository.seeNotifs(userId);
 
-
-    sendData(userId, { type: 'see_notifs' });
+    send(userId, { type: 'see_notifs' });
   }
 
   async create(fromUserId, toUserId, relId, type) {
     const notification = await this.notificationRepository.create(fromUserId, toUserId, relId, type);
 
-    sendData(toUserId, {
+    send(toUserId, {
       type: 'notif',
       notification
     });
@@ -51,6 +50,7 @@ class NotificationService {
 
   async delete(relId) {
     const relType = 'friend_request';
+
     return await this.notificationRepository.delete(relId, relType);
   }
 }

@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const WebSocket = require('ws');
 const { handleWithDBClient } = require('./db');
 const SessionTokenRepository = require('./repositories/session_token_repository');
-const { addConnection, sendData, closeConnection } = require('./services/ws_service');
+const { addConnection, send, closeConnection } = require('./services/ws_service');
 const ChatService = require('./services/chat_service');
 const NotificationService = require('./services/notification_service');
 const IntroRepository = require('./repositories/intro_repository');
@@ -91,7 +91,7 @@ wss.on('connection', (ws, req) => {
       if ('see_msg' === data.type) {
         await chatService.seeChatMessages(data.chatId, currentUserId);
 
-        sendData(currentUserId, {
+        send(currentUserId, {
           type: data.type,
           msg: await chatService.getNotSeenCountFor(currentUserId)
         });
@@ -110,14 +110,14 @@ wss.on('connection', (ws, req) => {
           intro: await introRepository.notSeenCountFor(currentUserId)
         };
 
-        sendData(currentUserId, {
+        send(currentUserId, {
           ...result,
           type: 'notifs_count'
         });
       } else if ('msgs' === data.type) {
         const messages = await chatService.getMessagesAfter(data.chatId, data.after);
 
-        sendData(currentUserId, {
+        send(currentUserId, {
           type: data.type,
           chatId: data.chatId,
           messages

@@ -1,7 +1,7 @@
 const { Controller } = require('./controller');
 const MediaService = require('../services/media_service');
 const { timeAgo } = require('../utils');
-const { sendData } = require('../services/ws_service');
+const { send } = require('../services/ws_service');
 const { isConnected } = require('../services/ws_service');
 
 class IntroController extends Controller {
@@ -62,7 +62,7 @@ class IntroController extends Controller {
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     await introRepository.seeIntros(loggedUserId);
-    sendData(loggedUserId, { type: 'see_intros' });
+    send(loggedUserId, { type: 'see_intros' });
 
     const intros = await introRepository.getForUser(loggedUserId, page);
 
