@@ -104,11 +104,13 @@ wss.on('connection', (ws, req) => {
         );
         const introRepository = new IntroRepository(client);
 
-        const result = {
-          msg: await chatService.getNotSeenCountFor(currentUserId),
-          notif: await notificationService.getNotSeenCountFor(currentUserId),
-          intro: await introRepository.notSeenCountFor(currentUserId)
-        };
+        const [msg, notif, intro] = await Promise.all([
+          chatService.getNotSeenCountFor(currentUserId),
+          notificationService.getNotSeenCountFor(currentUserId),
+          introRepository.notSeenCountFor(currentUserId)
+        ]);
+
+        const result = { msg, notif, intro };
 
         send(currentUserId, {
           ...result,
