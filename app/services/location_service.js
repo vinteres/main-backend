@@ -4,8 +4,10 @@ class LocationService {
   }
 
   async getCitiesForCountry(countryId) {
-    const cities = await this.locationRepository.findCitiesByCountryId(countryId);
-    const country = await this.locationRepository.findCountryById(countryId);
+    const [cities, country] = await Promise.all([
+      this.locationRepository.findCitiesByCountryId(countryId),
+      this.locationRepository.findCountryById(countryId)
+    ]);
 
     return cities.map(city => {
       city.name = `${city.name}, ${country.name}`;
