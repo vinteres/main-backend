@@ -39,11 +39,13 @@ class ChatController extends Controller {
       });
     }
 
-    const userImages = await userRepository.getUsersImage(chatUserMembers.map(user => user.rel_id));
-    const pageImages = await pageRepository.findByIds(
-      ['id', 'name', 'profile_image_id'],
-      chatPageMembers.map(user => user.rel_id)
-    );
+    const [userImages, pageImages] = await Promise.all([
+      userRepository.getUsersImage(chatUserMembers.map(user => user.rel_id)),
+      pageRepository.findByIds(
+        ['id', 'name', 'profile_image_id'],
+        chatPageMembers.map(user => user.rel_id)
+      )
+    ]);
 
     chatMembers.forEach(member => {
       if (ChatMemberType.USER === member.rel_type) {
