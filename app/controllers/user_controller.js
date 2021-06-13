@@ -214,8 +214,10 @@ class UserController extends Controller {
       user.online = !!isConnected(user.id);
     });
 
-    await userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, users);
-    await userService.setLocations(users);
+    await Promise.all([
+      userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, users),
+      userService.setLocations(users)
+    ]);
 
     res.json(users);
   }
