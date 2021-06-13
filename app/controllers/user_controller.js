@@ -107,7 +107,11 @@ class UserController extends Controller {
     const loggedUser = await userRepository.getUserById(loggedUserId);
     const { users, totalCount } = await userService.getUsers(page, loggedUser);
 
-    const compatibilities = await quizService.getCompatibilityForUsers(loggedUserId, users.map(user => user.id));
+    const [compatibilities] = await Promise.all([
+      quizService.getCompatibilityForUsers(loggedUserId, users.map(user => user.id)),
+      userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, users)
+    ]);
+
     const compatibilityMap = {};
     compatibilities.forEach(item => {
       const tId = item.user_one_id === loggedUserId ? item.user_two_id : item.user_one_id;
@@ -122,8 +126,6 @@ class UserController extends Controller {
     users.forEach(user => {
       user.online = !!isConnected(user.id);
     });
-
-    await userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, users);
 
     const responseData = {
       users,
