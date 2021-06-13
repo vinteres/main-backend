@@ -70,12 +70,14 @@ class QuizService {
   }
 
   async _getCompatibility(userId) {
-    const user = await this.userRepository.getUserInfoById(userId);
     let foundMatches = 0;
     let lastCreatedAt = null;
 
-    const userOneAnswers = await this.quizRepository.findAllAnswersForUser(userId);
-    const existingCompatibility = await this._getExistingCompatibilityFor(userId);
+    const [user, userOneAnswers, existingCompatibility] = await Promise.all([
+      this.userRepository.getUserInfoById(userId),
+      this.quizRepository.findAllAnswersForUser(userId),
+      this._getExistingCompatibilityFor(userId)
+    ]);
 
     const compatibilities = [];
 
