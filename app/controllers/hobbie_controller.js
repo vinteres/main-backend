@@ -28,10 +28,12 @@ class HobbieController extends Controller {
     try {
       con.query('BEGIN');
 
-      hobbieRepository.deleteForUser(loggedUserId);
-      hobbieRepository.setForUser(loggedUserId, hobbies.filter(hobbie => !hobbie.custom));
-      hobbieRepository.deleteCustomHobbiesForUser(loggedUserId);
-      hobbieRepository.setCustomHobbiesForUser(loggedUserId, hobbies.filter(hobbie => hobbie.custom));
+      await Promise.all([
+        hobbieRepository.deleteForUser(loggedUserId),
+        hobbieRepository.setForUser(loggedUserId, hobbies.filter(hobbie => !hobbie.custom)),
+        hobbieRepository.deleteCustomHobbiesForUser(loggedUserId),
+        hobbieRepository.setCustomHobbiesForUser(loggedUserId, hobbies.filter(hobbie => hobbie.custom))
+      ]);
 
       con.query('COMMIT');
 
@@ -56,10 +58,12 @@ class HobbieController extends Controller {
     try {
       con.query('BEGIN');
 
-      hobbieRepository.deleteActivitiesForUser(loggedUserId);
-      hobbieRepository.setActivitiesForUser(loggedUserId, activities.filter(activity => !activity.custom));
-      hobbieRepository.deleteCustomActivitiesForUser(loggedUserId);
-      hobbieRepository.setCustomActivitiesForUser(loggedUserId, activities.filter(activity => activity.custom));
+      await Promise.all([
+        hobbieRepository.deleteActivitiesForUser(loggedUserId),
+        hobbieRepository.setActivitiesForUser(loggedUserId, activities.filter(activity => !activity.custom)),
+        hobbieRepository.deleteCustomActivitiesForUser(loggedUserId),
+        hobbieRepository.setCustomActivitiesForUser(loggedUserId, activities.filter(activity => activity.custom))
+      ]);
 
       con.query('COMMIT');
 
