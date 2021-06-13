@@ -32,8 +32,10 @@ class UserService {
       searchingUserId: searchingUser.id
     };
 
-    const users = await this.userRepository.searchUsers(page || 1, search);
-    const totalCount = await this.userRepository.getUsersCount(search);
+    const [users, totalCount] = await Promise.all([
+      this.userRepository.searchUsers(page || 1, search),
+      this.userRepository.getUsersCount(search)
+    ]);
 
     return { users, totalCount };
   }
@@ -45,9 +47,10 @@ class UserService {
     if (exists) {
       await this.viewRepository.incrementView(viewerUserId, viewedUserId);
     } else {
-      await this.viewRepository.create(viewerUserId, viewedUserId);
-
-      await this.notificationService.create(viewerUserId, viewedUserId, viewerUserId, 'view');
+      await Promise.all([
+        this.viewRepository.create(viewerUserId, viewedUserId),
+        this.notificationService.create(viewerUserId, viewedUserId, viewerUserId, 'view')
+      ]);
     }
   }
 
@@ -55,8 +58,10 @@ class UserService {
     if (!Array.isArray(users)) users = [users];
     if (0 === users.length) return;
 
-    const userHobbies = await this.hobbieRepository.getIdForUsers([userId, ...users.map(user => user.id)]);
-    const userActivities = await this.hobbieRepository.getActivitiesIdForUsers([userId, ...users.map(user => user.id)]);
+    const [userHobbies, userActivities] = await Promise.all([
+      this.hobbieRepository.getIdForUsers([userId, ...users.map(user => user.id)]),
+      this.hobbieRepository.getActivitiesIdForUsers([userId, ...users.map(user => user.id)])
+    ]);
     const loggedUserHobbies = userHobbies[userId] || [];
     const loggedUserActivities = userActivities[userId] || [];
 
