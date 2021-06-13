@@ -53,8 +53,10 @@ class ChatService {
   }
 
   async createAndSend({ userId, chatId, text }) {
-    const message = await this.createMessage({ userId, chatId, text });
-    const chatMembers = await this.chatRepository.getChatMembers(chatId);
+    const [message, chatMembers] = await Promise.all([
+      this.createMessage({ userId, chatId, text }),
+      this.chatRepository.getChatMembers(chatId)
+    ]);
 
     const userIds = chatMembers
       .filter(member => 'user' === member.rel_type)
@@ -64,15 +66,18 @@ class ChatService {
       .filter(member => 'page' === member.rel_type)
       .map(member => member.rel_id);
 
+    const [users, pages] = await Promise.all([
+      0 < userIds ? this.userRepository.findByIds(['id', 'name'], userIds) : Promise.resolve([]),
+      0 < pageIds ? this.pageRepository.findByIds(['id', 'name'], pageIds) : Promise.resolve([])
+    ]);
+
     if (0 < userIds) {
-      const users = await this.userRepository.findByIds(['id', 'name'], userIds);
       chatMembers.forEach(member => {
         const { name } = users.find(user => user.id === member.rel_id);
         member.name = name;
       });
     }
     if (0 < pageIds) {
-      const pages = await this.pageRepository.findByIds(['id', 'name'], pageIds);
       chatMembers.forEach(member => {
         const { name } = pages.find(page => page.id === member.rel_id);
         member.name = name;
