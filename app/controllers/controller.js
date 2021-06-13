@@ -1,20 +1,5 @@
-const { v4 } = require('uuid');
 const { SERVICE_NAME_DB_CLIENT } = require('../core/service_discovery');
-const ServiceDiscovery = require('../core/service_discovery');
-
-class ServiceDiscoveryRepo {
-  static serviceDiscoveries = {};
-
-  static create(requestId) {
-    ServiceDiscoveryRepo.serviceDiscoveries[requestId] = new ServiceDiscovery();
-
-    return ServiceDiscoveryRepo.serviceDiscoveries[requestId];
-  }
-
-  static destroy(requestId) {
-    delete ServiceDiscoveryRepo.serviceDiscoveries[requestId];
-  }
-}
+const ServiceDiscoveryRepo = require('../core/service_discovery_repo');
 
 class Controller {
   constructor(serviceDiscovery) {
@@ -49,24 +34,18 @@ class Controller {
 }
 
 const handle = (controller, action) => {
-  return async (req, res) => {
-    const requestId = v4();
-    const serviceDiscovery = ServiceDiscoveryRepo.create(requestId);
-    const inst = new controller(serviceDiscovery);
+  return async (req, res) =>
+    await ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
+      const inst = new controller(serviceDiscovery);
 
-    try {
-      return await inst[action](req, res);
-    } catch(err) {
-      console.error(err);
+      try {
+        return await inst[action](req, res);
+      } catch (err) {
+        console.error(err);
 
-      return Controller.sendError(res);
-    } finally {
-      const con = serviceDiscovery.services[SERVICE_NAME_DB_CLIENT];
-      if (con) con.release();
-
-      ServiceDiscoveryRepo.destroy(requestId);
-    }
-  };
+        return Controller.sendError(res);
+      }
+    });
 };
 
 module.exports = {

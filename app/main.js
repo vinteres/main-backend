@@ -5,17 +5,12 @@ const WebSocket = require('ws');
 const { handleWithDBClient } = require('./db');
 const SessionTokenRepository = require('./repositories/session_token_repository');
 const { addConnection, send, closeConnection } = require('./services/ws_service');
-const ChatService = require('./services/chat_service');
-const NotificationService = require('./services/notification_service');
-const IntroRepository = require('./repositories/intro_repository');
 const { initRoutes } = require('./routes');
-const ChatRepository = require('./repositories/chat_repository');
-const NotificationRepository = require('./repositories/notification_repository');
-const UserRepository = require('./repositories/user_repository');
 const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 const requestIp = require('@supercharge/request-ip');
+const ServiceDiscoveryRepo = require('./core/service_discovery_repo');
 
 const app = express();
 const port = 4000;
@@ -85,8 +80,8 @@ wss.on('connection', (ws, req) => {
     const data = JSON.parse(message);
     if (!['msg', 'see_msg', 'notifs_count', 'msgs'].includes(data.type)) return;
 
-    handleWithDBClient(async (client) => {
-      const chatService = new ChatService(new ChatRepository(client));
+    ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
+      const chatService = await serviceDiscovery.get('chat_service');
 
       if ('see_msg' === data.type) {
         await chatService.seeChatMessages(data.chatId, currentUserId);
@@ -98,11 +93,8 @@ wss.on('connection', (ws, req) => {
       } else if ('msg' === data.type) {
         await chatService.createAndSend({ ...data, userId: currentUserId });
       } else if ('notifs_count' === data.type) {
-        const notificationService = new NotificationService(
-          new NotificationRepository(client),
-          new UserRepository(client)
-        );
-        const introRepository = new IntroRepository(client);
+        const notificationService = await serviceDiscovery.get('notification_service');
+        const introRepository = await serviceDiscovery.get('intro_repository');
 
         const [msg, notif, intro] = await Promise.all([
           chatService.getNotSeenCountFor(currentUserId),
