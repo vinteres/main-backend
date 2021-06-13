@@ -114,8 +114,11 @@ class SettingsController extends Controller {
     if (!matches) {
       return res.status(400).end();
     }
-    await userRepository.setStatus(loggedUserId, 'deleted');
-    await authService.removeAuthToken(token);
+
+    await Promise.all([
+      userRepository.setStatus(loggedUserId, 'deleted'),
+      authService.removeAuthToken(token)
+    ]);
 
     res.status(201).end();
   }
@@ -142,8 +145,10 @@ class SettingsController extends Controller {
     const locationService = await this.getService('location_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
-    const searchPreferences = await searchPreferenceRepository.getForUser(loggedUserId);
-    const { looking_for_type } = await userRepository.findById(['looking_for_type'], loggedUserId);
+    const [searchPreferences, { looking_for_type }] = await Promise.all([
+      searchPreferenceRepository.getForUser(loggedUserId),
+      userRepository.findById(['looking_for_type'], loggedUserId)
+    ]);
 
     const location = await locationService.getLocationById(searchPreferences.city_id);
 
