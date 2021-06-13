@@ -21,13 +21,30 @@ class UserController extends Controller {
     const reportRepository = await this.getService('report_repository');
     const locationService = await this.getService('location_service');
 
-    const loggedUserId = await sessionTokenRepository.getUserId(token);
-    const user = await userRepository.getUserProfileById(userId);
+    const [loggedUserId, user] = await Promise.all([
+      sessionTokenRepository.getUserId(token),
+      userRepository.getUserProfileById(userId)
+    ]);
 
     if (!user) return res.status(404).end();
 
-    const images = await mediaRepository.getUserImages(userId);
-    const location = await locationService.getLocationById(user.city_id);
+    const [
+      images,
+      location,
+      customHobbies,
+      customActivities,
+      interests,
+      activities,
+      reported
+    ] = await Promise.all([
+      mediaRepository.getUserImages(userId),
+      locationService.getLocationById(user.city_id),
+      hobbieService.getCustomHobbiesForUser(userId),
+      hobbieService.getCustomActivitiesForUser(userId),
+      hobbieService.getForUser(userId),
+      hobbieService.getActivitiesForUser(userId),
+      reportRepository.isReported(loggedUserId, user.id)
+    ]);
     user.location = location;
     user.images = MediaService.mapImages(images);
 
@@ -45,24 +62,27 @@ class UserController extends Controller {
       }
     }
 
+    user.interests = interests;
+    user.activities = activities;
+    user.reported = reported;
+
     user.profile_image = MediaService.getProfileImagePath(user);
-    user.interests = await hobbieService.getForUser(userId);
-    user.activities = await hobbieService.getActivitiesForUser(userId);
-    user.reported = await reportRepository.isReported(loggedUserId, user.id);
     user.online = !!isConnected(user.id);
 
     if (loggedUserId !== userId && 'uncompatible' !== user.relation_status) {
-      user.compatibility = await quizService.getCompatibilityFor(loggedUserId, userId);
-      await userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, user);
+      const [compatibility] = await Promise.all([
+        quizService.getCompatibilityFor(loggedUserId, userId),
+        userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, user)
+      ])
+      user.compatibility = compatibility;
     }
-    const customHobbies = await hobbieService.getCustomHobbiesForUser(userId);
+
     user.interests.push(...customHobbies.map(hobbie => {
       hobbie.custom = true;
 
       return hobbie;
     }));
 
-    const customActivities = await hobbieService.getCustomActivitiesForUser(userId);
     user.activities.push(...customActivities.map(activity => {
       activity.custom = true;
 
