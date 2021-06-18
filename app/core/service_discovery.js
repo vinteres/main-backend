@@ -83,15 +83,14 @@ class ServiceDiscovery {
       return await getClient();
     }
 
+    const targetDependency = DEPENDENCIES[name];
     const dependecies = [];
-    for (const i of DEPENDENCIES[name].depends) {
-      dependecies.push(await this.get(i));
+    for (const dependencyName of targetDependency.depends) {
+      dependecies.push(await this.get(dependencyName));
     }
+    this.services[name] = new targetDependency.cls(...dependecies);
 
-    const inst = new DEPENDENCIES[name].cls(...dependecies);
-    this.services[name] = dependecies;
-
-    return inst;
+    return this.services[name];
   }
 }
 
