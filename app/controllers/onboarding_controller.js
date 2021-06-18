@@ -1,4 +1,4 @@
-const { Controller } = require('./controller');
+const { Controller } = require('../core/controller');
 const { calculateAge } = require('../utils');
 const PageRepository = require('../repositories/page_repository');
 

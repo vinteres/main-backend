@@ -1,4 +1,4 @@
-const { Controller } = require('./controller');
+const { Controller } = require('../core/controller');
 const MediaService = require('../services/media_service');
 const { timeAgo } = require('../utils');
 const { send } = require('../services/ws_service');

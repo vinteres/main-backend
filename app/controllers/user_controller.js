@@ -1,5 +1,5 @@
 const UserRepository = require('../repositories/user_repository');
-const { Controller } = require('./controller');
+const { Controller } = require('../core/controller');
 const MediaService = require('../services/media_service');
 const { item } = require('../data_builders/intro_builder');
 const SignUpValidator = require('../models/validators/sign_up_validator');

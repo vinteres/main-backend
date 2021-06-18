@@ -1,4 +1,4 @@
-const { Controller } = require('./controller');
+const { Controller } = require('../core/controller');
 
 class LikeController extends Controller {
   async like(req, res) {

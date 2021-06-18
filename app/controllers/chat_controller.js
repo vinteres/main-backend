@@ -1,6 +1,6 @@
 const ChatRepository = require('../repositories/chat_repository');
 const { getProfileImagePath } = require('../services/media_service');
-const { Controller } = require('./controller');
+const { Controller } = require('../core/controller');
 const { timeAgo } = require('../utils');
 const MediaService = require('../services/media_service');
 const ChatMemberType = require('../models/enums/chat_member_type');

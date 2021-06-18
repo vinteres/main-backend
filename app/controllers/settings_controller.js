@@ -1,4 +1,4 @@
-const { Controller } = require('./controller');
+const { Controller } = require('../core/controller');
 const { compareHash } = require('../utils');
 const { hash } = require('../utils');
 const SearchPereferenceValidator = require('../models/validators/search_pereference_validator');

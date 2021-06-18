@@ -1,4 +1,4 @@
-const { Controller } = require('./controller');
+const { Controller } = require('../core/controller');
 const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');

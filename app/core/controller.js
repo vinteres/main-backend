@@ -1,5 +1,5 @@
-const { SERVICE_NAME_DB_CLIENT } = require('../core/service_discovery');
-const ServiceDiscoveryRepo = require('../core/service_discovery_repo');
+const { SERVICE_NAME_DB_CLIENT } = require('./service_discovery');
+const ServiceDiscoveryRepo = require('./service_discovery_repo');
 
 class Controller {
   constructor(serviceDiscovery) {
@@ -22,6 +22,12 @@ class Controller {
     return this.connection;
   }
 
+  error(req, res, err) {
+    console.error(err);
+
+    return Controller.sendError(res);
+  }
+
   static sendError(res, code = 500, msg = '') {
     return res.status(code).json({
       error: new Error(msg)
@@ -41,9 +47,7 @@ const handle = (controller, action) => {
       try {
         return await inst[action](req, res);
       } catch (err) {
-        console.error(err);
-
-        return Controller.sendError(res);
+        return controller.error(req, res, err);
       }
     });
 };

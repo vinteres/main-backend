@@ -1,4 +1,4 @@
-const { Controller } = require('./controller');
+const { Controller } = require('../core/controller');
 
 class NotificationController extends Controller {
   async getAll(req, res) {
