@@ -85,7 +85,8 @@ class UserRepository {
       SELECT id, name, title, description, email, age, title, gender,
       interested_in, height, smoking, drinking, body, children_status, pet_status,
       profile_image_id, birthday, city_id, verified, verification_status,
-      education_status, employment_status, interested_in, looking_for_type
+      education_status, employment_status, interested_in, looking_for_type,
+      personality, zodiac
       FROM users
       WHERE id = $1 AND user_status = 'active'
       ORDER BY created_at ASC

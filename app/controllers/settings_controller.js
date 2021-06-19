@@ -12,9 +12,23 @@ class SettingsController extends Controller {
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const {
-      name, title, description, birthday, email, gender, interested_in,
-      smoking, drinking, height, body, children_status, pet_status,
-      employment_status, education_status
+      name,
+      title,
+      description,
+      birthday,
+      email,
+      gender,
+      interested_in,
+      smoking,
+      drinking,
+      height,
+      body,
+      children_status,
+      pet_status,
+      employment_status,
+      education_status,
+      personality,
+      zodiac
     } = await userRepository.getUserProfileById(loggedUserId);
 
     const accountSettings = {
@@ -35,7 +49,9 @@ class SettingsController extends Controller {
       children_status,
       pet_status,
       employment_status,
-      education_status
+      education_status,
+      personality,
+      zodiac
     };
 
     Object.keys(profileSettings).forEach(key => {
@@ -65,7 +81,31 @@ class SettingsController extends Controller {
 
   async setProfileSettings(req, res) {
     const token = this.getAuthToken(req);
-    const payload = req.body;
+    const {
+      body,
+      children_status,
+      drinking,
+      education_status,
+      employment_status,
+      height,
+      personality,
+      pet_status,
+      smoking,
+      zodiac
+    } = req.body;
+
+    const payload = {
+      body,
+      children_status,
+      drinking,
+      education_status,
+      employment_status,
+      height,
+      personality,
+      pet_status,
+      smoking,
+      zodiac
+    };
 
     Object.keys(payload).forEach(key => {
       if ('not_tell' === payload[key]) payload[key] = null;

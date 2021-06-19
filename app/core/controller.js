@@ -22,7 +22,7 @@ class Controller {
     return this.connection;
   }
 
-  error(req, res, err) {
+  async onError(req, res, err) {
     console.error(err);
 
     return Controller.sendError(res);
@@ -47,7 +47,7 @@ const handle = (controller, action) => {
       try {
         return await inst[action](req, res);
       } catch (err) {
-        return controller.error(req, res, err);
+        return await inst.onError(req, res, err);
       }
     });
 };
