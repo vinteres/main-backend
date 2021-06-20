@@ -40,7 +40,7 @@ class IntroRepository {
 
     const query = `
       SELECT * FROM intros
-      WHERE to_user_id = $1
+      WHERE to_user_id = $1 AND liked_at IS NULL
       ORDER BY created_at DESC
       OFFSET ${(page - 1) * INTROS_PER_PAGE}
       LIMIT ${INTROS_PER_PAGE}

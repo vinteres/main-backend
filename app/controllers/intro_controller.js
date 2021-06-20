@@ -52,7 +52,7 @@ class IntroController extends Controller {
     return res.status(201).end();
   }
 
-  async getForUser(req, res) {
+  async getLikes(req, res) {
     const token = this.getAuthToken(req);
     const page = req.query.page;
 
