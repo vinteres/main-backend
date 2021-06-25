@@ -7,16 +7,16 @@ const knex = require('knex')(config);
 const QuizService = require('../app/services/quiz_service');
 const QuizRepository = require('../app/repositories/quiz_repository');
 const UserRepository = require('../app/repositories/user_repository');
-const { getClient } = require('../app/db');
+const { getClient, handleWithDBClient } = require('../app/db');
 
 const password = '$2b$10$PP8qMh/3uVjqpF46Z9d71eDMxWj6WkAAt4kvze6fA1VFSWP1JmOfG'; // 1234
 const cityId = 'd81b72fd-8520-4403-aba3-17e1eddfc20f'; // Sofia
 
 const randomNumberBetween = (end) => Math.floor(Math.random() * end);
 
-const generateVerificationStatus = () => {
-  return ['verified', 'pending', 'rejected'][randomNumberBetween(3)];
-};
+// const generateVerificationStatus = () => {
+//   return ['verified', 'pending', 'rejected'][randomNumberBetween(3)];
+// };
 
 const dateItem = (n) => n < 10 ? `0${n}` : n;
 
@@ -25,8 +25,8 @@ const buildUser = (i, gender, offset = 0) => {
   const name = 'male' === gender ? `MaleNa_${i + 1}` : `FemaleNa_${i + 1}`;
   const email = `m${ti}@mail.com`;
   const birthday = `${1980 + randomNumberBetween(16)}/${dateItem(1 + randomNumberBetween(11))}/${dateItem(1 + randomNumberBetween(27))}`;
-  const verificationStatus = generateVerificationStatus();
-  const verified = 'verified' === verificationStatus;
+  // const verificationStatus = generateVerificationStatus();
+  const verified = false; //'verified' === verificationStatus;
   const createdAt = currentTimeMs() + ti; // It'll be the same time otherwise for all seeds.
 
   return {
@@ -40,7 +40,7 @@ const buildUser = (i, gender, offset = 0) => {
     interested_in: 'male' === gender ? 'female' : 'male',
     city_id: cityId,
     user_status: 'active',
-    verification_status: verificationStatus,
+    // verification_status: verificationStatus,
     verified,
     created_at: createdAt
   };
