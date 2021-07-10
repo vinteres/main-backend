@@ -1,4 +1,4 @@
-const MIN_PERCENT_MATCH = 60;
+const MIN_PERCENT_MATCH = 55;
 const MAX_MATCHES = 100;
 
 const getRandomInt = (min, max) => {
