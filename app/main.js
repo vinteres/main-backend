@@ -42,7 +42,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //   next();
 // });
 
-app.use(express.static(process.cwd() + '/dist/'));
+// app.use(express.static(process.cwd() + '/dist/'));
 
 app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*');

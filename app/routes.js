@@ -111,10 +111,10 @@ const initRoutes = (app) => {
   app.get('/api/search-preferences', authActive, handle(SettingsController, 'getSearchPreferences'));
   app.post('/api/search-preferences', authActive, handle(SettingsController, 'setSearchPreferences'));
 
-  app.get('*', (req, res) => {
-    const dir = path.resolve(process.cwd() + '/dist/index.html');
-    res.sendFile(dir);
-  });
+  // app.get('*', (req, res) => {
+  //   const dir = path.resolve(process.cwd() + '/dist/index.html');
+  //   res.sendFile(dir);
+  // });
 };
 
 module.exports = {
