@@ -1,6 +1,7 @@
 const { Controller } = require('../core/controller');
 const { calculateAge } = require('../utils');
 const PageRepository = require('../repositories/page_repository');
+const { calculateCompatibility } = require('../compatibility_calculator');
 
 const STEPS = {
   ACCOUNT_INFO: 1,
@@ -43,24 +44,36 @@ class OnboardingController extends Controller {
       return res.status(400).json({ step: step.step });
     }
 
-    const age = calculateAge(new Date(birthday));
-    await userRepository.setOnboardingAccountInfo(
-      loggedUserId,
-      { name, birthday, gender, interested_in, city, age }
-    );
+    const con = await this.getConnection();
 
-    const fromAge = (18 > 15 - age) ? 18 : age - 15;
-    const toAge = (99 < 15 + age) ? 99 : age + 15;
-    if (await searchPreferenceRepository.getForUser(loggedUserId)) {
-      await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId: city });
-    } else {
-      await searchPreferenceRepository.create(loggedUserId, { fromAge, toAge, cityId: city });
+    try {
+      con.query('BEGIN');
+
+      const age = calculateAge(new Date(birthday));
+      await userRepository.setOnboardingAccountInfo(
+        loggedUserId,
+        { name, birthday, gender, interested_in, city, age }
+      );
+
+      const fromAge = (18 > 15 - age) ? 18 : age - 15;
+      const toAge = (99 < 15 + age) ? 99 : age + 15;
+      if (await searchPreferenceRepository.getForUser(loggedUserId)) {
+        await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId: city });
+      } else {
+        await searchPreferenceRepository.create(loggedUserId, { fromAge, toAge, cityId: city });
+      }
+
+      const newStep = step.step + 1;
+      await onboardingRepository.incrementStep(loggedUserId, newStep);
+
+      res.json({ step: newStep });
+
+      con.query('COMMIT');
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      throw e;
     }
-
-    const newStep = step.step + 1;
-    await onboardingRepository.incrementStep(loggedUserId, newStep);
-
-    res.json({ step: newStep });
   }
 
   async setAbout(req, res) {
@@ -80,12 +93,24 @@ class OnboardingController extends Controller {
       return res.status(400).json({ step: step.step });
     }
 
-    await userRepository.update(loggedUserId, { title, description });
+    const con = await this.getConnection();
 
-    const newStep = step.step + 1;
-    await onboardingRepository.incrementStep(loggedUserId, newStep);
+    try {
+      con.query('BEGIN');
 
-    res.json({ step: newStep });
+      await userRepository.update(loggedUserId, { title, description });
+
+      const newStep = step.step + 1;
+      await onboardingRepository.incrementStep(loggedUserId, newStep);
+
+      res.json({ step: newStep });
+
+      con.query('COMMIT');
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      throw e;
+    }
   }
 
   async setProfileInfo(req, res) {
@@ -109,12 +134,24 @@ class OnboardingController extends Controller {
       return res.status(400).json({ step: step.step });
     }
 
-    await userRepository.setProfileSettings(loggedUserId, payload);
+    const con = await this.getConnection();
 
-    const newStep = step.step + 1;
-    await onboardingRepository.incrementStep(loggedUserId, newStep);
+    try {
+      con.query('BEGIN');
 
-    res.json({ step: newStep });
+      await userRepository.setProfileSettings(loggedUserId, payload);
+
+      const newStep = step.step + 1;
+      await onboardingRepository.incrementStep(loggedUserId, newStep);
+
+      res.json({ step: newStep });
+
+      con.query('COMMIT');
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      throw e;
+    }
   }
 
   async setInterests(req, res) {
@@ -134,16 +171,28 @@ class OnboardingController extends Controller {
       return res.status(400).json({ step: step.step });
     }
 
-    hobbieRepository.deleteForUser(loggedUserId);
-    hobbieRepository.setForUser(loggedUserId, hobbies);
+    const con = await this.getConnection();
 
-    hobbieRepository.deleteActivitiesForUser(loggedUserId);
-    hobbieRepository.setActivitiesForUser(loggedUserId, activities);
+    try {
+      con.query('BEGIN');
 
-    const newStep = step.step + 1;
-    await onboardingRepository.incrementStep(loggedUserId, newStep);
+      hobbieRepository.deleteForUser(loggedUserId);
+      hobbieRepository.setForUser(loggedUserId, hobbies);
 
-    res.json({ step: newStep });
+      hobbieRepository.deleteActivitiesForUser(loggedUserId);
+      hobbieRepository.setActivitiesForUser(loggedUserId, activities);
+
+      const newStep = step.step + 1;
+      await onboardingRepository.incrementStep(loggedUserId, newStep);
+
+      res.json({ step: newStep });
+
+      con.query('COMMIT');
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      throw e;
+    }
   }
 
   async setImageStepPassed(req, res) {
@@ -173,7 +222,6 @@ class OnboardingController extends Controller {
 
     const sessionTokenRepository = await this.getService('session_token_repository');
     const onboardingRepository = await this.getService('onboarding_repository');
-    const quizService = await this.getService('quiz_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const step = await onboardingRepository.getStep(loggedUserId);
@@ -184,26 +232,36 @@ class OnboardingController extends Controller {
       return res.status(400).json({ step: step.step });
     }
 
-    const userAnswers = [];
-    for (const questionId of Object.keys(answers)) {
-      const answerId = answers[questionId];
-      userAnswers.push({
-        userId: loggedUserId,
-        answerId,
-        questionId
-      });
+    const con = await this.getConnection();
+
+    try {
+      con.query('BEGIN');
+
+      const userAnswers = [];
+      for (const questionId of Object.keys(answers)) {
+        const answerId = answers[questionId];
+        userAnswers.push({
+          userId: loggedUserId,
+          answerId,
+          questionId
+        });
+      }
+
+      await onboardingRepository.createUserAnswers(userAnswers);
+
+      calculateCompatibility(loggedUserId);
+
+      const newStep = step.step + 1;
+      await onboardingRepository.incrementStep(loggedUserId, newStep);
+
+      res.json({ step: newStep });
+
+      con.query('COMMIT');
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      throw e;
     }
-
-    await onboardingRepository.createUserAnswers(userAnswers);
-
-    (async () => {
-      await quizService.backfillCompatibility(loggedUserId);
-    })();
-
-    const newStep = step.step + 1;
-    await onboardingRepository.incrementStep(loggedUserId, newStep);
-
-    res.json({ step: newStep });
   }
 
   async completeOnboarding(req, res) {
@@ -224,32 +282,44 @@ class OnboardingController extends Controller {
       return res.status(400).json({ step: step.step });
     }
 
-    await userRepository.setStatus(loggedUserId, 'active');
-    const { completedAt } = await onboardingRepository.setComplete(loggedUserId);
+    const con = await this.getConnection();
 
-    // CREATE GREETING MESSAGE
-    const loggedUser = await userRepository.findById(['id', 'name'], loggedUserId);
-    const chatId = await chatRepository.createChat();
-    const pageId = PageRepository.getAppPageId();
-    await chatRepository.createChatMembers(chatId, [
-      { id: pageId, type: 'page' },
-      { id: loggedUser.id }
-    ]);
-    const text = [
-      `Здравей, ${loggedUser.name}`,
-      '',
-      'Добре дошли във Vinteres!',
-      '',
-      'Ние сме сайт за запознанства, който се цели да сближи хора по характер и интереси.',
-      'За това как работи може да видите тук: https://vinteres.io/#how-it-works',
-      '',
-      'При въпроси или проблеми може да се свържете от опцията "Обратна връзка" или да пишете тук.',
-      '',
-      'Желаем ви успех!',
-    ].join('\n');
-    await chatService.createAndSend({ userId: pageId, chatId, text });
+    try {
+      con.query('BEGIN');
 
-    res.json({ completed: !!completedAt });
+      await userRepository.setStatus(loggedUserId, 'active');
+      const { completedAt } = await onboardingRepository.setComplete(loggedUserId);
+
+      // CREATE GREETING MESSAGE
+      const loggedUser = await userRepository.findById(['id', 'name'], loggedUserId);
+      const chatId = await chatRepository.createChat();
+      const pageId = PageRepository.getAppPageId();
+      await chatRepository.createChatMembers(chatId, [
+        { id: pageId, type: 'page' },
+        { id: loggedUser.id }
+      ]);
+      const text = [
+        `Здравей, ${loggedUser.name}`,
+        '',
+        'Добре дошли във Vinteres!',
+        '',
+        'Ние сме сайт за запознанства, който се цели да сближи хора по характер и интереси.',
+        'За това как работи може да видите тук: https://vinteres.io/#how-it-works',
+        '',
+        'При въпроси или проблеми може да се свържете от опцията "Обратна връзка" или да пишете тук.',
+        '',
+        'Желаем ви успех!',
+      ].join('\n');
+      await chatService.createAndSend({ userId: pageId, chatId, text });
+
+      res.json({ completed: !!completedAt });
+
+      con.query('COMMIT');
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      throw e;
+    }
   }
 }
 

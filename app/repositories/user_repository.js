@@ -292,6 +292,13 @@ class UserRepository {
 
     return result.rows[0];
   }
+
+  async setCompatibilityProcessedAt(userId) {
+    const query = `
+      UPDATE users SET compatibility_processed_at = $1 WHERE id = $2
+    `;
+    await this.conn.query(query, [currentTimeMs(), userId]);
+  }
 }
 
 module.exports = UserRepository;
