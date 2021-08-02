@@ -2,29 +2,31 @@ const { SERVICE_NAME_DB_CLIENT } = require('./app/core/service_discovery');
 
 module.exports.backfillInterests = () => {
   require('./app/core/service_discovery_repo').handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
-    const compatibilityRepository = await serviceDiscovery.get('compatibility_repository');
-    const compatibilityService = await serviceDiscovery.get('compatibility_service');
-    const userRepository = await serviceDiscovery.get('user_repository');
-    const con = await serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
+    try {
+      const compatibilityRepository = await serviceDiscovery.get('compatibility_repository');
+      const compatibilityService = await serviceDiscovery.get('compatibility_service');
+      const userRepository = await serviceDiscovery.get('user_repository');
+      const con = await serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
 
-    const users = (await con.query(`select id from users where user_status = 'active'`)).rows?.map(({ id }) => id) ?? [];
+      const users = (await con.query(`select id from users where user_status = 'active'`)).rows?.map(({ id }) => id) ?? [];
 
-    for (const userId of users) {
-      try {
-        con.query('BEGIN');
+      for (const userId of users) {
+        try {
+          con.query('BEGIN');
 
-        await compatibilityService.calculateInterestsCompatibility(userId);
-        await userRepository.setInterestsProcessedAt(userId);
+          await compatibilityService.calculateInterestsCompatibility(userId);
+          await userRepository.setInterestsProcessedAt(userId);
 
-        con.query('COMMIT');
-      } catch (e) {
-        con.query('ROLLBACK');
+          con.query('COMMIT');
+        } catch (e) {
+          con.query('ROLLBACK');
 
-        console.error(e);
-
-        throw e;
-      }
-    };
+          throw e;
+        }
+      };
+    } catch (e) {
+      console.error(e);
+    }
 
     console.log('DONE!');
   });
