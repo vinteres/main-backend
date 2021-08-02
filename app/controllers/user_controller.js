@@ -20,6 +20,7 @@ class UserController extends Controller {
     const introService = await this.getService('intro_service');
     const reportRepository = await this.getService('report_repository');
     const locationService = await this.getService('location_service');
+    const compatibilityRepository = await this.getService('compatibility_repository');
 
     const [loggedUserId, user] = await Promise.all([
       sessionTokenRepository.getUserId(token),
@@ -63,18 +64,23 @@ class UserController extends Controller {
     }
 
     user.interests = interests;
-    user.activities = activities;
+    user.activities = activities.map(activity => ({ ...activity, favorite: !!activity.favorite }));
     user.reported = reported;
 
     user.profile_image = MediaService.getProfileImagePath(user);
     user.online = !!isConnected(user.id);
 
     if (loggedUserId !== userId && 'uncompatible' !== user.relation_status) {
-      const [compatibility] = await Promise.all([
+      const [
+        compatibility,
+        interestCompatibility
+      ] = await Promise.all([
         quizService.getCompatibilityFor(loggedUserId, userId),
+        compatibilityRepository.findInterestCompatibility(loggedUserId, userId),
         userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, user)
       ])
       user.compatibility = compatibility;
+      user.interestCompatibility = interestCompatibility?.percent;
     }
 
     user.interests.push(...customHobbies.map(hobbie => {
@@ -102,25 +108,38 @@ class UserController extends Controller {
     const userService = await this.getService('user_service');
     const userRepository = await this.getService('user_repository');
     const quizService = await this.getService('quiz_service');
+    const compatibilityRepository = await this.getService('compatibility_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const loggedUser = await userRepository.getUserById(loggedUserId);
     const { users, totalCount } = await userService.getUsers(page, loggedUser);
 
-    const [compatibilities] = await Promise.all([
-      quizService.getCompatibilityForUsers(loggedUserId, users.map(user => user.id)),
+    const userIds = users.map(({ id }) => id);
+    const [
+      compatibilities,
+      interestCompatibilities
+    ] = await Promise.all([
+      quizService.getCompatibilityForUsers(loggedUserId, userIds),
+      compatibilityRepository.findInterestCompatibilities(loggedUserId, userIds),
       userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, users)
     ]);
 
     const compatibilityMap = {};
-    compatibilities.forEach(item => {
-      const tId = item.user_one_id === loggedUserId ? item.user_two_id : item.user_one_id;
-      compatibilityMap[tId] = item.percent;
+    compatibilities.forEach(({ user_one_id, user_two_id, percent }) => {
+      const tId = user_one_id === loggedUserId ? user_two_id : user_one_id;
+      compatibilityMap[tId] = percent;
+    });
+
+    const interestCompatibilityMap = {};
+    interestCompatibilities.forEach(({ user_one_id, user_two_id, percent }) => {
+      const tId = user_one_id === loggedUserId ? user_two_id : user_one_id;
+      interestCompatibilityMap[tId] = percent;
     });
 
     users.forEach(user => {
       user.profile_image = MediaService.getProfileImagePath(user);
       user.compatibility = compatibilityMap[user.id];
+      user.interestCompatibility = interestCompatibilityMap[user.id];
     });
 
     users.forEach(user => {
@@ -190,15 +209,28 @@ class UserController extends Controller {
 
     const quizService = await this.getService('quiz_service');
     const sessionTokenRepository = await this.getService('session_token_repository');
+    const compatibilityRepository = await this.getService('compatibility_repository');
     const userRepository = await this.getService('user_repository');
     const userService = await this.getService('user_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
-    const compatibilities = await quizService.getHighCompatibilitiesForUser(loggedUserId);
+    const [
+      compatibilities,
+      interestCompatibilities
+    ] = await Promise.all([
+      quizService.getHighCompatibilitiesForUser(loggedUserId),
+      compatibilityRepository.findInterestCompatibilitiesForUser(loggedUserId)
+    ]);
     const compatibilityMap = {};
-    compatibilities.forEach(item => {
-      const tId = item.user_one_id === loggedUserId ? item.user_two_id : item.user_one_id;
-      compatibilityMap[tId] = item.percent;
+    compatibilities.forEach(({ user_one_id, user_two_id, percent }) => {
+      const tId = user_one_id === loggedUserId ? user_two_id : user_one_id;
+      compatibilityMap[tId] = percent;
+    });
+
+    const interestCompatibilityMap = {};
+    interestCompatibilities.forEach(({ user_one_id, user_two_id, percent }) => {
+      const tId = user_one_id === loggedUserId ? user_two_id : user_one_id;
+      interestCompatibilityMap[tId] = percent;
     });
 
     const users = await userRepository.findByIds([
@@ -208,6 +240,7 @@ class UserController extends Controller {
     users.forEach(user => {
       user.profile_image = MediaService.getProfileImagePath(user);
       user.compatibility = compatibilityMap[user.id];
+      user.interestCompatibility = interestCompatibilityMap[user.id];
     });
 
     users.forEach(user => {

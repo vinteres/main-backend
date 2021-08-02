@@ -11,6 +11,7 @@ const path = require('path');
 const fs = require('fs');
 const requestIp = require('@supercharge/request-ip');
 const ServiceDiscoveryRepo = require('./core/service_discovery_repo');
+const { scheduleInterestCompatibilityCalculation } = require('./interest_compatibility_calculator');
 
 const app = express();
 const port = 4000;
@@ -130,3 +131,5 @@ server.listen(port, () => {
 });
 
 initRoutes(app);
+
+scheduleInterestCompatibilityCalculation();

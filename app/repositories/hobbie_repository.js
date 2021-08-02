@@ -1,5 +1,5 @@
 const { v4 } = require("uuid");
-const { currentTimeMs } = require("../utils");
+const { currentTimeMs, mapByKeyTarget } = require("../utils");
 
 class HobbieRepository {
   constructor(conn) {
@@ -15,7 +15,7 @@ class HobbieRepository {
 
   async getForUser(userId) {
     const query = `
-      SELECT hobbies.* FROM hobbies
+      SELECT hobbies.*, user_hobbies.favorite FROM hobbies
       JOIN user_hobbies ON hobbies.id = user_hobbies.hobbie_id
       WHERE user_hobbies.user_id = $1
     `;
@@ -53,8 +53,11 @@ class HobbieRepository {
     if (!hobbies || 0 === hobbies.length) return;
 
     let c = 1;
-    const params = [userId, ...hobbies.map(hobbie => hobbie.id)];
-    const query = `INSERT INTO user_hobbies (user_id, hobbie_id) VALUES ${hobbies.map(() => `($1, $${++c})`).join(', ')}`;
+    const params = [userId];
+    hobbies.forEach(({ id, favorite }) => {
+      params.push(id, favorite);
+    });
+    const query = `INSERT INTO user_hobbies (user_id, hobbie_id, favorite) VALUES ${hobbies.map(() => `($1, $${++c}, $${++c})`).join(', ')}`;
     const result = await this.conn.query(query, params);
 
     return result.rows;
@@ -82,9 +85,11 @@ class HobbieRepository {
     let c = 0;
     const params = [];
     hobbies.forEach(hobbie => {
-      params.push(...[v4(), hobbie.name, userId, currentTimeMs()]);
+      params.push(v4(), hobbie.name, userId, hobbie.favorite, currentTimeMs());
     });
-    const query = `INSERT INTO custom_hobbies (id, name, user_id, created_at) VALUES ${hobbies.map(() => `($${++c}, $${++c}, $${++c}, $${++c})`).join(', ')}`;
+    const query = `
+      INSERT INTO custom_hobbies (id, name, user_id, favorite, created_at)
+      VALUES ${hobbies.map(() => `($${++c}, $${++c}, $${++c}, $${++c}, $${++c})`).join(', ')}`;
     const result = await this.conn.query(query, params);
 
     return result.rows;
@@ -117,9 +122,9 @@ class HobbieRepository {
 
   async getActivitiesForUser(userId) {
     const query = `
-      SELECT free_time_activities.* FROM free_time_activities
-      JOIN user_free_time_activities ON free_time_activities.id = user_free_time_activities.activity_id
-      WHERE user_free_time_activities.user_id = $1
+      SELECT a.*, ua.favorite  FROM free_time_activities a
+      JOIN user_free_time_activities ua ON a.id = ua.activity_id
+      WHERE ua.user_id = $1
     `;
     const result = await this.conn.query(query, [userId]);
 
@@ -137,8 +142,13 @@ class HobbieRepository {
     if (!free_time_activities || 0 === free_time_activities.length) return;
 
     let c = 1;
-    const params = [userId, ...free_time_activities.map(acivity => acivity.id)];
-    const query = `INSERT INTO user_free_time_activities (user_id, activity_id) VALUES ${free_time_activities.map(() => `($1, $${++c})`).join(', ')}`;
+    const params = [userId];
+    free_time_activities.forEach(({ id, favorite }) => {
+      params.push(id, favorite);
+    });
+    const query = `
+      INSERT INTO user_free_time_activities (user_id, activity_id, favorite)
+      VALUES ${free_time_activities.map(() => `($1, $${++c}, $${++c})`).join(', ')}`;
     const result = await this.conn.query(query, params);
 
     return result.rows;
@@ -166,12 +176,64 @@ class HobbieRepository {
     let c = 0;
     const params = [];
     hobbies.forEach(hobbie => {
-      params.push(...[v4(), hobbie.name, userId, currentTimeMs()]);
+      params.push(v4(), hobbie.name, userId, hobbie.favorite, currentTimeMs());
     });
-    const query = `INSERT INTO custom_free_time_activities (id, name, user_id, created_at) VALUES ${hobbies.map(() => `($${++c}, $${++c}, $${++c}, $${++c})`).join(', ')}`;
+    const query = `
+      INSERT INTO custom_free_time_activities (id, name, user_id, favorite, created_at)
+      VALUES ${hobbies.map(() => `($${++c}, $${++c}, $${++c}, $${++c}, $${++c})`).join(', ')}`;
     const result = await this.conn.query(query, params);
 
     return result.rows;
+  }
+
+  async getHobbiesForUsers(userIds) {
+    if (!Array.isArray(userIds) || 0 === userIds.length) return [];
+
+    const query = `
+      SELECT ua.user_id, a.name, ua.favorite FROM hobbies a
+      JOIN user_hobbies ua ON a.id = ua.hobbie_id
+      WHERE ua.user_id IN (${userIds.map((_, ix) => `$${ix + 1}`).join(', ')})
+    `;
+    const result = await this.conn.query(query, userIds);
+
+    return mapByKeyTarget(result, 'user_id');
+  }
+
+  async getCustomHobbiesForUsers(userIds) {
+    if (!Array.isArray(userIds) || 0 === userIds.length) return [];
+
+    const query = `
+      SELECT user_id, name, favorite FROM custom_hobbies
+      WHERE user_id IN (${userIds.map((_, ix) => `$${ix + 1}`).join(', ')})
+    `;
+    const result = await this.conn.query(query, userIds);
+
+    return mapByKeyTarget(result, 'user_id');
+  }
+
+  async getActivitiesForUsers(userIds) {
+    if (!Array.isArray(userIds) || 0 === userIds.length) return [];
+
+    const query = `
+      SELECT ua.user_id, a.name, ua.favorite FROM free_time_activities a
+      JOIN user_free_time_activities ua ON a.id = ua.activity_id
+      WHERE ua.user_id IN (${userIds.map((_, ix) => `$${ix + 1}`).join(', ')})
+    `;
+    const result = await this.conn.query(query, userIds);
+
+    return mapByKeyTarget(result, 'user_id');
+  }
+
+  async getCustomActivitiesForUsers(userIds) {
+    if (!Array.isArray(userIds) || 0 === userIds.length) return [];
+
+    const query = `
+      SELECT user_id, name, favorite FROM custom_free_time_activities
+      WHERE user_id IN (${userIds.map((_, ix) => `$${ix + 1}`).join(', ')})
+    `;
+    const result = await this.conn.query(query, userIds);
+
+    return mapByKeyTarget(result, 'user_id');
   }
 }
 

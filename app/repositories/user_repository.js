@@ -299,6 +299,13 @@ class UserRepository {
     `;
     await this.conn.query(query, [currentTimeMs(), userId]);
   }
+
+  async setInterestsProcessedAt(userId) {
+    const query = `
+      UPDATE users SET interests_processed_at = $1 WHERE id = $2
+    `;
+    await this.conn.query(query, [currentTimeMs(), userId]);
+  }
 }
 
 module.exports = UserRepository;

@@ -21,6 +21,7 @@ class HobbieController extends Controller {
 
     const hobbieRepository = await this.getService('hobbie_repository');
     const sessionTokenRepository = await this.getService('session_token_repository');
+    const compatibilityService = await this.getService('compatibility_service');
     const con = await this.getConnection();
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
@@ -34,6 +35,8 @@ class HobbieController extends Controller {
         hobbieRepository.deleteCustomHobbiesForUser(loggedUserId),
         hobbieRepository.setCustomHobbiesForUser(loggedUserId, hobbies.filter(hobbie => hobbie.custom))
       ]);
+
+      await compatibilityService.scheduleForInterestCalculation(loggedUserId);
 
       con.query('COMMIT');
 
@@ -51,6 +54,7 @@ class HobbieController extends Controller {
 
     const sessionTokenRepository = await this.getService('session_token_repository');
     const hobbieRepository = await this.getService('hobbie_repository');
+    const compatibilityService = await this.getService('compatibility_service');
     const con = await this.getConnection();
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
@@ -64,6 +68,8 @@ class HobbieController extends Controller {
         hobbieRepository.deleteCustomActivitiesForUser(loggedUserId),
         hobbieRepository.setCustomActivitiesForUser(loggedUserId, activities.filter(activity => activity.custom))
       ]);
+
+      await compatibilityService.scheduleForInterestCalculation(loggedUserId);
 
       con.query('COMMIT');
 
