@@ -3,10 +3,10 @@
 npm i
 npm run migrate
 
-cd ../client-spa
-npm i
-npm run build
+# cd ../client-spa
+# npm i
+# npm run build
 
-cd ../main-backend
-rm -rf dist
-cp -r ../client-spa/dist/socialSpa dist
+# cd ../main-backend
+# rm -rf dist
+# cp -r ../client-spa/dist/socialSpa dist
