@@ -20,6 +20,8 @@ module.exports.backfillInterests = () => {
       } catch (e) {
         con.query('ROLLBACK');
 
+        console.error(e);
+
         throw e;
       }
     };
