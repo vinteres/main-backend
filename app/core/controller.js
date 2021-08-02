@@ -1,3 +1,4 @@
+const { error } = require('./logger');
 const { SERVICE_NAME_DB_CLIENT } = require('./service_discovery');
 const ServiceDiscoveryRepo = require('./service_discovery_repo');
 
@@ -23,7 +24,7 @@ class Controller {
   }
 
   async onError(req, res, err) {
-    console.error(err);
+    error(err);
 
     return Controller.sendError(res);
   }

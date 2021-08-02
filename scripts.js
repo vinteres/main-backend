@@ -1,3 +1,4 @@
+const { error } = require('./app/core/logger');
 const { SERVICE_NAME_DB_CLIENT } = require('./app/core/service_discovery');
 
 module.exports.backfillInterests = () => {
@@ -25,7 +26,7 @@ module.exports.backfillInterests = () => {
         }
       };
     } catch (e) {
-      console.error(e);
+      error(e);
     }
 
     console.log('DONE!');
