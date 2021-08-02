@@ -123,7 +123,7 @@ class CompatibilityService {
       });
       const percentMatch = Math.trunc((hobbiesPercentMatch + activitiesPercentMatch) / 2);
 
-      if (percentMatch == 0) return;
+      if (isNaN(percentMatch) || percentMatch == 0) return;
 
       this.compatibilityRepository.createInterestCompatibility(
         targetUserId,
