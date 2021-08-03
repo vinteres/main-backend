@@ -36,7 +36,7 @@ class AuthController extends Controller {
         result = await authService.loginWith(email);
       } else {
         const r = await userService.signUpWith({ email, name, accessToken });
-        const authToken = await authService.createAuthTokenForUser(result.user.id, false);
+        const authToken = await authService.createAuthTokenForUser(r.user.id, false);
         result = { ...r.user, token: authToken };
       }
       con.query('COMMIT');
