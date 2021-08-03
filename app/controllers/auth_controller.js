@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { Controller } = require('../core/controller');
+const { sendError } = require('./chat_controller');
 
 class AuthController extends Controller {
   async login(req, res) {
@@ -22,8 +23,17 @@ class AuthController extends Controller {
     const userService = await this.getService('user_service');
     const con = await this.getConnection();
 
-    const resp = await axios.get(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`);
-    email = resp.data.email ?? email;
+    try {
+      const resp = await axios.get(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`);
+
+      email = resp.data.email ?? email;
+    } catch (e) {
+      if (e.response.status === 400 || e.response.status === 401) {
+        return sendError(res, e.response.status, 'Invalid token');
+      } else {
+        throw e;
+      }
+    }
 
     const dbResp = await con.query('SELECT user_status FROM users WHERE email = $1', [email]);
     const exists = dbResp.rows.length === 1 && dbResp.rows[0].user_status !== 'deleted';
