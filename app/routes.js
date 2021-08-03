@@ -76,6 +76,7 @@ const initRoutes = (app) => {
   app.post('/api/hobbies/user', authActive, handle(HobbieController, 'set'));
   app.post('/api/activities/user', authActive, handle(HobbieController, 'setActivities'));
   app.post('/api/login', handle(AuthController, 'login'));
+  app.post('/api/login-with', handle(AuthController, 'loginWith'));
   app.post('/api/sign-up', handle(UserController, 'signUp'));
   app.post('/api/logout', auth, handle(AuthController, 'logout'));
   app.get('/api/user/:id', authActive, handle(UserController, 'get'));
@@ -105,6 +106,7 @@ const initRoutes = (app) => {
   app.post('/api/onboarding/profile-info', authOnboarding, handle(OnboardingController, 'setProfileInfo'));
   app.post('/api/onboarding/interests', authOnboarding, handle(OnboardingController, 'setInterests'));
   app.get('/api/onboarding/quiz', authOnboarding, handle(QuizController, 'getQuiz'));
+  app.get('/api/onboarding/account-info', authOnboarding, handle(OnboardingController, 'getAccountInfo'));
   app.post('/api/onboarding/quiz', authOnboarding, handle(OnboardingController, 'setQuizAnswers'));
   app.post('/api/onboarding/image-pass', authOnboarding, handle(OnboardingController, 'setImageStepPassed'));
   app.post('/api/onboarding/complete', authOnboarding, handle(OnboardingController, 'completeOnboarding'));

@@ -26,6 +26,23 @@ class OnboardingController extends Controller {
     res.json(step);
   }
 
+  async getAccountInfo(req, res) {
+    const token = this.getAuthToken(req);
+
+    const sessionTokenRepository = await this.getService('session_token_repository');
+    const userRepository = await this.getService('user_repository');
+
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const { name } = await userRepository.findById(
+      ['name'],
+      loggedUserId
+    );
+
+    res.json({
+      name
+    });
+  }
+
   async setAccountInfo(req, res) {
     const token = this.getAuthToken(req);
     const { name, birthday, gender, interested_in, city } = req.body;

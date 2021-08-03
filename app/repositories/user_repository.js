@@ -27,6 +27,20 @@ class UserRepository {
     return { id, email, status, createdAt };
   }
 
+  async createWithAccessToken({ email, name, accessToken }) {
+    const id = v4();
+    const status = 'onboarding';
+    const createdAt = currentTimeMs();
+    const query = `
+      INSERT INTO users (id, email, name, access_token, user_status, verified, created_at) VALUES
+        ($1, $2, $3, $4, $5, false, $6)
+    `;
+
+    await this.conn.query(query, [id, email.trim(), name, accessToken, status, createdAt]);
+
+    return { id, email, status, createdAt };
+  }
+
   async getUserById(userId) {
     const query = `
       SELECT id, name, title, description, email, gender, interested_in, age, user_status, profile_image_id

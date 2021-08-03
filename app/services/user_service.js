@@ -21,6 +21,13 @@ class UserService {
     return { user, onboarding };
   }
 
+  async signUpWith({ name, email, accessToken }) {
+    const user = await this.userRepository.createWithAccessToken({ email, name, accessToken });
+    const onboarding = await this.onboardingRepository.create(user.id);
+
+    return { user, onboarding };
+  }
+
   async getUsers(page, searchingUser) {
     const searchPreferences = await this.searchPreferenceRepository.getForUser(searchingUser.id);
     const search = {

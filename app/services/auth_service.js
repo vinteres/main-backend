@@ -34,6 +34,30 @@ class AuthService {
     };
   }
 
+  async loginWith(email) {
+    const query = `
+      select id, name, email, gender, user_status, verification_status, password FROM users WHERE email = $1
+    `;
+    const loginError = { loggedIn: false };
+
+    const result = await this.conn.query(query, [email.trim()]);
+    const user = result.rows[0];
+    if (!user || 'deleted' === user.user_status) return loginError;
+
+    const token = await this.createAuthTokenForUser(user.id, false);
+
+    return {
+      loggedIn: true,
+      token,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      status: user.user_status,
+      gender: user.gender,
+      verificationStatus: user.verification_status
+    };
+  }
+
   async removeAuthToken(token) {
     const query = `
       DELETE FROM session_tokens WHERE token = $1

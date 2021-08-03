@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 const config = require('./config/config');
+const { error } = require('./core/logger');
 const { isProd } = require('./utils');
 
 class Connection {
@@ -13,7 +14,7 @@ class Connection {
     try {
       await handle(client);
     } catch(err) {
-      console.error(err);
+      error(err);
       if (errorHandle) errorHandle();
     } finally {
       client.release();
