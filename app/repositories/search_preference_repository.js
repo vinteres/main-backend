@@ -1,5 +1,8 @@
 const { currentTimeMs } = require('../utils');
 
+const MIN_AGE = 18;
+const MAX_AGE = 70;
+
 class SearchPreferenceRepository {
   constructor(conn) {
     this.conn = conn;
@@ -27,5 +30,8 @@ class SearchPreferenceRepository {
     );
   }
 }
+
+SearchPreferenceRepository.MIN_AGE = MIN_AGE;
+SearchPreferenceRepository.MAX_AGE = MAX_AGE;
 
 module.exports = SearchPreferenceRepository;

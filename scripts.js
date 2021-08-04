@@ -60,7 +60,28 @@ const sendMessageFromAdmin = (toUserId, text) => {
   });
 };
 
+const resetSearchPrefAges = (toUserId, text) => {
+  ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
+    const con = await serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
+
+    try {
+      con.query('BEGIN');
+
+      await con.query('UPDATE search_preferences set from_age = NULL, to_age = NULL');
+
+      con.query('COMMIT');
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      console.error(e);
+
+      throw e;
+    }
+  });
+};
+
 module.exports = {
   backfillInterests,
-  sendMessageFromAdmin
+  sendMessageFromAdmin,
+  resetSearchPrefAges
 };

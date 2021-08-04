@@ -72,12 +72,10 @@ class OnboardingController extends Controller {
         { name, birthday, gender, interested_in, city, age }
       );
 
-      const fromAge = (18 > 15 - age) ? 18 : age - 15;
-      const toAge = (99 < 15 + age) ? 99 : age + 15;
       if (await searchPreferenceRepository.getForUser(loggedUserId)) {
-        await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId: city });
+        await searchPreferenceRepository.setForUser(loggedUserId, { cityId: city });
       } else {
-        await searchPreferenceRepository.create(loggedUserId, { fromAge, toAge, cityId: city });
+        await searchPreferenceRepository.create(loggedUserId, { cityId: city });
       }
 
       const newStep = step.step + 1;

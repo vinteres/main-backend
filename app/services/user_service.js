@@ -1,3 +1,4 @@
+const { MAX_AGE, MIN_AGE } = require('../repositories/search_preference_repository');
 const { hash } = require('../utils');
 
 // const hasCompatibility = ({ compatibility }) => compatibility && 0 < compatibility;
@@ -34,8 +35,8 @@ class UserService {
       gender: searchingUser.interested_in,
       interestedIn: searchingUser.gender,
       cityId: searchPreferences.city_id,
-      fromAge: searchPreferences.from_age,
-      toAge: searchPreferences.to_age,
+      fromAge: searchPreferences.from_age ?? MIN_AGE,
+      toAge: searchPreferences.to_age ?? MAX_AGE,
       searchingUserId: searchingUser.id
     };
 

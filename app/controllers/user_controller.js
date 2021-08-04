@@ -4,6 +4,7 @@ const MediaService = require('../services/media_service');
 const { item } = require('../data_builders/intro_builder');
 const SignUpValidator = require('../models/validators/sign_up_validator');
 const { isConnected } = require('../services/ws_service');
+const { MAX_AGE, MIN_AGE } = require('../repositories/search_preference_repository');
 
 class UserController extends Controller {
   async get(req, res) {
@@ -21,6 +22,7 @@ class UserController extends Controller {
     const reportRepository = await this.getService('report_repository');
     const locationService = await this.getService('location_service');
     const compatibilityRepository = await this.getService('compatibility_repository');
+    const searchPreferenceRepository = await this.getService('search_preference_repository');
 
     const [loggedUserId, user] = await Promise.all([
       sessionTokenRepository.getUserId(token),
@@ -36,7 +38,8 @@ class UserController extends Controller {
       customActivities,
       interests,
       activities,
-      reported
+      reported,
+      searchPreferences
     ] = await Promise.all([
       mediaRepository.getUserImages(userId),
       locationService.getLocationById(user.city_id),
@@ -44,7 +47,8 @@ class UserController extends Controller {
       hobbieService.getCustomActivitiesForUser(userId),
       hobbieService.getForUser(userId),
       hobbieService.getActivitiesForUser(userId),
-      reportRepository.isReported(loggedUserId, user.id)
+      reportRepository.isReported(loggedUserId, user.id),
+      searchPreferenceRepository.getForUser(userId),
     ]);
     user.location = location;
     user.images = MediaService.mapImages(images);
@@ -62,6 +66,12 @@ class UserController extends Controller {
         }
       }
     }
+
+    user.searchPreferences = {
+      ageRangeSet: Boolean(searchPreferences.from_age && searchPreferences.from_age),
+      fromAge: searchPreferences.from_age,
+      toAge: searchPreferences.to_age
+    };
 
     user.interests = interests;
     user.activities = activities.map(activity => ({ ...activity, favorite: !!activity.favorite }));
@@ -212,14 +222,17 @@ class UserController extends Controller {
     const compatibilityRepository = await this.getService('compatibility_repository');
     const userRepository = await this.getService('user_repository');
     const userService = await this.getService('user_service');
+    const searchPreferenceRepository = await this.getService('search_preference_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const [
       compatibilities,
-      interestCompatibilities
+      interestCompatibilities,
+      { from_age, to_age }
     ] = await Promise.all([
       quizService.getHighCompatibilitiesForUser(loggedUserId),
-      compatibilityRepository.findInterestCompatibilitiesForUser(loggedUserId)
+      compatibilityRepository.findInterestCompatibilitiesForUser(loggedUserId),
+      searchPreferenceRepository.getForUser(loggedUserId)
     ]);
     const compatibilityMap = {};
     compatibilities.forEach(({ user_one_id, user_two_id, percent }) => {
@@ -233,9 +246,12 @@ class UserController extends Controller {
       interestCompatibilityMap[tId] = percent;
     });
 
-    const users = await userRepository.findByIds([
-      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified'
-    ], Object.keys(compatibilityMap));
+    const users = (await userRepository.findByIds(
+      [
+        'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified'
+      ],
+      Object.keys(compatibilityMap)
+    )).filter(({ age }) => (to_age ?? MAX_AGE) >= age && (from_age ?? MIN_AGE) <= age);
 
     users.forEach(user => {
       user.profile_image = MediaService.getProfileImagePath(user);

@@ -2,6 +2,7 @@ const { Controller } = require('../core/controller');
 const { compareHash } = require('../utils');
 const { hash } = require('../utils');
 const SearchPereferenceValidator = require('../models/validators/search_pereference_validator');
+const { MAX_AGE, MIN_AGE } = require('../repositories/search_preference_repository');
 
 class SettingsController extends Controller {
   async getSettings(req, res) {
@@ -193,8 +194,8 @@ class SettingsController extends Controller {
     const location = await locationService.getLocationById(searchPreferences.city_id);
 
     return res.json({
-      fromAge: searchPreferences.from_age,
-      toAge: searchPreferences.to_age,
+      fromAge: searchPreferences.from_age ?? MIN_AGE,
+      toAge: searchPreferences.to_age ?? MAX_AGE,
       lookingFor: looking_for_type || 0,
       location: {
         cityId: location.id,
