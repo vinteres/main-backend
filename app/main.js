@@ -12,6 +12,7 @@ const fs = require('fs');
 const requestIp = require('@supercharge/request-ip');
 const ServiceDiscoveryRepo = require('./core/service_discovery_repo');
 const { scheduleInterestCompatibilityCalculation } = require('./interest_compatibility_calculator');
+const { NOTIFS_COUNT } = require('./models/enums/ws_message_type');
 
 const app = express();
 const port = 4000;
@@ -93,21 +94,20 @@ wss.on('connection', (ws, req) => {
         });
       } else if ('msg' === data.type) {
         await chatService.createAndSend({ ...data, userId: currentUserId });
-      } else if ('notifs_count' === data.type) {
+      } else if (NOTIFS_COUNT === data.type) {
         const notificationService = await serviceDiscovery.get('notification_service');
         const introRepository = await serviceDiscovery.get('intro_repository');
 
-        const [msg, notif, intro] = await Promise.all([
+        const [msg, intro, visits, matches] = await Promise.all([
           chatService.getNotSeenCountFor(currentUserId),
-          notificationService.getNotSeenCountFor(currentUserId),
-          introRepository.notSeenCountFor(currentUserId)
+          introRepository.notSeenCountFor(currentUserId),
+          notificationService.notSeenVisitsCountFor(currentUserId),
+          notificationService.notSeenMatchesCountFor(currentUserId)
         ]);
 
-        const result = { msg, notif, intro };
-
         send(currentUserId, {
-          ...result,
-          type: 'notifs_count'
+          msg, intro, visits, matches,
+          type: NOTIFS_COUNT
         });
       } else if ('msgs' === data.type) {
         const messages = await chatService.getMessagesAfter(data.chatId, data.after);

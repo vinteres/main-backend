@@ -61,6 +61,7 @@ class IntroController extends Controller {
     const userRepository = await this.getService('user_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
+
     await introRepository.seeIntros(loggedUserId);
     send(loggedUserId, { type: 'see_intros' });
 

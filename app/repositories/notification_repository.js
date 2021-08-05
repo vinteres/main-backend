@@ -20,9 +20,29 @@ class NotificationRepository {
     return parseInt(result.rows[0].count);
   }
 
-  async seeNotifs(userId) {
+  async notSeenVisitsCountFor(userId) {
+    const query = 'SELECT COUNT(*) FROM notifications WHERE to_user_id = $1 AND type = \'view\' AND seen = false';
+    const result = await this.conn.query(query, [userId]);
+
+    return parseInt(result.rows[0].count);
+  }
+
+  async notSeenMatchesCountFor(userId) {
+    const query = 'SELECT COUNT(*) FROM notifications WHERE to_user_id = $1 AND type != \'view\' AND seen = false';
+    const result = await this.conn.query(query, [userId]);
+
+    return parseInt(result.rows[0].count);
+  }
+
+  async seeNotifs(userId, types) {
+    if (types) {
+      types = !Array.isArray(types) ? [types] : types;
+      const query = `UPDATE notifications SET seen = true WHERE to_user_id = $1 AND type IN (${types.map((type, ix) => `$${2 + ix}`)})`;
+      return await this.conn.query(query, [userId, ...types]);
+    }
+
     const query = 'UPDATE notifications SET seen = true WHERE to_user_id = $1';
-    await this.conn.query(query, [userId]);
+    return await this.conn.query(query, [userId]);
   }
 
   async create(fromUserId, toUserId, relId, type) {

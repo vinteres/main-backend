@@ -3,8 +3,9 @@ const { Controller } = require('../core/controller');
 const MediaService = require('../services/media_service');
 const { item } = require('../data_builders/intro_builder');
 const SignUpValidator = require('../models/validators/sign_up_validator');
-const { isConnected } = require('../services/ws_service');
+const { isConnected, send } = require('../services/ws_service');
 const { MAX_AGE, MIN_AGE } = require('../repositories/search_preference_repository');
+const { SEE_VISITS, SEE_MATCHES } = require('../models/enums/ws_message_type');
 
 class UserController extends Controller {
   async get(req, res) {
@@ -185,12 +186,16 @@ class UserController extends Controller {
     const sessionTokenRepository = await this.getService('session_token_repository');
     const userRepository = await this.getService('user_repository');
     const matchService = await this.getService('match_service');
+    const notificationRepository = await this.getService('notification_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const userIds = await matchService.matchIds(loggedUserId);
     const users = await userRepository.findByIds([
       'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified'
     ], userIds);
+
+    await notificationRepository.seeNotifs(loggedUserId, ['matched', 'intro_like']);
+    send(loggedUserId, { type: SEE_MATCHES });
 
     users.forEach(user => {
       user.online = !!isConnected(user.id);
@@ -209,6 +214,7 @@ class UserController extends Controller {
     const sessionTokenRepository = await this.getService('session_token_repository');
     const userRepository = await this.getService('user_repository');
     const viewsRepository = await this.getService('views_repository');
+    const notificationRepository = await this.getService('notification_repository');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const viewers = await viewsRepository.findFor(loggedUserId);
@@ -216,6 +222,9 @@ class UserController extends Controller {
     const users = await userRepository.findByIds([
       'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified'
     ], viewerIds);
+
+    await notificationRepository.seeNotifs(loggedUserId, 'view');
+    send(loggedUserId, { type: SEE_VISITS });
 
     users.forEach(user => {
       user.online = !!isConnected(user.id);

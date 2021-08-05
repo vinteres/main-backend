@@ -5,7 +5,9 @@ const WsMessageType = Object.freeze({
   MSGS: 'msgs',
   SEE_INTROS: 'see_intros',
   SEE_MSG: 'see_msg',
-  NOTIF: 'notif'
+  NOTIF: 'notif',
+  SEE_VISITS: 'see_visits',
+  SEE_MATCHES: 'see_matches'
 });
 
 module.exports = WsMessageType;

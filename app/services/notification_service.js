@@ -1,6 +1,7 @@
 const { send } = require('./ws_service');
 const { mapByKey } = require('../utils');
 const MediaService = require('./media_service');
+const { NOTIF } = require('../models/enums/ws_message_type');
 
 class NotificationService {
   constructor(notificationRepository, userRepository) {
@@ -27,6 +28,18 @@ class NotificationService {
     });
   }
 
+  async notSeenVisitsCountFor(userId) {
+    const notSeenNotifCount = await this.notificationRepository.notSeenVisitsCountFor(userId);
+
+    return notSeenNotifCount;
+  }
+
+  async notSeenMatchesCountFor(userId) {
+    const notSeenNotifCount = await this.notificationRepository.notSeenMatchesCountFor(userId);
+
+    return notSeenNotifCount;
+  }
+
   async getNotSeenCountFor(userId) {
     const notSeenNotifCount = await this.notificationRepository.notSeenCountFor(userId);
 
@@ -43,7 +56,7 @@ class NotificationService {
     const notification = await this.notificationRepository.create(fromUserId, toUserId, relId, type);
 
     send(toUserId, {
-      type: 'notif',
+      type: NOTIF,
       notification
     });
   }
