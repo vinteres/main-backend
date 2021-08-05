@@ -114,24 +114,33 @@ class UserController extends Controller {
   async getUsers(req, res) {
     const token = this.getAuthToken(req);
     const page = req.query.page;
+    const fromAge = req.query.fromAge;
+    const toAge = req.query.toAge;
+    const cityId = req.query.cityId;
 
     const sessionTokenRepository = await this.getService('session_token_repository');
     const userService = await this.getService('user_service');
     const userRepository = await this.getService('user_repository');
     const quizService = await this.getService('quiz_service');
     const compatibilityRepository = await this.getService('compatibility_repository');
+    const locationService = await this.getService('location_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const loggedUser = await userRepository.getUserById(loggedUserId);
-    const { users, totalCount } = await userService.getUsers(page, loggedUser);
+    const { users, totalCount } = await userService.getUsers(page, loggedUser, {
+      fromAge, toAge, cityId
+    });
 
+    const cityIds = Array.from(new Set(users.map(({ city_id }) => city_id)));
     const userIds = users.map(({ id }) => id);
     const [
       compatibilities,
-      interestCompatibilities
+      interestCompatibilities,
+      cities
     ] = await Promise.all([
       quizService.getCompatibilityForUsers(loggedUserId, userIds),
       compatibilityRepository.findInterestCompatibilities(loggedUserId, userIds),
+      locationService.getCitiesById(cityIds, false),
       userService.setMutualInterestsAndUpdateCompatibility(loggedUserId, users)
     ]);
 
@@ -145,6 +154,11 @@ class UserController extends Controller {
     interestCompatibilities.forEach(({ user_one_id, user_two_id, percent }) => {
       const tId = user_one_id === loggedUserId ? user_two_id : user_one_id;
       interestCompatibilityMap[tId] = percent;
+    });
+
+    users.forEach(user => {
+      const city = cities.find(c => c.id === user.city_id);
+      user.from = city.name;
     });
 
     users.forEach(user => {

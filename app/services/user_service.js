@@ -29,14 +29,13 @@ class UserService {
     return { user, onboarding };
   }
 
-  async getUsers(page, searchingUser) {
-    const searchPreferences = await this.searchPreferenceRepository.getForUser(searchingUser.id);
+  async getUsers(page, searchingUser, searchPref) {
     const search = {
       gender: searchingUser.interested_in,
       interestedIn: searchingUser.gender,
-      cityId: searchPreferences.city_id,
-      fromAge: searchPreferences.from_age ?? MIN_AGE,
-      toAge: searchPreferences.to_age ?? MAX_AGE,
+      cityId: (typeof searchPref.cityId === 'string' && searchPref.cityId.trim() !== '') ? searchPref.cityId : '',
+      fromAge: searchPref.fromAge < MIN_AGE ? MIN_AGE : searchPref.fromAge,
+      toAge: searchPref.toAge > MAX_AGE ? MAX_AGE : searchPref.toAge,
       searchingUserId: searchingUser.id
     };
 

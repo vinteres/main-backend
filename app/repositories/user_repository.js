@@ -59,30 +59,60 @@ class UserRepository {
   }
 
   async searchUsers(page, { gender, interestedIn, cityId, fromAge, toAge, searchingUserId }) {
+    const [fields, params] = this.getSearchParams({ gender, interestedIn, cityId, fromAge, toAge, searchingUserId });
+
     const query = `
       SELECT id, name, age, gender, city_id, profile_image_id, verified
       FROM users
-      WHERE user_status = 'active' AND gender = $1 AND interested_in = $2 AND city_id = $3 AND id != $4 AND age >= $5 AND age <= $6
+      WHERE user_status = 'active' AND gender = $1 AND interested_in = $2
+      AND id != $3
+      ${fields.join(' ')}
       ORDER BY created_at DESC, verified DESC
       OFFSET ${(page - 1) * USERS_PER_PAGE}
       LIMIT ${USERS_PER_PAGE}
     `;
-    const result = await this.conn.query(query, [
-      gender, interestedIn, cityId, searchingUserId, fromAge, toAge
-    ]);
+    const result = await this.conn.query(query, params);
 
     return result.rows;
   }
 
   async getUsersCount({ gender, interestedIn, cityId, fromAge, toAge }) {
+    const [fields, params] = this.getSearchParams({ gender, interestedIn, cityId, fromAge, toAge });
+
     const query = `
       SELECT COUNT(*)
       FROM users
-      WHERE user_status = 'active' AND gender = $1 AND interested_in = $2 AND city_id = $3 AND age >= $4 AND age <= $5
+      WHERE user_status = 'active' AND gender = $1 AND interested_in = $2 ${fields.join(' ')}
     `;
-    const result = await this.conn.query(query, [gender, interestedIn, cityId, fromAge, toAge]);
+    const result = await this.conn.query(query, params);
 
     return parseInt(result.rows[0].count);
+  }
+
+  getSearchParams({ gender, interestedIn, cityId, fromAge, toAge, searchingUserId }) {
+    const optional = { cityId, fromAge, toAge };
+    const params = [gender, interestedIn, searchingUserId].filter(i => i);
+    const fields = [];
+
+    Object.keys(optional).forEach((k) => {
+      if (optional[k]) {
+        params.push(optional[k]);
+        let field = '';
+        switch (k) {
+          case 'cityId':
+            field = 'city_id';
+            break;
+          case 'fromAge':
+          case 'toAge':
+            field = 'age';
+            break;
+        }
+
+        fields.push(`AND ${field} ${k === 'fromAge' ? '>=' : (k === 'toAge' ? '<=' : '=')} $${params.length}`);
+      }
+    });
+
+    return [fields, params];
   }
 
   async emailExists(email) {

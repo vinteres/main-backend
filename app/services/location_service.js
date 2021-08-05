@@ -16,10 +16,15 @@ class LocationService {
     });
   }
 
-  async getCitiesById(cityIds) {
-    if (!cityIds || 0 === cityIds.length) return [];
+  async getCitiesById(cityIds, withCountry = true) {
+    if (!Array.isArray(cityIds) || 0 === cityIds.length) return [];
 
     const cities = await this.locationRepository.findCitiesById(cityIds);
+
+    if (!withCountry) {
+      return cities;
+    }
+
     const countries = await this.locationRepository.findCountriesById(cities.map(city => city.country_id));
 
     return cities.map(city => {
