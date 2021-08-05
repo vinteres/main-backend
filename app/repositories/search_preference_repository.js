@@ -14,10 +14,10 @@ class SearchPreferenceRepository {
     return result.rows[0];
   }
 
-  async setForUser(userId, { fromAge, toAge, cityId }) {
+  async setForUser(userId, { fromAge, toAge, cityId, income }) {
     const result = await this.conn.query(
-      'UPDATE search_preferences SET from_age = $1, to_age = $2, city_id = $3 WHERE user_id = $4',
-      [fromAge, toAge, cityId, userId]
+      'UPDATE search_preferences SET from_age = $1, to_age = $2, city_id = $3, income = $4 WHERE user_id = $5',
+      [fromAge, toAge, cityId, income, userId]
     );
 
     return result.rows[0];

@@ -29,7 +29,8 @@ class SettingsController extends Controller {
       employment_status,
       education_status,
       personality,
-      zodiac
+      zodiac,
+      income
     } = await userRepository.getUserProfileById(loggedUserId);
 
     const accountSettings = {
@@ -52,7 +53,8 @@ class SettingsController extends Controller {
       employment_status,
       education_status,
       personality,
-      zodiac
+      zodiac,
+      income
     };
 
     Object.keys(profileSettings).forEach(key => {
@@ -92,7 +94,8 @@ class SettingsController extends Controller {
       personality,
       pet_status,
       smoking,
-      zodiac
+      zodiac,
+      income
     } = req.body;
 
     const payload = {
@@ -105,7 +108,8 @@ class SettingsController extends Controller {
       personality,
       pet_status,
       smoking,
-      zodiac
+      zodiac,
+      income
     };
 
     Object.keys(payload).forEach(key => {
@@ -197,6 +201,7 @@ class SettingsController extends Controller {
       fromAge: searchPreferences.from_age ?? MIN_AGE,
       toAge: searchPreferences.to_age ?? MAX_AGE,
       lookingFor: looking_for_type || 0,
+      income: searchPreferences.income,
       location: {
         cityId: location.id,
         name: '',
@@ -207,7 +212,7 @@ class SettingsController extends Controller {
 
   async setSearchPreferences(req, res) {
     const token = this.getAuthToken(req);
-    const { fromAge, toAge, cityId, lookingFor } = req.body;
+    const { fromAge, toAge, cityId, lookingFor, income } = req.body;
 
     const validator = new SearchPereferenceValidator({ fromAge, toAge, cityId });
     if (!validator.validate()) {
@@ -224,7 +229,7 @@ class SettingsController extends Controller {
       await userRepository.update(loggedUserId, { looking_for_type: lookingFor });
     }
 
-    await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId });
+    await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId, income });
 
     res.status(201).end();
   }

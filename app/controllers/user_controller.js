@@ -70,7 +70,8 @@ class UserController extends Controller {
     user.searchPreferences = {
       ageRangeSet: Boolean(searchPreferences.from_age && searchPreferences.from_age),
       fromAge: searchPreferences.from_age,
-      toAge: searchPreferences.to_age
+      toAge: searchPreferences.to_age,
+      income: searchPreferences.income
     };
 
     user.interests = interests;
