@@ -2,6 +2,7 @@ const { error } = require('./app/core/logger');
 const { SERVICE_NAME_DB_CLIENT } = require('./app/core/service_discovery');
 const ServiceDiscoveryRepo = require('./app/core/service_discovery_repo');
 const PageRepository = require('./app/repositories/page_repository');
+const { currentTimeMs } = require('./app/utils');
 
 const backfillInterests = () => {
   ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
@@ -67,7 +68,35 @@ const resetSearchPrefAges = (toUserId, text) => {
     try {
       con.query('BEGIN');
 
-      await con.query('UPDATE search_preferences set from_age = NULL, to_age = NULL');
+      await con.query('UPDATE search_preferences SET from_age = NULL, to_age = NULL');
+
+      con.query('COMMIT');
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      console.error(e);
+
+      throw e;
+    }
+  });
+};
+
+
+const backfillOnlineState = (toUserId, text) => {
+  ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
+    const con = await serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
+
+    try {
+      con.query('BEGIN');
+
+      let c = 0;
+      const now = currentTimeMs();
+
+      const userIds = (await con.query('SELECT id FROM users WHERE last_online_at IS NULL ORDER BY created_at ASC')).rows.map(({ id }) => id);
+
+      for (const id of userIds) {
+        await con.query('UPDATE users SET last_online_at = $1, is_online = false WHERE id = $2', [now + c++, id]);
+      }
 
       con.query('COMMIT');
     } catch (e) {
@@ -83,5 +112,6 @@ const resetSearchPrefAges = (toUserId, text) => {
 module.exports = {
   backfillInterests,
   sendMessageFromAdmin,
-  resetSearchPrefAges
+  resetSearchPrefAges,
+  backfillOnlineState
 };

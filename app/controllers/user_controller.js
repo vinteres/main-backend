@@ -80,7 +80,6 @@ class UserController extends Controller {
     user.reported = reported;
 
     user.profile_image = MediaService.getProfileImagePath(user);
-    user.online = !!isConnected(user.id);
 
     if (loggedUserId !== userId && 'uncompatible' !== user.relation_status) {
       const [
@@ -168,10 +167,6 @@ class UserController extends Controller {
       user.interestCompatibility = interestCompatibilityMap[user.id];
     });
 
-    users.forEach(user => {
-      user.online = !!isConnected(user.id);
-    });
-
     const responseData = {
       users,
       totalPages: Math.ceil(totalCount / UserRepository.usersPerPage())
@@ -191,15 +186,11 @@ class UserController extends Controller {
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const userIds = await matchService.matchIds(loggedUserId);
     const users = await userRepository.findByIds([
-      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified'
+      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified', 'is_online'
     ], userIds);
 
     await notificationRepository.seeNotifs(loggedUserId, ['matched', 'intro_like']);
     send(loggedUserId, { type: SEE_MATCHES });
-
-    users.forEach(user => {
-      user.online = !!isConnected(user.id);
-    });
 
     res.json(users.map(user => {
       user.profile_image = MediaService.getProfileImagePath(user);
@@ -220,15 +211,11 @@ class UserController extends Controller {
     const viewers = await viewsRepository.findFor(loggedUserId);
     const viewerIds = viewers.map(viewer => viewer.viewer_user_id);
     const users = await userRepository.findByIds([
-      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified'
+      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified', 'is_online'
     ], viewerIds);
 
     await notificationRepository.seeNotifs(loggedUserId, 'view');
     send(loggedUserId, { type: SEE_VISITS });
-
-    users.forEach(user => {
-      user.online = !!isConnected(user.id);
-    });
 
     res.json(viewerIds.map(viewerId => {
       const user = users.find(u => u.id === viewerId);
@@ -272,7 +259,7 @@ class UserController extends Controller {
 
     const users = (await userRepository.findByIds(
       [
-        'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified'
+        'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified', 'is_online'
       ],
       Object.keys(compatibilityMap)
     )).filter(({ age }) => (to_age ?? MAX_AGE) >= age && (from_age ?? MIN_AGE) <= age);
@@ -281,10 +268,6 @@ class UserController extends Controller {
       user.profile_image = MediaService.getProfileImagePath(user);
       user.compatibility = compatibilityMap[user.id];
       user.interestCompatibility = interestCompatibilityMap[user.id];
-    });
-
-    users.forEach(user => {
-      user.online = !!isConnected(user.id);
     });
 
     await Promise.all([

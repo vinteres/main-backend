@@ -4,15 +4,16 @@ const bodyParser = require('body-parser');
 const WebSocket = require('ws');
 const { handleWithDBClient } = require('./db');
 const SessionTokenRepository = require('./repositories/session_token_repository');
-const { addConnection, send, closeConnection } = require('./services/ws_service');
+const { addConnection, send, closeConnection, isConnected } = require('./services/ws_service');
 const { initRoutes } = require('./routes');
 const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 const requestIp = require('@supercharge/request-ip');
 const ServiceDiscoveryRepo = require('./core/service_discovery_repo');
-const { scheduleInterestCompatibilityCalculation } = require('./interest_compatibility_calculator');
+const { scheduleInterestCompatibilityCalculation, scheduleOfflineSetJob } = require('./interest_compatibility_calculator');
 const { NOTIFS_COUNT } = require('./models/enums/ws_message_type');
+const OnlineService = require('./services/online_service');
 
 const app = express();
 const port = 4000;
@@ -85,6 +86,8 @@ wss.on('connection', (ws, req) => {
     ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
       const chatService = await serviceDiscovery.get('chat_service');
 
+      (await serviceDiscovery.get('online_service')).updateLastOnline(currentUserId);
+
       if ('see_msg' === data.type) {
         await chatService.seeChatMessages(data.chatId, currentUserId);
 
@@ -123,6 +126,16 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     closeConnection(currentUserId, ws);
+
+    if (isConnected(currentUserId)) return;
+
+    setTimeout(() => {
+      handleWithDBClient(async (client) => {
+        if (isConnected(currentUserId)) return;
+
+        (new OnlineService(client)).setLastOnline(currentUserId, false);
+      });
+    }, 10000);
   });
 });
 
@@ -133,3 +146,4 @@ server.listen(port, () => {
 initRoutes(app);
 
 scheduleInterestCompatibilityCalculation();
+scheduleOfflineSetJob();

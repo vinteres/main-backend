@@ -18,6 +18,7 @@ const ProfileQuestionsController = require('./controllers/profile_questions_cont
 const LikeController = require('./controllers/like_controller');
 const MediaController = require('./controllers/media_controller');
 const SettingsController = require('./controllers/settings_controller');
+const OnlineService = require('./services/online_service');
 
 const sendError = Controller.sendError;
 
@@ -48,6 +49,8 @@ const auth = (req, res, next, statuses = []) => {
     if (hasStatusRules && !statuses.includes(user_status)) {
       return sendError(res, 403, 'Unauthorized');
     }
+
+    (new OnlineService(client)).updateLastOnline(userId);
 
     return next();
   }, () => sendError(res, 500, 'Internal server error'));

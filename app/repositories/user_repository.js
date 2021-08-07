@@ -14,36 +14,51 @@ class UserRepository {
   }
 
   async create({ email, password }) {
-    const id = v4();
-    const status = 'onboarding';
-    const createdAt = currentTimeMs();
-    const query = `
-      INSERT INTO users (id, email, password, user_status, verified, created_at) VALUES
-        ($1, $2, $3, $4, false, $5)
-    `;
-
-    await this.conn.query(query, [id, email.trim(), password, status, createdAt]);
-
-    return { id, email, status, createdAt };
+    return await this._create({ email, password });
   }
 
   async createWithAccessToken({ email, name, accessToken }) {
-    const id = v4();
-    const status = 'onboarding';
-    const createdAt = currentTimeMs();
+    return await this._create({ email, name, accessToken });
+  }
+
+  async _create({ email, name, password, accessToken }) {
+    const now = currentTimeMs();
+
+    const items = {
+      id: v4(),
+      email: email.trim(),
+      name: name.trim(),
+      password,
+      user_status: 'onboarding',
+      verified: false,
+      created_at: now,
+      last_online_at: now,
+      is_online: false,
+      access_token: accessToken
+    };
+    const fields = [];
+    const params = [];
+
+    Object.keys(items).forEach(key => {
+      if (items[key] === null || items[key] === undefined) return;
+
+      fields.push(key);
+      params.push(items[key]);
+    });
+
     const query = `
-      INSERT INTO users (id, email, name, access_token, user_status, verified, created_at) VALUES
-        ($1, $2, $3, $4, $5, false, $6)
+      INSERT INTO users (${fields.join(', ')}) VALUES
+        (${fields.map((_, ix) => `$${1 + ix}`)})
     `;
 
-    await this.conn.query(query, [id, email.trim(), name, accessToken, status, createdAt]);
+    await this.conn.query(query, params);
 
-    return { id, email, status, createdAt };
+    return items;
   }
 
   async getUserById(userId) {
     const query = `
-      SELECT id, name, title, description, email, gender, interested_in, age, user_status, profile_image_id
+      SELECT id, name, title, description, email, gender, interested_in, age, user_status, profile_image_id, is_online
       FROM users WHERE id = $1
     `;
     const result = await this.conn.query(query, [userId]);
@@ -62,12 +77,12 @@ class UserRepository {
     const [fields, params] = this.getSearchParams({ gender, interestedIn, cityId, fromAge, toAge, searchingUserId });
 
     const query = `
-      SELECT id, name, age, gender, city_id, profile_image_id, verified
+      SELECT id, name, age, gender, city_id, profile_image_id, verified, is_online
       FROM users
       WHERE user_status = 'active' AND gender = $1 AND interested_in = $2
       AND id != $3
       ${fields.join(' ')}
-      ORDER BY created_at DESC, verified DESC
+      ORDER BY is_online DESC, last_online_at DESC
       OFFSET ${(page - 1) * USERS_PER_PAGE}
       LIMIT ${USERS_PER_PAGE}
     `;
@@ -130,7 +145,7 @@ class UserRepository {
       interested_in, height, smoking, drinking, body, children_status, pet_status,
       profile_image_id, birthday, city_id, verified, verification_status,
       education_status, employment_status, interested_in, looking_for_type,
-      personality, zodiac, income
+      personality, zodiac, income, is_online
       FROM users
       WHERE id = $1 AND user_status = 'active'
       ORDER BY created_at ASC

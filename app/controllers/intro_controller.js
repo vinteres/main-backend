@@ -69,7 +69,7 @@ class IntroController extends Controller {
 
     const fromUserIds = intros.map(intro => intro.from_user_id);
     const fromUsers = await userRepository.findByIds([
-      'id', 'name', 'age', 'profile_image_id', 'verified'
+      'id', 'name', 'age', 'profile_image_id', 'verified', 'is_online'
     ], fromUserIds);
 
     const result = intros.map(intro => {
@@ -81,7 +81,7 @@ class IntroController extends Controller {
         name: user.name,
         age: user.age,
         verified: user.verified,
-        online: !!isConnected(user.id),
+        is_online: user.is_online,
         intro: {
           timeAgo: timeAgo(intro.created_at),
           type: intro.type,

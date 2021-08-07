@@ -145,6 +145,7 @@ class ChatController extends Controller {
           id: user.id,
           type: memberType,
           name: user.name,
+          is_online: user.is_online,
           profileImage: MediaService.getProfileImagePath(user),
         },
         messages,
