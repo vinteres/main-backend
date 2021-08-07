@@ -191,11 +191,23 @@ class OnboardingController extends Controller {
     try {
       con.query('BEGIN');
 
-      hobbieRepository.deleteForUser(loggedUserId);
-      hobbieRepository.setForUser(loggedUserId, hobbies);
+      await Promise.all([
+        hobbieRepository.deleteForUser(loggedUserId),
+        hobbieRepository.deleteCustomHobbiesForUser(loggedUserId)
+      ]);
+      await Promise.all([
+        hobbieRepository.setForUser(loggedUserId, hobbies.filter(hobbie => !hobbie.custom)),
+        hobbieRepository.setCustomHobbiesForUser(loggedUserId, hobbies.filter(hobbie => hobbie.custom))
+      ]);
 
-      hobbieRepository.deleteActivitiesForUser(loggedUserId);
-      hobbieRepository.setActivitiesForUser(loggedUserId, activities);
+      await Promise.all([
+        hobbieRepository.deleteActivitiesForUser(loggedUserId),
+        hobbieRepository.deleteCustomActivitiesForUser(loggedUserId),
+      ]);
+      await Promise.all([
+        hobbieRepository.setActivitiesForUser(loggedUserId, activities.filter(activity => !activity.custom)),
+        hobbieRepository.setCustomActivitiesForUser(loggedUserId, activities.filter(activity => activity.custom))
+      ]);
 
       const newStep = step.step + 1;
       await onboardingRepository.incrementStep(loggedUserId, newStep);

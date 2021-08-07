@@ -31,8 +31,10 @@ class HobbieController extends Controller {
 
       await Promise.all([
         hobbieRepository.deleteForUser(loggedUserId),
+        hobbieRepository.deleteCustomHobbiesForUser(loggedUserId)
+      ]);
+      await Promise.all([
         hobbieRepository.setForUser(loggedUserId, hobbies.filter(hobbie => !hobbie.custom)),
-        hobbieRepository.deleteCustomHobbiesForUser(loggedUserId),
         hobbieRepository.setCustomHobbiesForUser(loggedUserId, hobbies.filter(hobbie => hobbie.custom))
       ]);
 
@@ -64,8 +66,10 @@ class HobbieController extends Controller {
 
       await Promise.all([
         hobbieRepository.deleteActivitiesForUser(loggedUserId),
-        hobbieRepository.setActivitiesForUser(loggedUserId, activities.filter(activity => !activity.custom)),
         hobbieRepository.deleteCustomActivitiesForUser(loggedUserId),
+      ]);
+      await Promise.all([
+        hobbieRepository.setActivitiesForUser(loggedUserId, activities.filter(activity => !activity.custom)),
         hobbieRepository.setCustomActivitiesForUser(loggedUserId, activities.filter(activity => activity.custom))
       ]);
 

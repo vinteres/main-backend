@@ -27,9 +27,9 @@ class UserRepository {
     const items = {
       id: v4(),
       email: email.trim(),
-      name: name.trim(),
+      name: name ? name.trim() : name,
       password,
-      user_status: 'onboarding',
+      status: 'onboarding',
       verified: false,
       created_at: now,
       last_online_at: now,
@@ -42,7 +42,7 @@ class UserRepository {
     Object.keys(items).forEach(key => {
       if (items[key] === null || items[key] === undefined) return;
 
-      fields.push(key);
+      fields.push(key === 'status' ? 'user_status' : key);
       params.push(items[key]);
     });
 
