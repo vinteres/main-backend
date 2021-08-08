@@ -61,7 +61,7 @@ class VerificationController extends Controller {
       const mediaContent = await fs.readFile(oldpath);
 
       if (isProd()) {
-        await new MediaService().s3Upload(media.id, mediaFile.type, mediaContent);
+        await MediaService.s3Upload(media.id, mediaFile.type, mediaContent);
       } else {
         const newpath = `./uploads/${media.id}`;
         await fs.rename(oldpath, newpath);

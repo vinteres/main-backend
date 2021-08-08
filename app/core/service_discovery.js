@@ -27,6 +27,7 @@ const MatchService = require('../services/match_service');
 const NotificationService = require('../services/notification_service');
 const OnlineService = require('../services/online_service');
 const QuizService = require('../services/quiz_service');
+const UserMediaService = require('../services/user_media_service');
 const UserService = require('../services/user_service');
 
 const SERVICE_NAME_DB_CLIENT = 'db_connection';
@@ -55,6 +56,10 @@ const DEPENDENCIES = {
     'compatibility_repository',
     'hobbie_repository',
     'quiz_repository'
+  ]},
+  user_media_service: { cls: UserMediaService, depends: [
+    'user_repository',
+    'media_repository'
   ]},
   user_service: { cls: UserService, depends: [
     'user_repository',

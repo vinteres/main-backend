@@ -2,6 +2,7 @@ const { error } = require('./app/core/logger');
 const { SERVICE_NAME_DB_CLIENT } = require('./app/core/service_discovery');
 const ServiceDiscoveryRepo = require('./app/core/service_discovery_repo');
 const PageRepository = require('./app/repositories/page_repository');
+const MediaService = require('./app/services/media_service');
 const { currentTimeMs } = require('./app/utils');
 
 const backfillInterests = () => {
@@ -81,8 +82,7 @@ const resetSearchPrefAges = (toUserId, text) => {
   });
 };
 
-
-const backfillOnlineState = (toUserId, text) => {
+const backfillOnlineState = () => {
   ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
     const con = await serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
 
@@ -109,9 +109,44 @@ const backfillOnlineState = (toUserId, text) => {
   });
 };
 
+const validateProfileImages = () => {
+  ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
+    const userMediaService = await this.getService('user_media_service');
+    const con = await serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
+
+    const resp = (await con.query('SELECT id, profile_image_id FROM users WHERE profile_image_id IS NOT NULL')).rows.map(({ id }) => id);
+
+    for (const { id, profile_image_id } of resp) {
+      const valid = await MediaService.validateImage(
+        MediaService.createImageName(
+          MediaService.SIZE_BIG,
+          profile_image_id
+        )
+      );
+
+      console.log(`userId: ${id}\nprofileImageId: ${profile_image_id}\nvalid: ${valid}`);
+
+      if (valid) continue;
+
+      try {
+        con.query('BEGIN');
+
+        await userMediaService.deleteUserImage(id, profile_image_id, 1);
+
+        con.query('COMMIT');
+      } catch (e) {
+        con.query('ROLLBACK');
+
+        console.error(e);
+      }
+    }
+  });
+};
+
 module.exports = {
   backfillInterests,
   sendMessageFromAdmin,
   resetSearchPrefAges,
-  backfillOnlineState
+  backfillOnlineState,
+  validateProfileImages
 };

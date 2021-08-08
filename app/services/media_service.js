@@ -1,50 +1,104 @@
 const sharp = require('sharp');
 const AWS = require('aws-sdk');
-const { DOMAIN_MANE, S3_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, CDN_PATH } = require('../config/config');
+const {
+  DOMAIN_MANE,
+  S3_BUCKET_NAME,
+  AWS_ACCESS_KEY,
+  AWS_SECRET_KEY,
+  CDN_PATH
+} = require('../config/config');
 const { isProd } = require('../utils');
 const fs = require('fs').promises;
+const { detectFaces, detectInappropriate } = require('./img_recognition_service');
+const InappropriateImageError = require('../errors/inappropriate_image_error');
 
-const IMAGE_SIZES = [
-  {
-    size: 'small',
-    height: 200, width: 200
+const SIZE_SMALL = 'small';
+const SIZE_BIG = 'big';
+
+const ALL_SIZES = [SIZE_SMALL, SIZE_BIG];
+
+const SIZES = {
+  [SIZE_SMALL]: {
+    size: SIZE_SMALL,
+    height: 200,
+    width: 200
   },
-  {
-    size: 'big',
-    height: 600, width: 600
+  [SIZE_BIG]: {
+    size: SIZE_BIG,
+    height: 600,
+    width: 600
   }
-];
+};
+
+const s3 = new AWS.S3({
+  accessKeyId: AWS_ACCESS_KEY,
+  secretAccessKey: AWS_SECRET_KEY
+});
 
 class MediaService {
-  constructor() {
-    this.s3 = new AWS.S3({
-      accessKeyId: AWS_ACCESS_KEY,
-      secretAccessKey: AWS_SECRET_KEY
-    });
-  }
+  static async resizeAndStore(imagePath, mediaId, contentType) {
+    if (isProd()) {
+      const bigImageName = await MediaService.storeS3(
+        imagePath,
+        mediaId,
+        SIZES[SIZE_BIG],
+        contentType
+      );
 
-  async resizeAndStore(imagePath, media, contentType) {
-    for (const size of IMAGE_SIZES) {
-      if (isProd()) {
-        await this.storeS3(imagePath, media, size, contentType);
-      } else {
-        await this.storeLocaly(imagePath, media, size);
+      const valid = await MediaService.validateImage(bigImageName);
+      if (!valid) {
+        await MediaService.deleteMedia(bigImageName);
+
+        throw new InappropriateImageError();
+      }
+
+      await this.storeS3(
+        imagePath,
+        mediaId,
+        SIZES[SIZE_SMALL],
+        contentType
+      );
+    } else {
+      for (const size of ALL_SIZES) {
+        await MediaService.storeLocaly(imagePath, mediaId, SIZES[size]);
       }
     }
   }
 
-  async storeLocaly(imagePath, media, size) {
-    const newpath = `./uploads/${size.size}_${media}`;
-    await sharp(imagePath).resize({ height: size.height, width: size.width }).toFile(newpath);
+  static async validateImage(imageName) {
+    const hasFaces = await detectFaces(imageName);
+    if (!hasFaces) {
+      return false;
+    }
+
+    const isInappropriate = await detectInappropriate(imageName);
+    if (isInappropriate) {
+      return false;
+    }
+
+    return true;
   }
 
-  async storeS3(imagePath, media, size, contentType) {
-    const buffer = await sharp(imagePath).resize({ height: size.height, width: size.width }).toBuffer();
+  static async storeLocaly(imagePath, mediaId, size) {
+    const newpath = `./uploads/${size.size}_${mediaId}`;
 
-    await this.s3Upload(`${size.size}_${media}`, contentType, buffer);
+    await MediaService.resizeImage(imagePath, size).toFile(newpath);
   }
 
-  s3Upload(Key, ContentType, Body) {
+  static async storeS3(imagePath, mediaId, size, contentType) {
+    const buffer = await MediaService.resizeImage(imagePath, size).toBuffer();
+
+    const imageName = `${size.size}_${mediaId}`;
+    await MediaService.s3Upload(imageName, contentType, buffer);
+
+    return imageName;
+  }
+
+  static resizeImage(imagePath, { width, height }) {
+    return sharp(imagePath).resize({ height, width });
+  }
+
+  static s3Upload(Key, ContentType, Body) {
     const params = {
       Bucket: S3_BUCKET_NAME,
       Key,
@@ -54,7 +108,7 @@ class MediaService {
     };
 
     return new Promise((resolve, reject) => {
-      this.s3.upload(params, (err) => {
+      s3.upload(params, (err) => {
         if (err) {
           reject(err);
         } else {
@@ -70,7 +124,15 @@ class MediaService {
     await fs.writeFile(imageData);
   }
 
-  deleteMedia(mediaKeys) {
+  static async deleteImages(imageId) {
+    if (!isProd()) return;
+
+    return await MediaService.deleteMedia(MediaService.getImageNames(imageId));
+  }
+
+  static deleteMedia(mediaKeys) {
+    mediaKeys = Array.isArray(mediaKeys) ? mediaKeys : [mediaKeys];
+
     const params = {
       Bucket: S3_BUCKET_NAME,
       Delete: {
@@ -79,7 +141,7 @@ class MediaService {
     };
 
     return new Promise((resolve, reject) => {
-      this.s3.deleteObjects(params, (err, data) => {
+      s3.deleteObjects(params, (err, data) => {
         if (err) {
           reject(err);
         } else {
@@ -87,6 +149,26 @@ class MediaService {
         }
       });
     });
+  }
+
+  static mapImages(images) {
+    return images.map(image => ({
+      position: image.position,
+      small: MediaService.mediaPath(image.image_id, SIZE_SMALL),
+      big: MediaService.mediaPath(image.image_id, SIZE_BIG),
+    }));
+  }
+
+  static getProfileImagePath(user) {
+    if (user.profile_image_id) {
+      return MediaService.mediaPath(user.profile_image_id, SIZE_SMALL);
+    }
+
+    if ('male' === user.gender) {
+      return '/assets/man.jpg';
+    }
+
+    return '/assets/female.jpg';
   }
 
   static mediaPath(mediaId, size = '') {
@@ -97,25 +179,16 @@ class MediaService {
     return `${DOMAIN_MANE}/api/media/${size ? `${size}_` : ''}${mediaId}`;
   }
 
-  static mapImages(images) {
-    return images.map(image => ({
-      position: image.position,
-      small: MediaService.mediaPath(image.image_id, 'small'),
-      big: MediaService.mediaPath(image.image_id, 'big'),
-    }));
+  static getImageNames(imageId) {
+    return ALL_SIZES.map(size => MediaService.createImageName(size, imageId));
   }
 
-  static getProfileImagePath(user) {
-    if (user.profile_image_id) {
-      return MediaService.mediaPath(user.profile_image_id, 'small');
-    }
-
-    if ('male' === user.gender) {
-      return '/assets/man.jpg';
-    }
-
-    return '/assets/female.jpg';
+  static createImageName(size, imageId) {
+    return `${size}_${imageId}`;
   }
 }
+
+MediaService.SIZE_SMALL = SIZE_SMALL;
+MediaService.SIZE_BIG = SIZE_BIG;
 
 module.exports = MediaService;

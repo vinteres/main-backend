@@ -45,7 +45,7 @@ class MediaRepository {
   }
 
   async deleteMediaMetadata(ids) {
-    if (!ids || 0 === ids.length) return;
+    if (!Array.isArray(ids) || 0 === ids.length) return;
 
     const query = `DELETE FROM media_metadatas WHERE id = (${ids.map((_, ix) => `$${ix + 1}`).join(', ')})`;
     await this.conn.query(query, ids);

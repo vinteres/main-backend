@@ -36,7 +36,8 @@ class AuthController extends Controller {
     }
 
     const dbResp = await con.query('SELECT user_status FROM users WHERE email = $1', [email]);
-    const exists = dbResp.rows.length === 1 && dbResp.rows[0].user_status !== 'deleted';
+    const foundUser = dbResp.rows[0];
+    const exists = foundUser && foundUser.user_status !== 'deleted';
 
     let result = {};
     try {
@@ -46,6 +47,10 @@ class AuthController extends Controller {
         result = await authService.loginWith(email);
       } else {
         const r = await userService.signUpWith({ email, name, accessToken });
+        if (!r?.user) {
+          throw 'Couldn\'t create user';
+        }
+
         const authToken = await authService.createAuthTokenForUser(r.user.id, false);
         result = { ...r.user, token: authToken };
       }

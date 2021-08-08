@@ -3,19 +3,31 @@ const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
 const MediaService = require('../services/media_service');
+const InappropriateImageError = require('../errors/inappropriate_image_error');
 
 const parseForm = (req) => {
   const form = new formidable.IncomingForm();
 
   return new Promise((resolve, reject) => {
-    form.parse(req, async (err, fields, files) => {
-      if (err) reject(err);
-      else resolve({ fields, files });
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ fields, files });
+      }
     });
   });
 };
 
 class MediaController extends Controller {
+  handleError(err) {
+    if (err instanceof InappropriateImageError) {
+      return { code: 400, msg: err.message };
+    }
+
+    return { code: 500, msg: 'Error uploading image' };
+  }
+
   // dev only usage
   async get(req, response) {
     const targetMediaId = req.params.id;
@@ -66,7 +78,6 @@ class MediaController extends Controller {
           await userRepository.setUserProfileImage(loggedUserId, null);
         }
         await mediaRepository.deleteMediaMetadata([userImage.image_id]);
-        await new MediaService().deleteMedia(['big', 'small'].map(size => `${size}_${userImage.image_id}`));
       }
 
       const { files } = await parseForm(req);
@@ -80,7 +91,10 @@ class MediaController extends Controller {
       }
       const oldpath = files['image'].path;
 
-      await new MediaService().resizeAndStore(oldpath, media.id, files['image'].type);
+      await MediaService.resizeAndStore(oldpath, media.id, files['image'].type);
+      if (userImage) {
+        await MediaService.deleteImages(userImage.image_id);
+      }
 
       con.query('COMMIT');
 
@@ -99,30 +113,24 @@ class MediaController extends Controller {
     const position = req.query.position;
 
     const con = await this.getConnection();
-    const userRepository = await this.getService('user_repository');
     const mediaRepository = await this.getService('media_repository');
+    const userMediaService = await this.getService('user_media_service');
     const sessionTokenRepository = await this.getService('session_token_repository');
+
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+
+    const userImage = await mediaRepository.getUserImage(loggedUserId, position);
+    if (!userImage) {
+      res.json({ images: [] });
+
+      return;
+    }
 
     try {
       con.query('BEGIN');
-      const loggedUserId = await sessionTokenRepository.getUserId(token);
 
-      const userImage = await mediaRepository.getUserImage(loggedUserId, position);
-      if (userImage) {
-        if (1 == position) {
-          const nextImage = await mediaRepository.getUserImage(loggedUserId, +position + 1);
-          const imageId = nextImage ? nextImage.image_id : null;
-          await userRepository.setUserProfileImage(loggedUserId, imageId);
-        }
-        await mediaRepository.deleteUserImage(loggedUserId, position);
-        await mediaRepository.deleteMediaMetadata([userImage.image_id]);
-        await new MediaService().deleteMedia(['big', 'small'].map(size => `${size}_${userImage.image_id}`));
-        await mediaRepository.changeUserImagePosition(loggedUserId, position);
-      } else {
-        res.json({ images: [] });
+      await userMediaService.deleteUserImage(loggedUserId, userImage.image_id, position);
 
-        return;
-      }
       con.query('COMMIT');
 
       const userImages = await mediaRepository.getUserImages(loggedUserId);

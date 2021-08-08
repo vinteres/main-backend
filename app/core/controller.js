@@ -2,6 +2,8 @@ const { error } = require('./logger');
 const { SERVICE_NAME_DB_CLIENT } = require('./service_discovery');
 const ServiceDiscoveryRepo = require('./service_discovery_repo');
 
+const defaultError = { code: 500, msg: '' };
+
 class Controller {
   constructor(serviceDiscovery) {
     this.serviceDiscovery = serviceDiscovery;
@@ -26,12 +28,18 @@ class Controller {
   async onError(req, res, err) {
     error(err);
 
-    return Controller.sendError(res);
+    const { code, msg } = this.handleError(err) ?? defaultError;
+
+    return Controller.sendError(res, code, msg);
+  }
+
+  handleError(_) {
+    return defaultError;
   }
 
   static sendError(res, code = 500, msg = '') {
     return res.status(code).json({
-      error: new Error(msg)
+      error: msg
     });
   }
 
