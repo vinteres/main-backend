@@ -111,7 +111,7 @@ const backfillOnlineState = () => {
 
 const validateProfileImages = () => {
   ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
-    const userMediaService = await this.getService('user_media_service');
+    const userMediaService = await serviceDiscovery.get('user_media_service');
     const con = await serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
 
     const resp = (await con.query('SELECT id, profile_image_id FROM users WHERE profile_image_id IS NOT NULL')).rows.map(({ id }) => id);
