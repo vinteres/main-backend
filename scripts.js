@@ -114,28 +114,41 @@ const validateProfileImages = () => {
     const userMediaService = await serviceDiscovery.get('user_media_service');
     const con = await serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
 
-    const resp = (await con.query('SELECT id, profile_image_id FROM users WHERE profile_image_id IS NOT NULL')).rows.map(({ id }) => id);
+    const resp = (await con.query("SELECT id, profile_image_id, created_at FROM users WHERE user_status = 'active' AND profile_image_id IS NOT NULL ORDER BY created_at ASC")).rows;
 
-    for (const { id, profile_image_id } of resp) {
-      const valid = await MediaService.validateImage(
-        MediaService.createImageName(
-          MediaService.SIZE_BIG,
-          profile_image_id
-        )
+    let total = 0;
+    let invalid = 0;
+    for (const { id, profile_image_id, created_at } of resp) {
+      const imageName = MediaService.createImageName(
+        MediaService.SIZE_BIG,
+        profile_image_id
       );
 
-      console.log(`userId: ${id}\nprofileImageId: ${profile_image_id}\nvalid: ${valid}`);
-
-      if (valid) continue;
-
       try {
-        con.query('BEGIN');
+        total++;
+        const valid = await MediaService.validateImage(imageName);
 
-        await userMediaService.deleteUserImage(id, profile_image_id, 1);
+        if (valid) {
+          console.log(`${invalid}/${total}`);
 
-        con.query('COMMIT');
+          continue;
+        }
+        console.log(`${++invalid}/${total}`);
+
+        try {
+          con.query('BEGIN');
+
+          await userMediaService.deleteUserImage(id, profile_image_id, 1);
+
+          con.query('COMMIT');
+        } catch (e) {
+          con.query('ROLLBACK');
+
+          throw e;
+        }
       } catch (e) {
-        con.query('ROLLBACK');
+        console.log('imgName:', imageName);
+        console.log('createdAt:', created_at);
 
         console.error(e);
       }
