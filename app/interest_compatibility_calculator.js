@@ -23,8 +23,16 @@ const scheduleInterestCompatibilityCalculation = () => {
   setTimeout(() => {
     ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
       const compatibilityRepository = await serviceDiscovery.get('compatibility_repository');
+      const con = await serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
 
-      const userIds = await compatibilityRepository.getScheduledInterestCalculations();
+      let userIds = await compatibilityRepository.getScheduledInterestCalculations();
+      if (userIds.length > 0) {
+        const res = (await con.query(
+          `SELECT id, compatibility_processed_at, interests_processed_at FROM users WHERE id IN (${userIds.map((_, ix) => `$${1 + ix}`).join(', ')})`,
+          userIds
+        )).rows;
+        userIds = userIds.filter(uId => res.find(({ id }) => uId === id).compatibility_processed_at);
+      }
       userIds.forEach(userId => {
         calculateInterestCompatibility(userId);
       });
