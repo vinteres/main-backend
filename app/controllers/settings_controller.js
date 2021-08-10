@@ -3,6 +3,7 @@ const { compareHash } = require('../utils');
 const { hash } = require('../utils');
 const SearchPereferenceValidator = require('../models/validators/search_pereference_validator');
 const { MAX_AGE, MIN_AGE } = require('../repositories/search_preference_repository');
+const UserStatusType = require('../models/enums/user_status_type');
 
 class SettingsController extends Controller {
   async getSettings(req, res) {
@@ -30,8 +31,31 @@ class SettingsController extends Controller {
       education_status,
       personality,
       zodiac,
-      income
-    } = await userRepository.getUserProfileById(loggedUserId);
+      income,
+      password,
+      access_token
+    } = await userRepository.findById([
+      'name',
+      'title',
+      'description',
+      'birthday',
+      'email',
+      'gender',
+      'interested_in',
+      'smoking',
+      'drinking',
+      'height',
+      'body',
+      'children_status',
+      'pet_status',
+      'employment_status',
+      'education_status',
+      'personality',
+      'zodiac',
+      'income',
+      'password',
+      'access_token'
+    ], loggedUserId);
 
     const accountSettings = {
       name,
@@ -57,11 +81,15 @@ class SettingsController extends Controller {
       income
     };
 
+    const deactive = {
+      skipPassword: !password && !!access_token
+    };
+
     Object.keys(profileSettings).forEach(key => {
       if (!profileSettings[key]) profileSettings[key] = 'not_tell';
     });
 
-    const settings = { accountSettings, profileSettings };
+    const settings = { accountSettings, profileSettings, deactive };
 
     res.json(settings);
   }
@@ -151,17 +179,32 @@ class SettingsController extends Controller {
 
     const sessionTokenRepository = await this.getService('session_token_repository');
     const userRepository = await this.getService('user_repository');
-    const authService = await this.getService('auth_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
-    const passwordHash = await userRepository.getUserPasswordById(loggedUserId);
-    const matches = await compareHash(password, passwordHash);
+    const user = await userRepository.findById('password access_token user_status', loggedUserId)
+    if (user.user_status !== UserStatusType.ACTIVE) {
+      return res.status(400).end();
+    }
+    if (!user.password && !!user.access_token) {
+      await this._deactive(res, loggedUserId, token);
+
+      return
+    }
+
+    const matches = await compareHash(password, user.password);
     if (!matches) {
       return res.status(400).end();
     }
 
+    await this._deactive(res, loggedUserId, token);
+  }
+
+  async _deactive(res, loggedUserId, token) {
+    const userRepository = await this.getService('user_repository');
+    const authService = await this.getService('auth_service');
+
     await Promise.all([
-      userRepository.setStatus(loggedUserId, 'deleted'),
+      userRepository.setStatus(loggedUserId, UserStatusType.DELETED),
       authService.removeAuthToken(token)
     ]);
 

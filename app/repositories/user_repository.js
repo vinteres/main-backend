@@ -238,6 +238,8 @@ class UserRepository {
       UPDATE users SET user_status = $1 WHERE id = $2
     `;
     await this.conn.query(query, [status, userId]);
+
+    return status;
   }
 
   async setUserSettings(userId, {

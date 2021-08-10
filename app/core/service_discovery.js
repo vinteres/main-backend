@@ -80,7 +80,10 @@ const DEPENDENCIES = {
   notification_service: { cls: NotificationService, depends: ['notification_repository', 'user_repository']},
   location_service: { cls: LocationService, depends: ['location_repository']},
   intro_service: { cls: IntroService, depends: ['intro_repository', 'match_repository']},
-  auth_service: { cls: AuthService, depends: [SERVICE_NAME_DB_CLIENT]},
+  auth_service: { cls: AuthService, depends: [
+    SERVICE_NAME_DB_CLIENT,
+    'user_repository'
+  ]},
   chat_service: { cls: ChatService, depends: ['chat_repository', 'user_repository', 'page_repository']},
   hobbie_service: { cls: HobbieService, depends: ['hobbie_repository']},
   match_service: { cls: MatchService, depends: ['match_repository']},

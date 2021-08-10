@@ -4,7 +4,15 @@ const { hash } = require('../utils');
 // const hasCompatibility = ({ compatibility }) => compatibility && 0 < compatibility;
 
 class UserService {
-  constructor(userRepository, viewRepository, searchPreferenceRepository, onboardingRepository, hobbieRepository, notificationService, locationService) {
+  constructor(
+    userRepository,
+    viewRepository,
+    searchPreferenceRepository,
+    onboardingRepository,
+    hobbieRepository,
+    notificationService,
+    locationService
+  ) {
     this.viewRepository = viewRepository;
     this.userRepository = userRepository;
     this.onboardingRepository = onboardingRepository;
@@ -124,6 +132,10 @@ class UserService {
       const city = cities.find(c => c.id === user.city_id);
       user.from = city.name;
     });
+  }
+
+  async setStatus(userId, status) {
+    return await this.userRepository.setStatus(userId, status);
   }
 }
 

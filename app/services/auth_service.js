@@ -1,9 +1,11 @@
 const uuid = require('uuid');
+const UserStatusType = require('../models/enums/user_status_type');
 const { currentTimeMs, compareHash } = require('../utils');
 
 class AuthService {
-  constructor(conn) {
+  constructor(conn, userRepository) {
     this.conn = conn;
+    this.userRepository = userRepository;
   }
 
   async login(email, password, remember) {
@@ -14,7 +16,10 @@ class AuthService {
 
     const result = await this.conn.query(query, [email.trim()]);
     const user = result.rows[0];
-    if (!user || 'deleted' === user.user_status) return loginError;
+    if (!user) return loginError;
+    if (user.user_status === UserStatusType.DELETED) {
+      user.user_status = await this.userRepository.setStatus(user.id, UserStatusType.ACTIVE);
+    }
     const match = await compareHash(password, user.password);
     if (!match) {
       return loginError;

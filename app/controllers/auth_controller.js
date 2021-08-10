@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { Controller } = require('../core/controller');
+const UserStatusType = require('../models/enums/user_status_type');
 const { sendError } = require('./chat_controller');
 
 class AuthController extends Controller {
@@ -26,7 +27,7 @@ class AuthController extends Controller {
     try {
       const resp = await axios.get(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`);
 
-      email = resp.data.email ?? email;
+      email = (resp.data.email ?? email).trim();
     } catch (e) {
       if (e.response.status === 400 || e.response.status === 401) {
         return sendError(res, e.response.status, 'Invalid token');
@@ -35,15 +36,19 @@ class AuthController extends Controller {
       }
     }
 
-    const dbResp = await con.query('SELECT user_status FROM users WHERE email = $1', [email]);
+    const dbResp = await con.query('SELECT id, user_status FROM users WHERE email = $1', [email]);
     const foundUser = dbResp.rows[0];
-    const exists = foundUser && foundUser.user_status !== 'deleted';
+    const exists = !!foundUser;
 
     let result = {};
     try {
       con.query('BEGIN');
 
       if (exists) {
+        if (foundUser.user_status === UserStatusType.DELETED) {
+          foundUser.user_status = await userService.setStatus(foundUser.id, UserStatusType.ACTIVE);
+        }
+
         result = await authService.loginWith(email);
       } else {
         const r = await userService.signUpWith({ email, name, accessToken });
