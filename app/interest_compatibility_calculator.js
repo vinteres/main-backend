@@ -50,9 +50,9 @@ const scheduleOfflineSetJob = () => {
           [currentTimeMs(), ...userIds]
         );
       }
-    });
 
-    scheduleOfflineSetJob();
+      scheduleOfflineSetJob();
+    });
   }, OFFLINE_JOB_SCHEDULE_TIME);
 };
 
@@ -155,9 +155,10 @@ const scheduleVerificationJob = () => {
 
         error(e);
       }
+
+      scheduleVerificationJob();
     });
 
-    scheduleVerificationJob();
   }, TEN_MIN);
 };
 
