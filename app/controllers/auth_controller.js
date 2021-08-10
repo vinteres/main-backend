@@ -10,7 +10,7 @@ class AuthController extends Controller {
     const remember = req.body.remember;
 
     const authService = await this.getService('auth_service');
-    const user = await authService.login(email, password, remember);
+    const user = await authService.login(email, password, remember, this.isFromMobile(req));
 
     res.json(user);
   }
@@ -49,14 +49,14 @@ class AuthController extends Controller {
           foundUser.user_status = await userService.setStatus(foundUser.id, UserStatusType.ACTIVE);
         }
 
-        result = await authService.loginWith(email);
+        result = await authService.loginWith(email, this.isFromMobile(req));
       } else {
         const r = await userService.signUpWith({ email, name, accessToken });
         if (!r?.user) {
           throw 'Couldn\'t create user';
         }
 
-        const authToken = await authService.createAuthTokenForUser(r.user.id, false);
+        const authToken = await authService.createAuthTokenForUser(r.user.id, false, this.isFromMobile(req));
         result = { ...r.user, token: authToken };
       }
       con.query('COMMIT');

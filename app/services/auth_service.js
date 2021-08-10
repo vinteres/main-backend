@@ -8,7 +8,7 @@ class AuthService {
     this.userRepository = userRepository;
   }
 
-  async login(email, password, remember) {
+  async login(email, password, remember, isFromMobile) {
     const query = `
       select id, name, email, gender, user_status, verification_status, password FROM users WHERE email = $1
     `;
@@ -25,7 +25,7 @@ class AuthService {
       return loginError;
     }
 
-    const token = await this.createAuthTokenForUser(user.id, remember);
+    const token = await this.createAuthTokenForUser(user.id, remember, isFromMobile);
 
     return {
       loggedIn: true,
@@ -39,7 +39,7 @@ class AuthService {
     };
   }
 
-  async loginWith(email) {
+  async loginWith(email, isFromMobile) {
     const query = `
       select id, name, email, gender, user_status, verification_status, password FROM users WHERE email = $1
     `;
@@ -49,7 +49,7 @@ class AuthService {
     const user = result.rows[0];
     if (!user || 'deleted' === user.user_status) return loginError;
 
-    const token = await this.createAuthTokenForUser(user.id, false);
+    const token = await this.createAuthTokenForUser(user.id, false, isFromMobile);
 
     return {
       loggedIn: true,
@@ -71,13 +71,13 @@ class AuthService {
     return await this.conn.query(query, [token]);
   }
 
-  async createAuthTokenForUser(userId, remember) {
+  async createAuthTokenForUser(userId, remember, isFromMobile) {
     const query = `
-      INSERT INTO session_tokens (user_id, token, remember, created_at) VALUES($1, $2, $3, $4)
+      INSERT INTO session_tokens (user_id, token, remember, is_mobile, created_at) VALUES($1, $2, $3, $4, $5)
     `;
 
     const token = uuid.v4();
-    await this.conn.query(query, [userId, token, remember, currentTimeMs()]);
+    await this.conn.query(query, [userId, token, remember, isFromMobile, currentTimeMs()]);
 
     return token;
   }

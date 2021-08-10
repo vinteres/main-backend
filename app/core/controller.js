@@ -1,3 +1,4 @@
+const useragent = require('express-useragent');
 const { error } = require('./logger');
 const { SERVICE_NAME_DB_CLIENT } = require('./service_discovery');
 const ServiceDiscoveryRepo = require('./service_discovery_repo');
@@ -15,6 +16,10 @@ class Controller {
 
   errorHandle(res) {
     return Controller.sendError(res, 500, 'Internal server error');
+  }
+
+  isFromMobile(req) {
+    return useragent?.parse(req.headers['user-agent'])?.isMobile ?? false;
   }
 
   async getConnection() {
