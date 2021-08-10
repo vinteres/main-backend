@@ -133,6 +133,17 @@ class CompatibilityService {
     });
   }
 
+  async deleteScheduledCompatibilityCalculations(userIds) {
+    return await this.compatibilityRepository.deleteScheduledCompatibilityCalculations(userIds);
+  }
+
+  async scheduleForCompatibilityCalculation(userId) {
+    const scheduledAlready = await this.compatibilityRepository.hasScheduledCompatibilityCalculation(userId);
+    if (scheduledAlready) return;
+
+    return await this.compatibilityRepository.createCompatibilityCalculationSchedule(userId);
+  }
+
   async scheduleForInterestCalculation(userId) {
     const scheduledAlready = await this.compatibilityRepository.hasScheduledInterestCalculation(userId);
     if (scheduledAlready) return;

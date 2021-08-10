@@ -249,6 +249,7 @@ class OnboardingController extends Controller {
 
     const sessionTokenRepository = await this.getService('session_token_repository');
     const onboardingRepository = await this.getService('onboarding_repository');
+    const compatibilityService = await this.getService('compatibility_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const step = await onboardingRepository.getStep(loggedUserId);
@@ -275,8 +276,7 @@ class OnboardingController extends Controller {
       }
 
       await onboardingRepository.createUserAnswers(userAnswers);
-
-      calculateCompatibility(loggedUserId);
+      await compatibilityService.scheduleForCompatibilityCalculation(loggedUserId);
 
       const newStep = step.step + 1;
       await onboardingRepository.incrementStep(loggedUserId, newStep);
@@ -284,6 +284,8 @@ class OnboardingController extends Controller {
       res.json({ step: newStep });
 
       con.query('COMMIT');
+
+      calculateCompatibility(loggedUserId);
     } catch (e) {
       con.query('ROLLBACK');
 

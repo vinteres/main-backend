@@ -31,12 +31,10 @@ const scheduleInterestCompatibilityCalculation = () => {
           `SELECT id, compatibility_processed_at, interests_processed_at FROM users WHERE id IN (${userIds.map((_, ix) => `$${1 + ix}`).join(', ')})`,
           userIds
         )).rows;
+
         userIds = userIds.filter(uId => res.find(({ id }) => uId === id).compatibility_processed_at);
       }
-      userIds.forEach(userId => {
-        calculateInterestCompatibility(userId);
-      });
-      await compatibilityRepository.deleteScheduledInterestCalculations(userIds);
+      userIds.forEach(userId => calculateInterestCompatibility(userId));
 
       scheduleInterestCompatibilityCalculation();
     });

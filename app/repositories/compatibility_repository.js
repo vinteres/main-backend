@@ -56,9 +56,8 @@ class CompatibilityRepository {
   }
 
   async createInterestCalculationSchedule(userId) {
-    const query = 'INSERT INTO interest_calculation_schedules (user_id, created_at) VALUES ($1, $2)';
-
     const createdAt = currentTimeMs();
+    const query = 'INSERT INTO interest_calculation_schedules (user_id, created_at) VALUES ($1, $2)';
 
     await this.conn.query(query, [userId, createdAt]);
 
@@ -74,9 +73,42 @@ class CompatibilityRepository {
   }
 
   async deleteScheduledInterestCalculations(ids) {
-    if (!ids || 0 === ids.length) return;
+    if (!Array.isArray(ids) || 0 === ids.length) return;
 
     const query = `DELETE FROM interest_calculation_schedules WHERE user_id IN (${ids.map((_, ix) => `$${ix + 1}`).join(', ')})`;
+    await this.conn.query(query, ids);
+  }
+
+  async hasScheduledCompatibilityCalculation(userId) {
+    const query = `
+      SELECT count(*) FROM compatibility_calculation_schedules WHERE user_id = $1
+    `;
+    const result = await this.conn.query(query, [userId]);
+
+    return result.rows[0].count > 0;
+  }
+
+  async createCompatibilityCalculationSchedule(userId) {
+    const createdAt = currentTimeMs();
+    const query = 'INSERT INTO compatibility_calculation_schedules (user_id, created_at) VALUES ($1, $2)';
+
+    await this.conn.query(query, [userId, createdAt]);
+
+    return { userId, createdAt };
+  }
+
+  async getScheduledCompatibilityCalculations(userId) {
+    const query = 'SELECT user_id FROM compatibility_calculation_schedules ORDER BY created_at ASC LIMIT 10';
+
+    const result = await this.conn.query(query);
+
+    return result.rows ? result.rows.map(({ user_id }) => user_id) : [];
+  }
+
+  async deleteScheduledCompatibilityCalculations(ids) {
+    if (!Array.isArray(ids) || 0 === ids.length) return;
+
+    const query = `DELETE FROM compatibility_calculation_schedules WHERE user_id IN (${ids.map((_, ix) => `$${ix + 1}`).join(', ')})`;
     await this.conn.query(query, ids);
   }
 }

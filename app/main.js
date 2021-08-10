@@ -14,6 +14,7 @@ const ServiceDiscoveryRepo = require('./core/service_discovery_repo');
 const { scheduleInterestCompatibilityCalculation, scheduleOfflineSetJob, scheduleVerificationJob } = require('./interest_compatibility_calculator');
 const { NOTIFS_COUNT } = require('./models/enums/ws_message_type');
 const OnlineService = require('./services/online_service');
+const { scheduleCompatibilityCalculation } = require('./compatibility_calculator');
 
 const app = express();
 const port = 4000;
@@ -145,6 +146,7 @@ server.listen(port, () => {
 
 initRoutes(app);
 
+scheduleCompatibilityCalculation();
 scheduleInterestCompatibilityCalculation();
 scheduleOfflineSetJob();
 scheduleVerificationJob();
