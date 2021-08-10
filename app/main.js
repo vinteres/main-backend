@@ -11,7 +11,7 @@ const path = require('path');
 const fs = require('fs');
 const requestIp = require('@supercharge/request-ip');
 const ServiceDiscoveryRepo = require('./core/service_discovery_repo');
-const { scheduleInterestCompatibilityCalculation, scheduleOfflineSetJob } = require('./interest_compatibility_calculator');
+const { scheduleInterestCompatibilityCalculation, scheduleOfflineSetJob, scheduleVerificationJob } = require('./interest_compatibility_calculator');
 const { NOTIFS_COUNT } = require('./models/enums/ws_message_type');
 const OnlineService = require('./services/online_service');
 
@@ -147,3 +147,4 @@ initRoutes(app);
 
 scheduleInterestCompatibilityCalculation();
 scheduleOfflineSetJob();
+scheduleVerificationJob();

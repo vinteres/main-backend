@@ -29,6 +29,7 @@ const OnlineService = require('../services/online_service');
 const QuizService = require('../services/quiz_service');
 const UserMediaService = require('../services/user_media_service');
 const UserService = require('../services/user_service');
+const VerificationService = require('../services/verification_service');
 
 const SERVICE_NAME_DB_CLIENT = 'db_connection';
 
@@ -59,7 +60,12 @@ const DEPENDENCIES = {
   ]},
   user_media_service: { cls: UserMediaService, depends: [
     'user_repository',
-    'media_repository'
+    'media_repository',
+    'verification_service'
+  ]},
+  verification_service: { cls: VerificationService, depends: [
+    'user_repository',
+    'verification_request_repository'
   ]},
   user_service: { cls: UserService, depends: [
     'user_repository',

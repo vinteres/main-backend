@@ -26,7 +26,7 @@ const buildUser = (i, gender, offset = 0) => {
   const email = `m${ti}@mail.com`;
   const birthday = `${1980 + randomNumberBetween(16)}/${dateItem(1 + randomNumberBetween(11))}/${dateItem(1 + randomNumberBetween(27))}`;
   // const verificationStatus = generateVerificationStatus();
-  const verified = false; //'verified' === verificationStatus;
+  // const verified = false; //'verified' === verificationStatus;
   const createdAt = currentTimeMs() + ti; // It'll be the same time otherwise for all seeds.
 
   return {

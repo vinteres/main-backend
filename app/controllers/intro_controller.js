@@ -3,6 +3,7 @@ const MediaService = require('../services/media_service');
 const { timeAgo } = require('../utils');
 const { send } = require('../services/ws_service');
 const { isConnected } = require('../services/ws_service');
+const VerificationStatus = require('../models/enums/verification_status');
 
 class IntroController extends Controller {
   async like(req, res) {
@@ -69,7 +70,7 @@ class IntroController extends Controller {
 
     const fromUserIds = intros.map(intro => intro.from_user_id);
     const fromUsers = await userRepository.findByIds([
-      'id', 'name', 'age', 'profile_image_id', 'verified', 'is_online'
+      'id', 'name', 'age', 'profile_image_id', 'verification_status', 'is_online'
     ], fromUserIds);
 
     const result = intros.map(intro => {
@@ -80,7 +81,7 @@ class IntroController extends Controller {
         profile_image: MediaService.getProfileImagePath(user),
         name: user.name,
         age: user.age,
-        verified: user.verified,
+        verification_status: user.verification_status,
         is_online: user.is_online,
         intro: {
           timeAgo: timeAgo(intro.created_at),

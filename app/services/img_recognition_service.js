@@ -51,7 +51,38 @@ const detectFaces = (photoName) => new Promise((resolve, reject) => {
   });
 });
 
+const compareFaces = (sourcePhoto, targetPhoto) => new Promise((resolve, reject) => {
+  const params = {
+    SourceImage: {
+      S3Object: {
+        Bucket: S3_BUCKET_NAME,
+        Name: sourcePhoto
+      },
+    },
+    TargetImage: {
+      S3Object: {
+        Bucket: S3_BUCKET_NAME,
+        Name: targetPhoto
+      },
+    },
+    SimilarityThreshold: 70
+  };
+
+  client.compareFaces(params, (err, response) => {
+    if (err) {
+      reject(err);
+
+      return;
+    }
+
+    const faceMatches = (Array.isArray(response?.FaceMatches) ? response.FaceMatches : []).filter(({ Similarity }) => Similarity >= 60).length > 0;
+
+    resolve(faceMatches);
+  });
+});
+
 module.exports = {
   detectFaces,
-  detectInappropriate
+  detectInappropriate,
+  compareFaces
 };

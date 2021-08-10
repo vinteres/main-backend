@@ -186,7 +186,7 @@ class UserController extends Controller {
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const userIds = await matchService.matchIds(loggedUserId);
     const users = await userRepository.findByIds([
-      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified', 'is_online'
+      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verification_status', 'is_online'
     ], userIds);
 
     await notificationRepository.seeNotifs(loggedUserId, ['matched', 'intro_like']);
@@ -211,7 +211,7 @@ class UserController extends Controller {
     const viewers = await viewsRepository.findFor(loggedUserId);
     const viewerIds = viewers.map(viewer => viewer.viewer_user_id);
     const users = await userRepository.findByIds([
-      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified', 'is_online'
+      'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verification_status', 'is_online'
     ], viewerIds);
 
     await notificationRepository.seeNotifs(loggedUserId, 'view');
@@ -259,7 +259,7 @@ class UserController extends Controller {
 
     const users = (await userRepository.findByIds(
       [
-        'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verified', 'is_online'
+        'id', 'name', 'age', 'gender', 'city_id', 'profile_image_id', 'verification_status', 'is_online'
       ],
       Object.keys(compatibilityMap)
     )).filter(({ age }) => (to_age ?? MAX_AGE) >= age && (from_age ?? MIN_AGE) <= age);

@@ -30,7 +30,6 @@ class UserRepository {
       name: name ? name.trim() : name,
       password,
       status: 'onboarding',
-      verified: false,
       created_at: now,
       last_online_at: now,
       is_online: false,
@@ -77,7 +76,7 @@ class UserRepository {
     const [fields, params] = this.getSearchParams({ gender, interestedIn, cityId, fromAge, toAge, searchingUserId });
 
     const query = `
-      SELECT id, name, age, gender, city_id, profile_image_id, verified, is_online
+      SELECT id, name, age, gender, city_id, profile_image_id, verification_status, is_online
       FROM users
       WHERE user_status = 'active' AND gender = $1 AND interested_in = $2
       AND id != $3
@@ -143,7 +142,7 @@ class UserRepository {
     const query = `
       SELECT id, name, title, description, email, age, title, gender,
       interested_in, height, smoking, drinking, body, children_status, pet_status,
-      profile_image_id, birthday, city_id, verified, verification_status,
+      profile_image_id, birthday, city_id, verification_status,
       education_status, employment_status, interested_in, looking_for_type,
       personality, zodiac, income, is_online
       FROM users
@@ -318,6 +317,9 @@ class UserRepository {
   }
 
   async findById(fields, id) {
+    if (typeof fields === 'string') {
+      fields = fields.trim().split(/\s+/);
+    }
     const query = `SELECT ${fields.join(', ')} FROM users WHERE id = $1`;
     const result = await this.conn.query(query, [id]);
 

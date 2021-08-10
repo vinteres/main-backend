@@ -2,13 +2,13 @@ const { Controller } = require('../core/controller');
 const MediaService = require('../services/media_service');
 const formidable = require('formidable');
 const { isProd } = require('../utils');
-const fs = require('fs').promises;
+const VerificationStatus = require('../models/enums/verification_status');
 
 const formParse = (req) => {
   const form = new formidable.IncomingForm();
 
   return new Promise((resolve, reject) => {
-    form.parse(req, async (err, fields, files) => {
+    form.parse(req, (err, fields, files) => {
       if (err) {
         reject(err);
 
@@ -46,33 +46,37 @@ class VerificationController extends Controller {
     const sessionTokenRepository = await this.getService('session_token_repository');
     const introRepository = await this.getService('intro_repository');
     const userRepository = await this.getService('user_repository');
-    const verificationRequestrepository = await this.getService('verification_request_repository');
+    const verificationService = await this.getService('verification_service');
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
-    try {
-      const { files } = await formParse(req);
+    const [
+      { files },
+      { verification_status }
+    ] = await Promise.all([
+      formParse(req),
+      userRepository.findById('verification_status', loggedUserId)
+    ]);
 
+    if ([VerificationStatus.PENDING, VerificationStatus.VERIFIED].includes(verification_status)) {
+      res.status(201).end();
+
+      return;
+    }
+
+    try {
       con.query('BEGIN');
 
       const mediaFile = files['media-blob'];
       const media = await introRepository.createMediaMetadata('image', mediaFile.type);
       const oldpath = mediaFile.path;
 
-      const mediaContent = await fs.readFile(oldpath);
+      await verificationService.requestVerification(loggedUserId, media.id)
 
       if (isProd()) {
-        await MediaService.s3Upload(media.id, mediaFile.type, mediaContent);
+        await MediaService.storeS3(oldpath, media.id, MediaService.SIZE_BIG, mediaFile.type);
       } else {
-        const newpath = `./uploads/${media.id}`;
-        await fs.rename(oldpath, newpath);
+        await MediaService.storeLocaly(oldpath, media.id, MediaService.SIZE_BIG);
       }
-
-      await verificationRequestrepository.create({
-        userId: loggedUserId,
-        imageId: media.id,
-        status: 'pending'
-      });
-      await userRepository.setVerificationStatus(loggedUserId, 'pending');
 
       con.query('COMMIT');
 

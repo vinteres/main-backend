@@ -38,7 +38,7 @@ const s3 = new AWS.S3({
 class MediaService {
   static async resizeAndStore(imagePath, mediaId, contentType) {
     if (isProd()) {
-      const bigImageName = await MediaService.storeS3(
+      const bigImageName = await MediaService._storeS3(
         imagePath,
         mediaId,
         SIZES[SIZE_BIG],
@@ -52,7 +52,7 @@ class MediaService {
         throw new InappropriateImageError();
       }
 
-      await this.storeS3(
+      await this._storeS3(
         imagePath,
         mediaId,
         SIZES[SIZE_SMALL],
@@ -60,7 +60,7 @@ class MediaService {
       );
     } else {
       for (const size of ALL_SIZES) {
-        await MediaService.storeLocaly(imagePath, mediaId, SIZES[size]);
+        await MediaService._storeLocaly(imagePath, mediaId, SIZES[size]);
       }
     }
   }
@@ -79,16 +79,30 @@ class MediaService {
     return true;
   }
 
-  static async storeLocaly(imagePath, mediaId, size) {
-    const newpath = `./uploads/${size.size}_${mediaId}`;
-
-    await MediaService.resizeImage(imagePath, size).toFile(newpath);
+  static async _storeLocaly(imagePath, mediaId, size) {
+    await MediaService.storeLocaly(imagePath, `${size.size}_${mediaId}`, size);
   }
 
-  static async storeS3(imagePath, mediaId, size, contentType) {
-    const buffer = await MediaService.resizeImage(imagePath, size).toBuffer();
+  static async storeLocaly(imagePath, imageName, size) {
+    const newpath = `./uploads/${imageName}`;
 
+    await MediaService.resizeImage(imagePath, MediaService.validatedSize(size)).toFile(newpath);
+  }
+
+  static validatedSize(size) {
+    return typeof size === 'string' ? SIZES[size] : size;
+  }
+
+  static async _storeS3(imagePath, mediaId, size, contentType) {
     const imageName = `${size.size}_${mediaId}`;
+    await MediaService.storeS3(imagePath, imageName, size, contentType);
+
+    return imageName;
+  }
+
+  static async storeS3(imagePath, imageName, size, contentType) {
+    const buffer = await MediaService.resizeImage(imagePath, MediaService.validatedSize(size)).toBuffer();
+
     await MediaService.s3Upload(imageName, contentType, buffer);
 
     return imageName;

@@ -64,6 +64,7 @@ class MediaController extends Controller {
     const mediaRepository = await this.getService('media_repository');
     const sessionTokenRepository = await this.getService('session_token_repository');
     const userRepository = await this.getService('user_repository');
+    const userMediaService = await this.getService('user_media_service');
     const con = await this.getConnection();
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
@@ -72,29 +73,38 @@ class MediaController extends Controller {
       con.query('BEGIN');
 
       const userImage = await mediaRepository.getUserImage(loggedUserId, position);
+
+      const promises = [parseForm(req)];
       if (userImage) {
-        await mediaRepository.deleteUserImage(loggedUserId, position);
         if (1 == position) {
           await userRepository.setUserProfileImage(loggedUserId, null);
         }
-        await mediaRepository.deleteMediaMetadata([userImage.image_id]);
+        promises.push(
+          mediaRepository.deleteUserImage(loggedUserId, position),
+          mediaRepository.deleteMediaMetadata([userImage.image_id]),
+        );
       }
 
-      const { files } = await parseForm(req);
+      const [{ files }] = await Promise.all(promises);
 
       const media = await mediaRepository.createMediaMetadata('image', files['image'].type);
       await mediaRepository.createUserImage(loggedUserId, media.id, position);
       const userImages = await mediaRepository.getUserImages(loggedUserId);
 
       if (1 == position) {
-        await userRepository.setUserProfileImage(loggedUserId, media.id);
+        await Promise.all([
+          userRepository.setUserProfileImage(loggedUserId, media.id),
+          userMediaService.scheduleForVerification(loggedUserId, media.id)
+        ]);
       }
       const oldpath = files['image'].path;
 
-      await MediaService.resizeAndStore(oldpath, media.id, files['image'].type);
+      const a = [MediaService.resizeAndStore(oldpath, media.id, files['image'].type)];
       if (userImage) {
-        await MediaService.deleteImages(userImage.image_id);
+        a.push(MediaService.deleteImages(userImage.image_id));
       }
+
+      await Promise.all(a);
 
       con.query('COMMIT');
 
