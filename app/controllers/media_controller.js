@@ -129,9 +129,17 @@ class MediaController extends Controller {
 
     const loggedUserId = await sessionTokenRepository.getUserId(token);
 
-    const userImage = await mediaRepository.getUserImage(loggedUserId, position);
+    const images = await mediaRepository.getUserImages(loggedUserId);
+    const userImage = images.find(image => image.position == position);
     if (!userImage) {
-      res.json({ images: [] });
+      res.json({ images: MediaService.mapImages(images) });
+
+      return;
+    } else if (images.length === 1) {
+      res.json({
+        images: MediaService.mapImages(images),
+        errMsg: 'Cannot delete profile image'
+      });
 
       return;
     }

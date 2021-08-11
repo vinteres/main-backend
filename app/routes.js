@@ -66,6 +66,7 @@ const initRoutes = (app) => {
   app.post('/api/users/:id/like', authActive, handle(LikeController, 'like'));
   app.post('/api/users/:id/unmatch', authActive, handle(IntroController, 'unmatch'));
   app.post('/api/users/bio', authActive, handle(SettingsController, 'setDescription'));
+  app.get('/api/users/has-profile-img', authActive, handle(UserController, 'hasProfileImage'));
   app.get('/api/users/:id/profile-answers', auth, handle(ProfileQuestionsController, 'get'));
   app.post('/api/users/profile-answer', auth, handle(ProfileQuestionsController, 'save'));
   app.post('/api/media/upload', handle(IntroController, 'create'));

@@ -111,6 +111,20 @@ class UserController extends Controller {
     res.json(user);
   }
 
+  async hasProfileImage(req, res) {
+    const token = this.getAuthToken(req);
+
+    const userRepository = await this.getService('user_repository');
+    const sessionTokenRepository = await this.getService('session_token_repository');
+
+    const loggedUserId = await sessionTokenRepository.getUserId(token);
+    const { profile_image_id } = await userRepository.findById('profile_image_id', loggedUserId);
+
+    res.json({
+      hasProfileImage: !!profile_image_id
+    });
+  }
+
   async getUsers(req, res) {
     const token = this.getAuthToken(req);
     const page = req.query.page;
