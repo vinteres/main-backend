@@ -109,7 +109,9 @@ class MediaService {
   }
 
   static resizeImage(imagePath, { width, height }) {
-    return sharp(imagePath).resize({ height, width });
+    return sharp(imagePath)
+      .resize({ height, width })
+      .withMetadata();
   }
 
   static s3Upload(Key, ContentType, Body) {
