@@ -12,13 +12,17 @@ class AuthService {
     const query = `
       select id, name, email, gender, user_status, verification_status, password FROM users WHERE email = $1
     `;
-    const loginError = { loggedIn: false };
+    let activated = false;
+    const loginError = [activated, { loggedIn: false }];
 
     const result = await this.conn.query(query, [email.trim()]);
     const user = result.rows[0];
-    if (!user) return loginError;
+    if (!user) {
+      return loginError;
+    }
     if (user.user_status === UserStatusType.DELETED) {
       user.user_status = await this.userRepository.setStatus(user.id, UserStatusType.ACTIVE);
+      activated = true;
     }
     const match = await compareHash(password, user.password);
     if (!match) {
@@ -27,16 +31,19 @@ class AuthService {
 
     const token = await this.createAuthTokenForUser(user.id, remember, isFromMobile);
 
-    return {
-      loggedIn: true,
-      token,
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      status: user.user_status,
-      gender: user.gender,
-      verificationStatus: user.verification_status
-    };
+    return [
+      activated,
+      {
+        loggedIn: true,
+        token,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        status: user.user_status,
+        gender: user.gender,
+        verificationStatus: user.verification_status
+      }
+    ];
   }
 
   async loginWith(email, isFromMobile) {

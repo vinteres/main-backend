@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { calculateCompatibility } = require('../compatibility_calculator');
 const { Controller } = require('../core/controller');
 const UserStatusType = require('../models/enums/user_status_type');
 const { sendError } = require('./chat_controller');
@@ -10,7 +11,25 @@ class AuthController extends Controller {
     const remember = req.body.remember;
 
     const authService = await this.getService('auth_service');
-    const user = await authService.login(email, password, remember, this.isFromMobile(req));
+    const compatibilityService= await this.getService('compatibility_service');
+    const con = await this.getConnection();
+
+    try {
+      con.query('BEGIN');
+
+      const [activated, user] = await authService.login(email, password, remember, this.isFromMobile(req));
+      if (activated) await compatibilityService.scheduleForCompatibilityCalculation(user.id);
+
+      con.query('COMMIT');
+
+      if (activated) calculateCompatibility(user.id);
+
+      res.json(user);
+    } catch (e) {
+      con.query('ROLLBACK');
+
+      throw e;
+    }
 
     res.json(user);
   }
@@ -22,6 +41,7 @@ class AuthController extends Controller {
 
     const authService = await this.getService('auth_service');
     const userService = await this.getService('user_service');
+    const compatibilityService = await this.getService('compatibility_service');
     const con = await this.getConnection();
 
     try {
@@ -44,9 +64,17 @@ class AuthController extends Controller {
     try {
       con.query('BEGIN');
 
+      let activated = false;
+
       if (exists) {
         if (foundUser.user_status === UserStatusType.DELETED) {
-          foundUser.user_status = await userService.setStatus(foundUser.id, UserStatusType.ACTIVE);
+          const { activeStatus } = await Promise.all([
+            userService.setStatus(foundUser.id, UserStatusType.ACTIVE),
+            compatibilityService.scheduleForCompatibilityCalculation(foundUser.id)
+          ]);
+          foundUser.user_status = activeStatus;
+
+          activated = true;
         }
 
         result = await authService.loginWith(email, this.isFromMobile(req));
@@ -60,6 +88,8 @@ class AuthController extends Controller {
         result = { ...r.user, token: authToken };
       }
       con.query('COMMIT');
+
+      if (activated) calculateCompatibility(foundUser.id);
     } catch (e) {
       con.query('ROLLBACK');
 

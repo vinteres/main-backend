@@ -237,10 +237,12 @@ class UserRepository {
   async setStatus(userId, status) {
     const toUpdate = { user_status: status };
     if (status === UserStatusType.DELETED) {
-      toUpdate[deleted_at] = currentTimeMs();
+      toUpdate.deleted_at = currentTimeMs();
     }
     if (status !== UserStatusType.ACTIVE) {
-      toUpdate[active_at] = null;
+      toUpdate.active_at = null;
+    } else if (status === UserStatusType.ACTIVE) {
+      toUpdate.active_at = currentTimeMs();
     }
     const fields = [];
     const params = [];
@@ -324,11 +326,11 @@ class UserRepository {
     const params = [gender, interested_in];
 
     if (timeInterval?.from) {
-      whereActiveAt += 'AND active_at >= $3';
+      whereActiveAt += ` AND active_at >= $${params.length + 1}`;
       params.push(timeInterval.from);
     }
     if (timeInterval?.to) {
-      whereActiveAt += 'AND active_at < $3';
+      whereActiveAt += ` AND active_at < $${params.length + 1}`;
       params.push(timeInterval.to);
     }
 
