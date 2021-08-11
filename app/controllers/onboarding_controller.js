@@ -46,7 +46,9 @@ class OnboardingController extends Controller {
 
   async setAccountInfo(req, res) {
     const token = this.getAuthToken(req);
-    const { name, birthday, gender, interested_in, city } = req.body;
+    const { accountInfo, agePref } = req.body;
+    const { name, birthday, gender, interested_in, city } = accountInfo;
+    const { fromAge, toAge } = agePref;
 
     const sessionTokenRepository = await this.getService('session_token_repository');
     const onboardingRepository = await this.getService('onboarding_repository');
@@ -74,9 +76,9 @@ class OnboardingController extends Controller {
       );
 
       if (await searchPreferenceRepository.getForUser(loggedUserId)) {
-        await searchPreferenceRepository.setForUser(loggedUserId, { cityId: city });
+        await searchPreferenceRepository.setForUser(loggedUserId, { fromAge, toAge, cityId: city });
       } else {
-        await searchPreferenceRepository.create(loggedUserId, { cityId: city });
+        await searchPreferenceRepository.create(loggedUserId, { fromAge, toAge, cityId: city });
       }
 
       const newStep = step.step + 1;
