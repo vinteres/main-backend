@@ -76,6 +76,8 @@ class IntroController extends Controller {
     const result = intros.map(intro => {
       const user = fromUsers.filter(user => user.id === intro.from_user_id)[0];
 
+      if (!user) return null;
+
       return {
         id: user.id,
         profile_image: MediaService.getProfileImagePath(user),
@@ -91,7 +93,7 @@ class IntroController extends Controller {
       };
     });
 
-    res.json(result);
+    res.json(result.filter(user => user));
   }
 }
 
