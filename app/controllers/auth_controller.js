@@ -30,8 +30,6 @@ class AuthController extends Controller {
 
       throw e;
     }
-
-    res.json(user);
   }
 
   async loginWith(req, res) {
