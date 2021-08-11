@@ -20,21 +20,8 @@ const scheduleCompatibilityCalculation = () => {
   setTimeout(() => {
     ServiceDiscoveryRepo.handleWithServiceDiscoveryContext(async (serviceDiscovery) => {
       const compatibilityRepository = await serviceDiscovery.get('compatibility_repository');
-      const con = await serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);
 
       let userIds = await compatibilityRepository.getScheduledCompatibilityCalculations();
-      if (userIds.length > 0) {
-        const res = (await con.query(
-          `SELECT id, compatibility_processed_at FROM users WHERE id IN (${userIds.map((_, ix) => `$${1 + ix}`).join(', ')})`,
-          userIds
-        )).rows;
-
-        const compatibilityProcessedAt = {};
-        res.forEach(({ id, compatibility_processed_at }) => {
-          compatibilityProcessedAt[id] = compatibility_processed_at;
-        });
-        userIds = userIds.filter(id => !compatibilityProcessedAt[id]);
-      }
       userIds.forEach(userId => calculateCompatibility(userId));
 
       scheduleCompatibilityCalculation();

@@ -1,7 +1,8 @@
 const { Controller } = require('../core/controller');
-const { calculateAge } = require('../utils');
+const { calculateAge, currentTimeMs } = require('../utils');
 const PageRepository = require('../repositories/page_repository');
 const { calculateCompatibility } = require('../compatibility_calculator');
+const UserStatusType = require('../models/enums/user_status_type');
 
 const STEPS = {
   ACCOUNT_INFO: 1,
@@ -275,7 +276,10 @@ class OnboardingController extends Controller {
         });
       }
 
-      await onboardingRepository.createUserAnswers(userAnswers);
+      await Promise.all([
+        onboardingRepository.createUserAnswers(userAnswers),
+        con.query(`UPDATE users set active_at = $1 WHERE id = $2`, [currentTimeMs(), loggedUserId])
+      ]);
       await compatibilityService.scheduleForCompatibilityCalculation(loggedUserId);
 
       const newStep = step.step + 1;
@@ -316,11 +320,12 @@ class OnboardingController extends Controller {
     try {
       con.query('BEGIN');
 
-      await userRepository.setStatus(loggedUserId, 'active');
+      await userRepository.setStatus(loggedUserId, UserStatusType.ACTIVE);
       const { completedAt } = await onboardingRepository.setComplete(loggedUserId);
 
       // CREATE GREETING MESSAGE
       const loggedUser = await userRepository.findById(['id', 'name'], loggedUserId);
+
       const chatId = await chatRepository.createChat();
       const pageId = PageRepository.getAppPageId();
       await chatRepository.createChatMembers(chatId, [

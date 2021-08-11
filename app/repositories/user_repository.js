@@ -235,10 +235,25 @@ class UserRepository {
   }
 
   async setStatus(userId, status) {
+    const toUpdate = { user_status: status };
+    if (status === UserStatusType.DELETED) {
+      toUpdate[deleted_at] = currentTimeMs();
+    }
+    if (status !== UserStatusType.ACTIVE) {
+      toUpdate[active_at] = null;
+    }
+    const fields = [];
+    const params = [];
+
+    Object.keys(toUpdate).forEach(key => {
+      fields.push(key);
+      params.push(toUpdate[key]);
+    });
+
     const query = `
-      UPDATE users SET user_status = $1 WHERE id = $2
+      UPDATE users SET ${fields.map((field, ix) => `${field} = $${1 + ix}`)} WHERE id = $${fields.length + 1}
     `;
-    await this.conn.query(query, [status, userId]);
+    await this.conn.query(query, [...params, userId]);
 
     return status;
   }
@@ -300,18 +315,27 @@ class UserRepository {
     return result.rows.map(user => user.id);
   }
 
-  async findInterestedIds({ gender, interested_in, createdAt }) {
-    let whereCreatedAt = '';
+  async findInterestedIds({
+    gender,
+    interested_in,
+    timeInterval
+  }) {
+    let whereActiveAt = '';
     const params = [gender, interested_in];
-    if (createdAt) {
-      whereCreatedAt = 'AND created_at < $3';
-      params.push(createdAt);
+
+    if (timeInterval?.from) {
+      whereActiveAt += 'AND active_at >= $3';
+      params.push(timeInterval.from);
+    }
+    if (timeInterval?.to) {
+      whereActiveAt += 'AND active_at < $3';
+      params.push(timeInterval.to);
     }
 
     const query = `
-      SELECT id, created_at FROM users
-      WHERE interested_in = $1 AND gender = $2 ${whereCreatedAt}
-      ORDER BY created_at DESC
+      SELECT id, active_at FROM users
+      WHERE interested_in = $1 AND gender = $2 ${whereActiveAt}
+      ORDER BY active_at DESC
       LIMIT 100
     `;
     const result = await this.conn.query(query, params);

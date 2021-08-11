@@ -63,15 +63,15 @@ class QuizService {
     return 0;
   }
 
-  async backfillCompatibility(userId) {
-    const compatibilities = await this._getCompatibility(userId);
+  async backfillCompatibility(userId, timeInterval) {
+    const compatibilities = await this._getCompatibility(userId, timeInterval);
 
     await this.quizRepository.createCompatibilities(compatibilities);
   }
 
-  async _getCompatibility(userId) {
+  async _getCompatibility(userId, timeInterval) {
     let foundMatches = 0;
-    let lastCreatedAt = null;
+    let { from, to } = timeInterval ?? {};
 
     const [user, userOneAnswers, existingCompatibility] = await Promise.all([
       this.userRepository.getUserInfoById(userId),
@@ -81,8 +81,11 @@ class QuizService {
 
     const compatibilities = [];
 
-    for (;;) {
-      const users = await this.userRepository.findInterestedIds({ ...user, createdAt: lastCreatedAt });
+    for (; ;) {
+      const users = await this.userRepository.findInterestedIds({
+        ...user,
+        timeInterval: { from, to }
+      });
       if (0 === users.length) break;
 
       const userIds = users.map(user => user.id);
@@ -102,7 +105,7 @@ class QuizService {
         }
       }
 
-      lastCreatedAt = users[users.length - 1].created_at;
+      to = users[users.length - 1].active_at;
     }
 
     return compatibilities;
