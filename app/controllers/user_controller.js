@@ -219,10 +219,12 @@ class UserController extends Controller {
 
     res.json(viewerIds.map(viewerId => {
       const user = users.find(u => u.id === viewerId);
+      if (!user) return null;
+
       user.profile_image = MediaService.getProfileImagePath(user);
 
       return user;
-    }));
+    }).filter(user => user));
   }
 
   async getCompatibilities(req, res) {
