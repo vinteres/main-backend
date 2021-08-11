@@ -1,5 +1,6 @@
 const { v4 } = require('uuid');
 const QueryBuilder = require('../core/query_builder');
+const UserStatusType = require('../models/enums/user_status_type');
 const { calculateAge, currentTimeMs } = require('../utils');
 
 const USERS_PER_PAGE = 24;
@@ -331,7 +332,7 @@ class UserRepository {
   async findByIds(fields, ids) {
     if (0 === ids.length) return [];
 
-    const query = `SELECT ${fields.join(', ')} FROM users WHERE id IN (${ids.map((_, ix) => `$${ix + 1}`).join(', ')})`;
+    const query = `SELECT ${fields.join(', ')} FROM users WHERE id IN (${ids.map((_, ix) => `$${ix + 1}`).join(', ')}) AND user_status = '${UserStatusType.ACTIVE}'`;
     const result = await this.conn.query(query, ids);
 
     return result.rows;
