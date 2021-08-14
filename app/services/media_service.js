@@ -109,7 +109,7 @@ class MediaService {
   }
 
   static resizeImage(imagePath, { width, height }) {
-    return sharp(imagePath)
+    return sharp(imagePath, { failOnError: false })
       .resize({ height, width })
       .withMetadata();
   }
@@ -135,7 +135,9 @@ class MediaService {
   }
 
   async resize(imagePath) {
-    const imageData = await sharp(imagePath).resize({ height: 200, width: 200 }).toBuffer();
+    const imageData = await sharp(imagePath, { failOnError: false })
+      .resize({ height: 200, width: 200 })
+      .toBuffer();
 
     await fs.writeFile(imageData);
   }
