@@ -113,7 +113,7 @@ const initRoutes = (app) => {
   app.get('/api/onboarding/account-info', authOnboarding, handle(OnboardingController, 'getAccountInfo'));
   app.post('/api/onboarding/quiz', authOnboarding, handle(OnboardingController, 'setQuizAnswers'));
   app.post('/api/onboarding/image-pass', authOnboarding, handle(OnboardingController, 'setImageStepPassed'));
-  app.post('/api/onboarding/complete', authOnboarding, handle(OnboardingController, 'completeOnboarding'));
+  app.post('/api/onboarding/complete', auth, handle(OnboardingController, 'completeOnboarding'));
   app.get('/api/search-preferences', authActive, handle(SettingsController, 'getSearchPreferences'));
   app.post('/api/search-preferences', authActive, handle(SettingsController, 'setSearchPreferences'));
 

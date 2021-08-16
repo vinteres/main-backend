@@ -46,12 +46,17 @@ class LocationRepository {
   }
 
   async search(text) {
-    text = text.toLowerCase().split('');
+    text = text.trim().toLowerCase().split('');
     text[0] = text[0].toUpperCase();
-    text = text.join(''); 
+    text = text.join('');
+    let translated = translate(text);
+
+    if ('Sofiya' === translated) {
+      translated = 'Sofia';
+    }
 
     const query = 'SELECT * FROM cities WHERE name LIKE $1 OR name LIKE $2';
-    const result = await this.conn.query(query, [text + '%', translate(text) + '%']);
+    const result = await this.conn.query(query, [`${text}%`, `${translated}%`]);
 
     return result.rows;
   }
