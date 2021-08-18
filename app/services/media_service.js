@@ -177,9 +177,9 @@ class MediaService {
     }));
   }
 
-  static getProfileImagePath(user) {
+  static getProfileImagePath(user, size = SIZE_BIG) {
     if (user.profile_image_id) {
-      return MediaService.mediaPath(user.profile_image_id, SIZE_SMALL);
+      return MediaService.mediaPath(user.profile_image_id, size);
     }
 
     if ('male' === user.gender) {

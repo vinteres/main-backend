@@ -1,5 +1,5 @@
 const ChatRepository = require('../repositories/chat_repository');
-const { getProfileImagePath } = require('../services/media_service');
+const { getProfileImagePath, SIZE_SMALL } = require('../services/media_service');
 const { Controller } = require('../core/controller');
 const { timeAgo } = require('../utils');
 const MediaService = require('../services/media_service');
@@ -53,7 +53,7 @@ class ChatController extends Controller {
 
         member.name = imageItem.name;
         // user.gender = u.gender
-        member.profileImage = getProfileImagePath(imageItem);
+        member.profileImage = getProfileImagePath(imageItem, SIZE_SMALL);
       } else if (ChatMemberType.PAGE === member.rel_type) {
         const imageItem = pageImages.find(image => member.rel_id === image.id);
 
@@ -146,7 +146,7 @@ class ChatController extends Controller {
           type: memberType,
           name: user.name,
           is_online: user.is_online,
-          profileImage: MediaService.getProfileImagePath(user),
+          profileImage: MediaService.getProfileImagePath(user, SIZE_SMALL),
         },
         messages,
         hasMoreMsgs: ChatRepository.messagesPerPage() === messages.length

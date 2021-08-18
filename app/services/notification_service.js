@@ -2,6 +2,7 @@ const { send } = require('./ws_service');
 const { mapByKey } = require('../utils');
 const MediaService = require('./media_service');
 const { NOTIF } = require('../models/enums/ws_message_type');
+const { SIZE_SMALL } = require('./media_service');
 
 class NotificationService {
   constructor(notificationRepository, userRepository) {
@@ -15,7 +16,7 @@ class NotificationService {
     const fromUserIds = notifications.map(notification => notification.from_user_id);
     let users = await this.userRepository.getUsersById(fromUserIds);
     users = users.map(user => {
-      user.profileImage = MediaService.getProfileImagePath(user);
+      user.profileImage = MediaService.getProfileImagePath(user, SIZE_SMALL);
 
       return user;
     });
