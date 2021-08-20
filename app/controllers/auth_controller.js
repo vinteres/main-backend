@@ -11,13 +11,19 @@ class AuthController extends Controller {
     const remember = req.body.remember;
 
     const authService = await this.getService('auth_service');
-    const compatibilityService= await this.getService('compatibility_service');
+    const compatibilityService = await this.getService('compatibility_service');
     const con = await this.getConnection();
 
     try {
       con.query('BEGIN');
 
-      const [activated, user] = await authService.login(email, password, remember, this.isFromMobile(req));
+      const [activated, user] = await authService.login(
+        email,
+        password,
+        remember,
+        this.isFromMobile(req),
+        this.isFromCordova(req)
+      );
       if (activated) await compatibilityService.scheduleForCompatibilityCalculation(user.id);
 
       con.query('COMMIT');
@@ -75,14 +81,23 @@ class AuthController extends Controller {
           activated = true;
         }
 
-        result = await authService.loginWith(email, this.isFromMobile(req));
+        result = await authService.loginWith(
+          email,
+          this.isFromMobile(req),
+          this.isFromCordova(req)
+        );
       } else {
         const r = await userService.signUpWith({ email, name, accessToken });
         if (!r?.user) {
           throw 'Couldn\'t create user';
         }
 
-        const authToken = await authService.createAuthTokenForUser(r.user.id, false, this.isFromMobile(req));
+        const authToken = await authService.createAuthTokenForUser(
+          r.user.id,
+          false,
+          this.isFromMobile(req),
+          this.isFromCordova(req)
+        );
         result = { ...r.user, token: authToken };
       }
       con.query('COMMIT');

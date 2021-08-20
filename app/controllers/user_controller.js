@@ -358,7 +358,12 @@ class UserController extends Controller {
     const authService = await this.getService('auth_service');
 
     const result = await userService.signUp({ email, password });
-    const token = await authService.createAuthTokenForUser(result.user.id, false, this.isFromMobile(req));
+    const token = await authService.createAuthTokenForUser(
+      result.user.id,
+      false,
+      this.isFromMobile(req),
+      this.isFromCordova(req)
+    );
     result.user.token = token;
 
     res.json(result);

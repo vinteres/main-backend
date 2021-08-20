@@ -22,6 +22,14 @@ class Controller {
     return useragent?.parse(req.headers['user-agent'])?.isMobile ?? false;
   }
 
+  isFromCordova(req) {
+    return req.headers['x-on-mobile'] === 'true';
+  }
+
+  getIpAddress(req) {
+    return req.headers['x-forwarded-for']?.split(',').shift() || req.socket?.remoteAddress;
+  }
+
   async getConnection() {
     if (!this.connection) {
       this.connection = this.serviceDiscovery.get(SERVICE_NAME_DB_CLIENT);

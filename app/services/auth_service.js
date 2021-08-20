@@ -8,7 +8,7 @@ class AuthService {
     this.userRepository = userRepository;
   }
 
-  async login(email, password, remember, isFromMobile) {
+  async login(email, password, remember, isFromMobile, isFromCordova) {
     const query = `
       select id, name, email, gender, user_status, verification_status, password FROM users WHERE email = $1
     `;
@@ -29,7 +29,12 @@ class AuthService {
       return loginError;
     }
 
-    const token = await this.createAuthTokenForUser(user.id, remember, isFromMobile);
+    const token = await this.createAuthTokenForUser(
+      user.id,
+      remember,
+      isFromMobile,
+      isFromCordova
+    );
 
     return [
       activated,
@@ -46,7 +51,7 @@ class AuthService {
     ];
   }
 
-  async loginWith(email, isFromMobile) {
+  async loginWith(email, isFromMobile, isFromCordova) {
     const query = `
       select id, name, email, gender, user_status, verification_status, password FROM users WHERE email = $1
     `;
@@ -56,7 +61,7 @@ class AuthService {
     const user = result.rows[0];
     if (!user || 'deleted' === user.user_status) return loginError;
 
-    const token = await this.createAuthTokenForUser(user.id, false, isFromMobile);
+    const token = await this.createAuthTokenForUser(user.id, false, isFromMobile, isFromCordova);
 
     return {
       loggedIn: true,
@@ -78,13 +83,16 @@ class AuthService {
     return await this.conn.query(query, [token]);
   }
 
-  async createAuthTokenForUser(userId, remember, isFromMobile) {
+  async createAuthTokenForUser(userId, remember, isFromMobile, isFromCordova) {
     const query = `
-      INSERT INTO session_tokens (user_id, token, remember, is_mobile, created_at) VALUES($1, $2, $3, $4, $5)
+      INSERT INTO session_tokens (user_id, token, remember, is_mobile, is_cordova, created_at) VALUES($1, $2, $3, $4, $5, $6)
     `;
 
     const token = uuid.v4();
-    await this.conn.query(query, [userId, token, remember, isFromMobile, currentTimeMs()]);
+    await this.conn.query(
+      query,
+      [userId, token, remember, isFromMobile, isFromCordova, currentTimeMs()
+    ]);
 
     return token;
   }
