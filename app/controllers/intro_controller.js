@@ -89,7 +89,10 @@ class IntroController extends Controller {
           timeAgo: timeAgo(intro.created_at),
           type: intro.type,
           message: intro.message,
-        }
+        },
+
+        showImage: true,
+        showProfileLink: true
       };
     });
 

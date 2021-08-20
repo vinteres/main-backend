@@ -81,6 +81,8 @@ class UserController extends Controller {
 
     user.profile_image = MediaService.getProfileImagePath(user);
 
+    user.showImage = true;
+
     if (loggedUserId !== userId && 'uncompatible' !== user.relation_status) {
       const [
         compatibility,
@@ -179,6 +181,9 @@ class UserController extends Controller {
       user.profile_image = MediaService.getProfileImagePath(user);
       user.compatibility = compatibilityMap[user.id];
       user.interestCompatibility = interestCompatibilityMap[user.id];
+
+      user.showImage = true;
+      user.showProfileLink = true;
     });
 
     const responseData = {
@@ -209,6 +214,9 @@ class UserController extends Controller {
     res.json(users.map(user => {
       user.profile_image = MediaService.getProfileImagePath(user);
 
+      user.showImage = true;
+      user.showProfileLink = true;
+
       return user;
     }));
   }
@@ -236,6 +244,9 @@ class UserController extends Controller {
       if (!user) return null;
 
       user.profile_image = MediaService.getProfileImagePath(user);
+
+      user.showImage = true;
+      user.showProfileLink = true;
 
       return user;
     }).filter(user => user));
@@ -284,6 +295,9 @@ class UserController extends Controller {
       user.profile_image = MediaService.getProfileImagePath(user);
       user.compatibility = compatibilityMap[user.id];
       user.interestCompatibility = interestCompatibilityMap[user.id];
+
+      user.showImage = true;
+      user.showProfileLink = true;
     });
 
     await Promise.all([
