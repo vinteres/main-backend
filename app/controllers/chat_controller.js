@@ -27,6 +27,8 @@ class ChatController extends Controller {
     const chatPageMembers = chatMembers.filter(member => ChatMemberType.PAGE === member.rel_type);
     const tu = membersData.filter(member => member.rel_id === loggedUserId);
 
+    const messageIds = chats.map(({ last_message_id }) => last_message_id).filter(messageId => messageId);
+
     let matches = [];
     if (0 < chatMembers.length) {
       matches = await matchRepository.getMatchesFor(loggedUserId);
@@ -39,12 +41,13 @@ class ChatController extends Controller {
       });
     }
 
-    const [userImages, pageImages] = await Promise.all([
+    const [userImages, pageImages, messages] = await Promise.all([
       userRepository.getUsersImage(chatUserMembers.map(user => user.rel_id)),
       pageRepository.findByIds(
         ['id', 'name', 'profile_image_id'],
         chatPageMembers.map(user => user.rel_id)
-      )
+      ),
+      chatRepository.getChatMessagesByIds(messageIds)
     ]);
 
     chatMembers.forEach(member => {
@@ -69,12 +72,14 @@ class ChatController extends Controller {
 
       const lastMessageAt = chat.last_message_at;
       const notSeenCount = tu.find(item => item.chat_id === chat.id).not_seen_count;
+      const lastMessage = messages.find(message => message.chat_id === chat.id);
 
       return {
         id: member.rel_id,
         name: member.name,
         profileImage: member.profileImage,
         chat_id: member.chat_id,
+        lastMessage,
         lastMessageAt,
         notSeenCount
       };

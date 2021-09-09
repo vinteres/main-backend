@@ -33,12 +33,12 @@ class ChatRepository {
     return chatId;
   }
 
-  async updateLastChatMessage(chatId, timestamp) {
+  async updateLastChatMessage(chatId, timestamp, messageId) {
     const query = `
-    UPDATE chats SET last_message_at = $1 WHERE id = $2
+    UPDATE chats SET last_message_at = $1, last_message_id = $2 WHERE id = $3
     `;
 
-    await this.conn.query(query, [timestamp, chatId]);
+    await this.conn.query(query, [timestamp, messageId, chatId]);
 
     return chatId;
   }
@@ -171,6 +171,16 @@ class ChatRepository {
     `;
 
     const result = await this.conn.query(query, [chatId]);
+
+    return result.rows;
+  }
+
+  async getChatMessagesByIds(ids) {
+    if (!Array.isArray(ids) || ids.length === 0) return [];
+
+    const query = `SELECT * FROM chat_messages WHERE id IN (${ids.map((_, ix) => `$${ix + 1}`)})`;
+
+    const result = await this.conn.query(query, ids);
 
     return result.rows;
   }
