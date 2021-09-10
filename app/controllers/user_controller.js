@@ -133,6 +133,7 @@ class UserController extends Controller {
     const fromAge = req.query.fromAge;
     const toAge = req.query.toAge;
     const cityId = req.query.cityId;
+    const order = req.query.order;
 
     const sessionTokenRepository = await this.getService('session_token_repository');
     const userService = await this.getService('user_service');
@@ -144,7 +145,7 @@ class UserController extends Controller {
     const loggedUserId = await sessionTokenRepository.getUserId(token);
     const loggedUser = await userRepository.getUserById(loggedUserId);
     const { users, totalCount } = await userService.getUsers(page, loggedUser, {
-      fromAge, toAge, cityId
+      fromAge, toAge, cityId, order
     });
 
     const cityIds = Array.from(new Set(users.map(({ city_id }) => city_id)));

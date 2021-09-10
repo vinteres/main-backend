@@ -73,16 +73,19 @@ class UserRepository {
     return result.rows[0].password;
   }
 
-  async searchUsers(page, { gender, interestedIn, cityId, fromAge, toAge, searchingUserId }) {
+  async searchUsers(page, { gender, interestedIn, cityId, fromAge, toAge, searchingUserId }, order) {
     const [fields, params] = this.getSearchParams({ gender, interestedIn, cityId, fromAge, toAge, searchingUserId });
 
+    const sort = order === 'newest_member' ? 'ORDER BY created_at DESC' : 'ORDER BY last_online_at DESC';
+
+    // ORDER BY is_online DESC, last_online_at DESC
     const query = `
       SELECT id, name, age, gender, city_id, profile_image_id, verification_status, is_online
       FROM users
       WHERE user_status = 'active' AND gender = $1 AND interested_in = $2
       AND id != $3
       ${fields.join(' ')}
-      ORDER BY is_online DESC, last_online_at DESC
+      ${sort}
       OFFSET ${(page - 1) * USERS_PER_PAGE}
       LIMIT ${USERS_PER_PAGE}
     `;

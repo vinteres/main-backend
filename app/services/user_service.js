@@ -48,7 +48,7 @@ class UserService {
     };
 
     const [users, totalCount] = await Promise.all([
-      this.userRepository.searchUsers(page || 1, search),
+      this.userRepository.searchUsers(page || 1, search, searchPref.order),
       this.userRepository.getUsersCount(search)
     ]);
 

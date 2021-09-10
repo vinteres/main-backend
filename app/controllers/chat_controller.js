@@ -42,7 +42,10 @@ class ChatController extends Controller {
     }
 
     const [userImages, pageImages, messages] = await Promise.all([
-      userRepository.getUsersImage(chatUserMembers.map(user => user.rel_id)),
+      userRepository.findByIds(
+        ['id', 'name', 'gender', 'profile_image_id', 'is_online'],
+        chatUserMembers.map(user => user.rel_id)
+      ),
       pageRepository.findByIds(
         ['id', 'name', 'profile_image_id'],
         chatPageMembers.map(user => user.rel_id)
@@ -55,6 +58,7 @@ class ChatController extends Controller {
         const imageItem = userImages.find(image => member.rel_id === image.id);
 
         member.name = imageItem.name;
+        member.is_online = imageItem.is_online;
         // user.gender = u.gender
         member.profileImage = getProfileImagePath(imageItem, SIZE_SMALL);
       } else if (ChatMemberType.PAGE === member.rel_type) {
@@ -79,6 +83,7 @@ class ChatController extends Controller {
         name: member.name,
         profileImage: member.profileImage,
         chat_id: member.chat_id,
+        is_online: member.is_online,
         lastMessage,
         lastMessageAt,
         notSeenCount
