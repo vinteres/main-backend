@@ -43,7 +43,7 @@ class ChatController extends Controller {
 
     const [userImages, pageImages, messages] = await Promise.all([
       userRepository.findByIds(
-        ['id', 'name', 'gender', 'profile_image_id', 'is_online'],
+        ['id', 'name', 'gender', 'profile_image_id', 'is_online', 'verification_status'],
         chatUserMembers.map(user => user.rel_id)
       ),
       pageRepository.findByIds(
@@ -59,6 +59,7 @@ class ChatController extends Controller {
 
         member.name = imageItem.name;
         member.is_online = imageItem.is_online;
+        member.verified = imageItem.verification_status === 'verified';
         // user.gender = u.gender
         member.profileImage = getProfileImagePath(imageItem, SIZE_SMALL);
       } else if (ChatMemberType.PAGE === member.rel_type) {
@@ -84,6 +85,7 @@ class ChatController extends Controller {
         profileImage: member.profileImage,
         chat_id: member.chat_id,
         is_online: member.is_online,
+        verified  : member.verified,
         lastMessage,
         lastMessageAt,
         notSeenCount
@@ -136,7 +138,9 @@ class ChatController extends Controller {
       let messages = await chatRepository.getChatMessages(chatId);
       let user;
       if (ChatMemberType.USER === memberType) {
-        user = await userRepository.getUserById(userId);
+        user = await userRepository.findById([
+          'id', 'name', 'age', 'user_status', 'profile_image_id', 'is_online', 'verification_status'
+        ], userId);
       } else if (ChatMemberType.PAGE === memberType) {
         user = await pageRepository.findById(['id', 'name', 'profile_image_id'], userId);
       }
@@ -156,6 +160,7 @@ class ChatController extends Controller {
           type: memberType,
           name: user.name,
           is_online: user.is_online,
+          verified: user.verification_status === 'verified',
           profileImage: MediaService.getProfileImagePath(user, SIZE_SMALL),
         },
         messages,
